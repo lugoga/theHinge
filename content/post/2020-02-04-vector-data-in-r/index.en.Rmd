@@ -1,0 +1,228 @@
+---
+title: Vector Data in R
+author: Masumbuko Semba
+date: '2020-02-04'
+slug: []
+categories:
+  - ''
+tags:
+  - code
+  - programming
+  - R
+  - semba
+  - tidyverse
+description: ''
+thumbnail: ''
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = FALSE)
+
+require(tidyverse)
+require(kableExtra)
+require(lubridate)
+require(sf)
+```
+
+
+
+## Introduction
+This chapter provides brief explanations of the fundamental vector model. You will get familiar with the theory behind vector model and the disciplines in which they predominate, before demonstrating its implementation in R.
+
+Vector is the most basic data structure in R. It is a sequence of elements of the same data type. if the elemenets are of different data types, they be coerced to a commontype that can accomodate all the elelements. Vector are generally created using the `c()` function widely called `concatenate`, though depeending on the type vector being created, other medhod. 
+
+## Numeric Vector
+We create a numeric vector using a `c()` function but you can use any function that creates a sequence of numbers
+```{r}
+sst = c(25.4, 26, 28, 27.8, 29, 24.8, 22.3)
+```
+
+We can use the `is.vector()` function to check if is is avector and class to check the data type
+```{r}
+is.vector(sst); class(sst)
+```
+
+## Integer vector
+Creating an integer vector is similar to numeric vector except that we need to instruct R to treat the data as integer and not numeric or double. To command R creating integer, we specify a suffix `L` to an element
+```{r}
+depth = c(5L, 10L, 15L, 20L, 25L,30L)
+is.vector(depth);class(depth)
+```
+
+## Character vector
+A character vector may contain a single character , a word or a group of words. The elements must be enclosed with a single or double quotations mark.
+
+```{r}
+sites = c("Pemba Channel", "Zanzibar Channnel", "Pemba Channel")
+is.vector(sites); class(sites)
+```
+
+## Logical Vector
+A vector of logical values will either contain TRUE or FALSE or both
+```{r}
+presence = c(TRUE,TRUE, FALSE, TRUE, FALSE)
+is.vector(presence);class(presence)
+```
+
+## Vector Data
+The geographic vector model is based on points located within a coordinate reference system (CRS). Points can represent self-standing features (e.g., the locations where research sample were taken ) or they can be linked together to form complex geometries like lines and polygons. Most point geometries contain only two dimensions with longitude and latitude together with the attribute information. However 3-dimensional points contain an additional  $z$ value--- representing  a thrid dimension---elevation, bathmetry etc.
+
+The standard and widely implemented spatial format for vector data is shapefile. shapefile format is popular geospatial vector data format for geographical information system (GIS) software.It is developed and maintained by Esri. Despite what its name may imply, a “single” shapefile is actually composed of at least three files, and as many as eight. Each file that makes up a “shapefile” has a common filename but different extension type. The list of files that define a “shapefile” are shown in table \@ref(tab:tab41). Note that each file has a specific role in defining a shapefile.
+
+```{r tab41, echo=FALSE}
+shapefile = data.frame(Extension = c(".dbf",".shp",".shx",".aih",
+                                     ".ain",".prj",".sbn",".sbx"),
+                       Description = c("Attribute information",
+                                       "Feature geometry",
+                                       "Feature geometry index",
+                                       "Attribute index",
+                                       "Attribute index",
+                                       "Coordinate system information",
+                                       "Spatial index file",
+                                       "Spatial index file"))
+
+shapefile %>% 
+  dplyr::select(2,1) %>% 
+  knitr::kable(caption = "Eight Common files that makes a shapefile")%>%
+  kableExtra::column_spec(column = 1, width = "8cm")%>%
+  kableExtra::column_spec(column = 2, width = "4cm")
+```
+
+Until recent, shapefile format was the de facto form ofvector data basis for libraries such as GDAL. R has well-supported classes for storing spatial data and interfacing to the shapefile format, but has so far lacked a complete implementation of *simple features*, making conversions at times convoluted, inefficient or incomplete [@sf]. 
+
+### Simple features
+
+@sf plainly described *simple features* as hierachical data model that present objects in the real world in computers, with emphasis on the spatial geometry of these objects. Out of 17, there are only seven seven simple feature types described in Table \@ref(tab:tab42) that are commonly used. **sf** can represent common vector geometry types---points, lines, polygons and their respective ‘multi’ versions. **sf** also supports geometry collections, which can contain multiple geometry types in a single object. 
+
+```{r tab42, echo=FALSE}
+
+simple.features = data.frame(Type = c("Point","Linestring", "Polygon", "Multipoint", "Multilinestring", "Multipolygon", "Geometrycollection"),
+                             Description = c("zero-dimensional geometry containing a single point",
+                                             "sequence of points connected by straight, non-self intersecting line pieces; one-dimensional geometry", 
+                                             "geometry with a positive area (two-dimensional); sequence of points form a closed, non-self intersecting ring; the first ring denotes the exterior ring, zero or more subsequent rings denote holes in this exterior ring",
+                                             "set of points; a MULTIPOINT is simple if no two Points in the MULTIPOINT are equal", "Set of linestrings", "set of polygons", "Set of geometries of any type with exception of geometrycollection"))
+
+simple.features %>% knitr::kable(caption = "Common simple features")%>%
+  kableExtra::column_spec(column = 1, width = "4cm")%>%
+  kableExtra::column_spec(column = 2, width = "12cm")
+```
+
+These core geometry types are fully supported by the R package **sf** [@sf]. **sf** is a package providing a class system for geographic vector data [@geocomputation] supersede, **sp**---methods for spatial data [@sp]. It also provides a consistent command-line interface to GEOS and GDAL, superseding **rgdal**--- for data read/write [@rgdal] and **rgeos**---for spatial operations [@rgeos] packages
+
+
+## Reading vector data
+
+We will use the **sf** package to work with vector data in R [@sf. Notice that the **rgdal** package automatically loads when **sf** is loaded. The **sf** package has the `st_read()` function that read different types of vector data to sf object. 
+
+```{r}
+require(sf)
+```
+
+### Reading shapefiles
+Shapefile is the widely used vector format in GIS software. The function `st_read()` import any type of shapefile into R. for example the chunk block below show how to import the sampling location that are in shapefile format into simple feature object in R's worksapace. 
+
+```{r}
+
+location = st_read("data/simple_feature.shp", quiet = TRUE)
+location
+
+
+```
+
+When we print the this simple feature it tells us that it has 18 features that span between longitude `r metR::LonLabel(39.45336)` and `r metR::LonLabel(39.55239)` and latitude `r metR::LatLabel(-6.850945)` and `r metR::LatLabel(-6.461915)` with defined  geographical coordinate system of `WGS84`. 
+
+### Reading GPX file
+The `st_read()` function can also read files from GPS devices with the `.gpx` extension. 
+
+```{r}
+track = st_read("data/Track-180911-063740.gpx", quiet  = TRUE)
+track
+```
+
+We can assess the geographical extent of the simple feature track with the `st_bbox()` function. 
+```{r}
+track %>% st_bbox()
+```
+
+And check the type of geographical coordinate system with `st_crs()` function
+```{r}
+track %>% st_crs()
+```
+
+## Make shapefiles from Tabular data
+Sometimes the geographical information are in tabular form and you need to convert them into simple feature to work with spatial analysis and mapping. The **sf** package provide a `st_as_sf()` function that can make simple feature from the location information in the table. To illustrate this point, let us first load the file that contain the geographical information into the workspace. 
+
+
+```{r}
+location = read_csv("data/kimbiji_kizimkazi_transect.csv")
+```
+
+Looking the internal structure of the location object we loaded, we find that there are eighteen observations and each observation has the longitude and latitude information.
+
+```{r}
+location %>% glimpse()
+```
+
+The file contain only the geographical information. We can add the column for station names. `mutate()` function from **dplyr** package add the third column. Because the  station name should be sequentially numbered, the `paste()` function was used to do this. 
+```{r}
+location = location %>% 
+  mutate(name = paste("station", 1:18))
+```
+
+
+Once we know that the dataset contain the longitude and latitude information, we can use these spatial information to make simple feature object using the `st_as_sf()` from **sf** package
+
+```{r}
+
+location.sf = location %>% 
+  st_as_sf(coords = c("lon", "lat"))
+
+location.sf
+```
+The `coords` parameter is given the `latitude` and `longitude` value columns–values used to locate the points associated with each record. We now have a simple featuere with 18 points. However, the simple feature lack the coordinate system. We can define the coordinate system for the simple feature with the `st_set_crs()` function and parse the epsg code of WGS84.
+
+```{r}
+location.sf = location.sf %>% 
+  st_set_crs(4326)
+
+```
+
+Let us check if the `location.sf` is indeed a spatial object
+
+```{r}
+location.sf
+```
+
+let us check the class of the simple feature
+
+```{r}
+location.sf %>% 
+  class()
+```
+
+Note the object has four class `sf`, `tbl_df`, `tbl`, and `data_frame`. The data frame contents was also carried over into the attributes table of the simple feature. There was only one attribute, `name`, other than `lon` and `lat` in the tabular data used to create this simple feature. 
+
+Looking on the file clearly the projection is defined to `WGS84`. We can further transform the geographical coordinate system that is degree into the UTM, which is in metric. The function `st_transform()` from **sf** package handle transformation of coordinate system [@sf]. The epsg code for zone 37 south is 32737, which is parsed into the function.
+
+```{r}
+location.utm = location.sf %>% 
+  st_transform(32737)
+
+location.utm
+```
+
+
+## Export simple feature as shapefile
+
+Once the simple feature is created, you might be interested to export as shapefile for use with other GIS software like QGIS and Esri ARCGIS. The **sf** package has a `st_write()` function that export simple feature from the workspace into shapefiles in the working directory. The chunk block below demonstrates the export of simple feature object location.sf into the  location.shp in the working directory---denoted with `./`
+
+```{r eval=FALSE}
+location.sf %>% st_write("./location.shp")
+```
+
+
+
+
+

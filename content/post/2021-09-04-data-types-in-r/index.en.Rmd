@@ -1,0 +1,456 @@
+---
+title: Data types in R
+author: Masumbuko Semba
+date: '2020-01-04'
+slug: []
+categories:
+  - ''
+tags:
+  - code
+  - programming
+  - semba
+  - R
+  - tidyverse
+description: ''
+thumbnail: ''
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = FALSE)
+
+require(tidyverse)
+require(kableExtra)
+require(lubridate)
+
+```
+
+
+
+R is a flexible language that allows to work with different kind of data format [@bradley]. This inluced integer, numeric, character, complex, dates and logical. The default data type or class in **R** is double precision---numeric. In a nutshell, R treats all kind of data into five categories but we deal with only four in this book. Before proceeding, we need to clear the workspace by typing `rm(list = ls())` after the prompt in the in a console. 
+
+
+But before we move further, let's us clean our working environment by clicking a combination of `Ctrl+L`. Clearing the workspace is always recommended before working on a new R project to avoid name conflicts with provious projects. We can also clear all figures using `graphics.off()` function. It is a good code practise that a new R project start with the code in the chunk below:
+
+
+```{r, eval=FALSE}
+rm(list = ls())
+graphics.off()
+```
+
+
+1. `Integers`:Integer values do not have decimal places. They are commonly used for counting or indexing. 
+
+```{r}
+aa = c(20,68,78,50)
+```
+
+You can check if the data is integer with `is.integer()` and can convert numeric value to an integer with `as.integer()` 
+
+```{r}
+is.integer(aa)
+
+```
+
+You can query the class of the object with the `class()` to know the class of the object
+```{r}
+class(aa)
+
+```
+
+Although the object bb is integer as confirmed with `as.integer()` function, the `class()` ouput the answer as numeric. This is because the defaul type of number in r is numeric. However, you can use the function `as.integer()` to convert numeric value to integer
+```{r}
+class(as.integer(aa))
+```
+
+ 
+ 2. `Numeric`: The numeric class holds the set of real numbers --- decimal place numbers. The numeric class is more general than the integer class, and inclused the integer numbers. 
+ 
+ These could be any number (whole or decimal number). You can check if the data is integer with `is.integer()`
+```{r}
+bb = c(12.5, 45.68, 2.65)
+class(bb)
+is.numeric(bb)
+```
+ 
+3. `Strings`: In programming terms, we usually call text as *string*.This often are `text` data like names. 
+```{r}
+countries = c("Kenya", "Uganda", "Rwanda", "Tanzania")
+class(countries)
+```
+We can be sure whether the object is a string with `is.character()` or check the class of the object with `class()`.
+
+
+4. `Factor`: These are strings from finite set of values. For example, we might wish to store a variable that records gender of people. You can check if the data is factor with `is.factor()` and use `as.factor()` to convert `string` to `factor`
+```{r}
+sex = c("Male", "Female", "Male", "Male", "Female")
+sex = as.factor(sex)
+class(sex)
+
+```
+
+Often times we need to know the possible groups that are in the factor data. This can be achieved with the `levels()` function
+
+```{r}
+
+levels(sex)
+
+levels(countries)
+```
+
+Often we wish to take a continuous numerical vector and transform it into a factor. The function `cut()` takes a vector of numerical data and creates a factor based on your give cut-points. Let us make a fictional income of 508 people with `rnorm()` function. 
+
+```{r hist, fig.cap="Income distribution"}
+
+income = rnorm(n = 508, mean = 500, sd = 80)
+hist(income, col = "green", main = "", las = 1, xlab = "Individual Income")
+#mosaic::plotDist(dist = "norm", mean = 500, sd = 80)
+
+```
+
+We can now breaks the distribution into groups and make a simple plot as shown in figure \@ref(fig:fig21), where those with income less than 400 were about 50, followed with a group with income range between 400 and 500 of about 200 and 250 people receive income above 500
+```{r}
+group = cut(income, breaks = c(300,400,500,800),
+            labels = c("Below 400", "400-500", "Above 500"))
+is.factor(group)
+levels(group)
+```
+
+
+```{r fig21, fig.cap= "Barplot of grouped income"}
+
+barplot(table(group), las = 1, horiz = FALSE, col = c("blue", "red", "blue"), ylab = "Frequency", xlab = "Group of Income")
+```
+```{r}
+data = data.frame(group, income)
+```
+
+
+5. `Logicals`: This is a special case of a factor that can only take on the values `TRUE` and `FALSE`. R is case-sensitive, therefore you must always capitalize `TRUE` and `FALSE` in function in R.
+
+6. `Date and time`
+
+
+
+### Vectors
+Ofen times we want to store a set of numbers in once place. One way to do this is using the vectors in R. Vectors store severl numbers-- a set of numbers in one container. let us look on the example below
+```{r}
+id = c(1,2,3,4,5)
+people = c(158,659,782,659,759)
+street = c("Dege", "Mchikichini", "Mwembe Mdogo", "Mwongozo",  "Cheka")
+```
+Notice that the `c()` function, which is short for concatenate wraps the list of numbers. The `c()` function combines all numbers together into one container. Notice also that all the individual numbers are separated with a comma. The comma is reffered to an an item-delimiter. It allows R to hold each of the numbers separately. This is vital as without the item-delimiter, R will treat a vector as one big, unsperated number. 
+
+
+### Indexing the element
+One advantage of vector is that you can extract individual element in the vector object by indexing, which is accomplished using the square bracket as illustrated below.
+
+```{r}
+id[5]
+people[5]
+street[5]
+```
+Apart from extracting single element, indexing allows to extract a range of element in a vector. This is extremely important because it allows to subset a portion of data in a vector. A colon operator is used to extract a range of data
+```{r}
+street[2:4]
+```
+
+### Adding and Replacing an element in a vector
+It is possible to add element of an axisting vecor. Here ia an example
+```{r}
+id[6] = 6
+people[6] = 578
+street[6] = "Mwongozo"
+```
+
+Sometimes you may need to replace an element from a vector, this can be achieved with indexing
+```{r}
+people[1] = 750
+```
+
+### Number of elements in a vector
+Sometimes you may have a long vector and want to know the numbers of elements in the object. R has `length()` function that allows you to query the vector and print the answer
+```{r}
+length(people)
+```
+
+
+### Generating sequence of vectors Numbers
+There are few R operators that are designed for creating vecor of non-random numbers. These functions provide multiple ways for generating sequences of numbers
+
+The colon `:` operator, explicitly generate regular sequence of numbers between the lower and upper boundary numbers specified. For example, generating number beween 0 and 10, we simply write;
+```{r}
+vector.seq = 0:10
+vector.seq
+```
+
+However, if you want to generate a vector of sequence number with specified interval, let say we want to generate number between 0 and 10 with interval of 2, then the `seq()` function is used
+```{r}
+regular.vector = seq(from = 0,to = 10, by = 2)
+regular.vector
+```
+
+unlike the `seq()` function and `:` operator that works with numbers, the `rep()` function generate sequence of repeated numbers or strings to create a vector
+
+```{r}
+id = rep(x = 3, each = 4)
+station = rep(x = "Station1", each = 4)
+id;station
+```
+
+The `rep()` function allows to parse `each` and `times` arguments. The `each` argument allows creation of vector that that repeat each element in a vector according to specified number. 
+```{r}
+sampled.months = c("January", "March", "May")
+rep(x = sampled.months, each = 3)
+
+```
+
+But the `times` argument repeat the whole vector to specfied times
+```{r}
+rep(x = sampled.months, times = 3)
+```
+
+
+### Generating vector of normal distribution
+
+The central limit theorem that ensure the data is normal distributed is well known to statistician. R has a `rnorm()` function which makes vector of normal distributed values. For example to generate a vector of 40 sea surface temperature values from a normal distribution with a `mean` of 25, and `standard deviation` of 1.58, we simply type this expression in console;
+```{r}
+sst = rnorm(n = 40, mean = 25,sd = 1.58)
+sst
+```
+
+### Rounding off numbers
+
+There are many ways of rounding off numerical number to the nearest integers or specify the number of decimal places. the code block below illustrate the common way to round off:
+
+```{r}
+require(magrittr)
+chl = rnorm(n = 20, mean = .55, sd = .2)
+chl %>% round(digits = 2)
+```
+
+
+## Data Frame
+`data.frame` is very much like a simple Excel spreadsheet where each column represents a variable type and each row represent observations. A data frame is the most common way of storing data in R and, generally, is the data  structure most often used for data analyses.  A data frame is a list of  equal--length vectors with rows as records and columns as variables. This makes data frames unique in data storing as it can store different classes of objects in each column (i.e. numeric, character, factor, logic, etc). In this section, we will create data frames and add attributes to data frames. 
+
+### Creating data frames
+Perhaps the easiest way to create a data frame is to parse vectors in a `data.frame()` function. For instance, in this case we  create a simple data frame `dt` and assess its internal structure
+
+```{r}
+# create vectors
+Name  = c('Bob','Jeff','Mary')
+Score = c(90, 75, 92)
+Grade = c("A", "B", "A")
+
+## use the vectors to make a data frame
+dt = data.frame(Name, Score, Grade)
+
+## assess the internal structure
+str(dt)
+```
+
+Note how Variable `Name` in dt was converted to a column of factors . This is because there is a default setting in `data.frame()` that converts character columns to  factors . We can turn this off by setting the `stringsAsFactors = FALSE` argument:
+
+```{r}
+## use the vectors to make a data frame
+df = data.frame(Name, Score, Grade, stringsAsFactors = FALSE)
+df %>% str()
+```
+
+Now the variable `Name` is of character class in the data frame. The inherited problem of data frame to convert character columns into a factor is resolved by introduction f advanced data frames called *tibble*, which provides sticker checking and better formating than the traditional data.frame.
+
+```{r}
+## use the vectors to make a tibble
+tb = tibble(Name, Score, Grade) 
+## check the internal structure of the tibble
+tb%>% glimpse()
+```
+
+
+Table \@ref(tab:tab301) show the the data frame created by fusing the two vectors together.
+
+```{r tab301, echo=FALSE}
+dt %>% 
+  knitr::kable("html",caption = "Variables in the data frame", align = "c") %>%
+  kableExtra::column_spec(column = 1:2, width = "4cm")
+```
+
+Because the columns have meaning and we have given them column names, it is desirable to want to access an element by the name of the column as opposed to the column number.In large Excel spreadsheets I often get annoyed trying to remember which column something was. The `$`sign and `[]`are used in R to select variable from the data frame. 
+
+```{r}
+dt$Name
+dt[,1]
+```
+
+```{r}
+dt$Score
+dt[,2]
+```
+
+R has build in dataset that we can use for illustration. For example, @longley created a `longley` dataset, which is data frame with 7 economic variables observed every year from 1947 ti 1962 (Table \@ref(tab:tab22)). We can add the data in the workspace with `data()` function
+```{r tab22}
+data(longley)
+
+longley %>% 
+  kable(caption = "Longleys' Economic dataset", align = "c", row.names = F) %>%
+  column_spec(1:7, width = "3cm")
+  
+```
+
+Sometimes you may need to create set of values and store them in vectors, then combine the vectors into a data frame. Let us see how this can be done. First create three vectors. One contains id for ten individuals, the second vector hold the time each individual signed in the attendane book and the third vector is the distance of each individual from office. We can concatenate the set of values to make vectors.
+
+```{r}
+id  = c(1,2,3,4,5,6,7,8,9,10)
+
+time = ymd_hms(c("2018-11-20 06:35:25 EAT", "2018-11-20 06:52:05 EAT", 
+                 "2018-11-20 07:08:45 EAT", "2018-11-20 07:25:25 EAT", 
+                 "2018-11-20 07:42:05 EAT", "2018-11-20 07:58:45 EAT", 
+                 "2018-11-20 08:15:25 EAT", "2018-11-20 08:32:05 EAT", 
+                 "2018-11-20 08:48:45 EAT", "2018-11-20 09:05:25 EAT"), tz = "")
+
+distance = c(20, 85, 45, 69, 42,  52, 6, 45, 36, 7)
+```
+
+Once we have the vectors that have the same length dimension, we can use the function `data.frame()` to combine the the three vectors into one data frame shown in table \@ref(tab:tab23)
+
+```{r}
+arrival = data.frame(id, time, distance)
+```
+
+```{r tab23, echo=FALSE}
+
+arrival %>% 
+  kable("html", col.names = c("IDs", "Time", "Distance"),
+        caption = "The time employees enter into the office with the distance from their residential areas to the office") %>%
+  column_spec(column = 1:3, width = "4cm")
+```
+
+
+## Matrix
+A matrix is defined as a collection of data elements arranged in a two--dimensional rectangular layout. R is very strictly when you make up a matrix as it must be with equal dimension---all columns in a matrix must be of the same length. Unlike data frame and list that can store  numeric or character.etc in columns, matrix columns must be numeric or characters in a matrix file. 
+
+### Creating Matrices
+The base R has a `matrix()` function that construct matrices column--wise. In other language, element in matrix are entered starting from the `upper left` corner and running down the columns. Therefore, one should take serious note of specifying the value to fill in a matrix and the number of rows and columns when using the `matrix()` function.For example in the code block below, we create an imaginary month sst value for five years and obtain an atomic vector of 60 observation. 
+
+```{r}
+sst = rnorm(n = 60, mean = 25, 3)
+
+```
+
+Once we have the atomic vector of sst value, we can convert it to matrix with the `matrix()` function. We put the observation as rows---months and the columns as years. Therefore, we have 12 rows and 5 years and the product of number of months and years we get 60---equivalent to our sst atomic vector we just created above. 
+
+```{r}
+sst.matrix = matrix(data = sst, nrow = 12, ncol = 5)
+
+```
+
+We then check whether we got the matrix with `is.matrix()` function
+```{r}
+is.matrix(sst);is.matrix(sst.matrix)
+sst
+```
+We can check whether the dimension we just defined while creating this matrix is correct. This is done with the `dim()` function from base R. 
+```{r}
+dim(sst.matrix)
+```
+
+If you have large vector and you you want the `matrix()` function to figure out the number of columns, you simply define the nrow and tell the function that you do not want those element arranged by rows ---i.e you want them in column-wise. That is done by parsing the argument `byrow = FALSE` inside the `matrixt()` function.
+
+```{r}
+sst.matrixby = sst %>% matrix(nrow = 12, byrow = FALSE)
+
+```
+
+### Adding attributes to Matrices
+Often times you may need to add additional attributes to the maxtrix---observation names, variable names and comments in the matrix. 
+
+We can add columns, which are years from 2014  to 2018
+```{r}
+
+years = 2014:2018
+colnames(sst.matrix) = years
+sst.matrix
+```
+
+and add the month for rows, which is January to December. Now the matrix has names for the rows---records and for columns---variables
+
+```{r}
+
+months = seq(from = dmy(010115), to = dmy(311215), 
+             by = "month") %>% month(abbr = TRUE, 
+                                     label = TRUE)
+rownames(sst.matrix) = months
+sst.matrix
+```
+
+## Arrays
+
+```{r}
+
+array(data = sst, dim = c(3,5,4))
+```
+
+This can be done with the indexing. For example, in the `sst.matrix` we just create, it has twelve rows representing monthly average and five columns representing years. We then obtain data for the six year and we want to add it into the matrix. Simply done with indexing
+
+```{r}
+sst.matrix[1:12,5]
+  
+```
+
+
+## Dealing with Misiing Values
+Just as we can assign numbers, strings, list to a variable, we can also assign nothing to an object, or an empty value to a variable. IN R, an empty object is defined with `NULL`. Assigning a value oof NULL to an object is one way to reset it to its original, empty state. You might do this when you wanto to pre--allocate an object without any value, especially when you iterate the process and you want the outputs to be stored in the empty object. 
+```{r}
+sst.container = NULL
+```
+
+You can check whether the object is an empty with the `is.null()` function, which return a logical ouputs indicating whther is `TRUE` or `FALSE`
+
+```{r}
+is.null(sst.container)
+```
+
+You can also check for `NULL` in an `if` satement as well, as highlighted in the following example;
+
+```{r}
+if (is.null(sst.container)){
+  print("The object is empty and hence you can use to store looped outputs!!!")
+}
+```
+
+And empty element (value) in object is represented with `NA` in R, and it is the absence of value in an object or variable. 
+
+```{r}
+sst.sample = c(26.78, 25.98,NA, 24.58, NA)
+sst.sample
+```
+
+To identify missing values in a vector in R, use the `is.na()` function, which returns a logical vector with `TRUE` of the corresponding element(s) with missing value
+```{r}
+is.na(sst.sample)
+```
+
+and computing statistics of the variable with NA always will give out the NA ouputs
+```{r}
+mean(sst.sample); sd(sst.sample);range(sst.sample)
+```
+However, we can exclude missing value in these mathematical operations by  parsing `, na.rm = TRUE` argument
+```{r}
+mean(sst.sample, na.rm = TRUE);sd(sst.sample, na.rm = TRUE);range(sst.sample, na.rm = TRUE)
+```
+
+you can also exclude the element with NA value using the `na.omit()
+```{r}
+sst.sample %>% na.omit()
+```
+
+
+Finally is a `NaN`, which is closely related to `NA`, which is used to assign non-floating numbers. For example when we have the anomaly of sea surface temperature and we are interested to use `sqrt()` function to reduce the variability of the dataset. 
+```{r}
+sst.anomaly = c(2.3,1.25,.8,.31,0,-.21)
+sqrt(sst.anomaly)
+
+```
+
+We notice that the sqrt of -0.21 gives us a `NaN` elements. 
+

@@ -1,0 +1,316 @@
+---
+title: Basics of R programming
+author: Masumbuko Semba
+date: '2020-01-01'
+slug: []
+categories:
+  - R
+tags:
+  - R
+  - programming
+description: ''
+thumbnail: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>An increase in complexity and scale of environmental data both from satellite and insitu observations. This means scientists are increasingly required to develop data skills needed to design reproducible workflows for the simulation, collection, organization, pocessing, analysis and presentation of the results. However, to gain that skills requires some knowledge of coding using one or more computer languages. Coding also known as scripting, makes your work explicitly described, and transparent and completely reproducible.</p>
+<div id="why-learn-computer-programming" class="section level2">
+<h2>Why learn computer Programming?</h2>
+<p>The benefit of learning to program are numerous as it fosters creativity, reasoning and problem solving. Programming makes data-analysis more efficient, accurate and transparent—opens new doors for new analyses that would not be practical or possible without programming. Most experiments for instance are often carried out on computers, so programming is vital for designing, creating and implementing experiments.</p>
+<p>The advent in computer technology plays an important role in research, and there are many kinds of proprietary software developed specifically to deal with data analysis in research. For example most statisticians and researchers analyze their data with using proprietary software like Microsoft Excel, SPSS, SAS and many others. These kind of canned software are widely used and useful. They are generally user-friendly with graphic user interface (GUI)<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> require little or no programming knowledge, and you can complete analytic tasks in relatively small amount of time.</p>
+<p>Unfortunate the click-and drag interface you interact with in the GUI is a result of code hidden to user with these software. So you can only accomplish the taks based on how the software is program to do and incapable of doing some task that it was not designed for. You will sometimes find that the software is simply incapable of doing a particular kind of statistical anlysis or running a particular kind of experiment. At that juncture, it becomes apparent for researcher and scientists to learn programming, which help to solve solutions to unique and emerging research problems directly.</p>
+<p>Learning how to program and create your own code allows <em>control</em> over every detail of analyzing data. This level of control is invaluable for creating flexible and customizable data analysis, and for being confident in the output that decision makers depends. Another advantage of learning to program worth mentioning is <em>time-saving</em>. Becoming fluent in programming enables you to handle research data in relatively short time. This is because with programming language skills, you automate most of the tasks with scripts or code, which save you copious amounts of time in analysing your data and open new way of exploring and visualizing the data you are working on. This make you understand the data in a different way.</p>
+<p>Finally, computer programming is a valuable skill in general and may open doors in the larger workforce in this digital age.</p>
+</div>
+<div id="learning-to-program" class="section level2">
+<h2>Learning to program</h2>
+<p>Learning programming is a skill and requires an initial investment. It takes practice, time, and effort. There is no easy way out. There are many layers to individual programming languages, and there are many programming languages out there to learn that could be useful. Befere you begin to learn to code, it is important to recognize that the underlying skill of computer programming is problem-solving—the ability to sovle new problem yourself with computer. From the perspective of applying computer programming techniques to solve problems in science and other fields, there are three major aspects. These are:</p>
+<ol style="list-style-type: decimal">
+<li>Understaing the <em>issues</em> that need to be addressed</li>
+<li>Understanding the <em>tools</em> available at your disposal</li>
+<li>Applying the tools to solve the <em>problem</em></li>
+</ol>
+<p>In most cases people know the issues and want to solve them problems, the biggest and vital componet that is often missing are the tools. Recognize the tools is one way but understand how to use the tools to the solve the proleme is the most difficult step. This is what they call the <em>chicken and egg problem</em>. What should you learn first? Should you learn about how organize codes at the beginning or after you have learn some basic aspects of the language? Should you learn random tidbits of programming languages before learning how to apply those tidbits to solve a problem?
+This is a dilemma for most of us, because we real unsure of the base and where to start.</p>
+<p>The major porting of this book will deal with the <em>understanding the tool</em>— the basic building blocks of any programming languages. Fortunate, most programming languages use the same basci concept forming the building bloacks for making all sort of programs. However, this book will specifically focus on R language. We believe that iving examples codes will make you understand the tools available to you and this has spill over effect as it will help you to:</p>
+<ol style="list-style-type: lower-roman">
+<li>understand the conceptual tools</li>
+<li>write codes to implement the tools using the specific syntax<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a> to solve the problems or address the issues you are facing.</li>
+</ol>
+<p>Coding is writing a recipe for solving a problem. More specifically, it is writing the solution to a problem in a highly detailed manner that forces a computer to follow the directions to solve the problem. scientists have dubbed these code-based recipes <strong>algorithms</strong><a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>. Learning how to create algorithms involves first ldeterminging the problem and then converting the solution into an ordered steps that solve the problem. These ordered steps of instructions make use of the tools or building blocks of the programming language.</p>
+</div>
+<div id="programming-in-r" class="section level2">
+<h2>Programming in R</h2>
+<p>R is an easy-to-learn programming language that has some reaaly useful feature for beginning programmer. The code is quite easy to read and it has an interactive console which you can enter your commands and see them run. R like any programming languages involves the same basic building blocks. Once you master the building block in R, you can switch to other languages with little difficulties. Because our goal is to learn how to code to analyze data and produce graphics, we will begin learning R, which is well-suited to this purpose. First, we will learn how to work with basic programming concepts in R , then we will learn how to handle and analyse data in R.</p>
+<div id="what-is-r" class="section level3">
+<h3>What is R?</h3>
+<p>R is an <em>open source</em> programming language well suited for data analysis and visualization <span class="citation">[@r]</span>. It is a powerful language used in mathematical operations, data-processing, analysis and graphical display of data. Like other statistical software, R provides a statistical framework and terminal–based interface for users to parse commands for data ingestion, manipulation and graphics. <span class="citation">@xia</span> pointed out that R is a vehicle for newly developing methods of interactive data analysis. R have rapidly developed and extended its capability to a large collection of packages provided by researchers and volunteers. R can be downloaded from <a href="https://www.r-project.org" class="uri">https://www.r-project.org</a> and available for all thre major operating systems—Windows, Mac and Unix/Linux.</p>
+<p>R is an interpreted language—the expression specified in this languages executes line by line similar to other languages like python or ruby rather than compiling the source code an executable chunk as in C++. One of the power of R language is its dynamic—infers the data types of the variables based on the context. We do not need to declare variables separately. R is considered as <em>esoteric</em> because its syntax are easily understood by people from different fields.</p>
+<p>The R programming usage has become one-stop solution to data analysis. R was created in 1993 and has evolved into a stable programming language. It has become a <em>de facto</em> standard for data analysis both in academic and industry sectors. R has its roots in the statistics community, being created by statistians for statistics. Many of its core tools are directed toward statistics. Being an open-source language, R has many advantage oover other commercial statistical platform like MATLAB, SAS and SPSS. The big rip for using R is its ecosystem of packages.</p>
+</div>
+<div id="installing-r" class="section level3">
+<h3>Installing R</h3>
+<p>There is an active community of R developers which regularly releases a new version R. Each version has a name assigned to it. Except for major resease, the version of R are usually backward compatible in terms of their funcitonality. Installing R is fairly straightforward. <strong>R</strong> is available on most computing platform like Windows. Linux and Mac. It is highly recommended to install a pre–compiled bindary distribution for your operating system. Follow this instructions to install R</p>
+<ul>
+<li>Go to <a href="https://cran.r-project.org/" class="uri">https://cran.r-project.org/</a></li>
+<li>Click download latest version of R for Mac or Windows. For Windows users click Base and download the installer. For Mac users select the file R-3.x.x.pkg that aligns with yur OS version.</li>
+<li>After you download the installer, double-click its icon and the compiled binary executes and install R in your machine. Follow the instruction to install R in default location.</li>
+</ul>
+<p>Once you have installed R, you should now have an icon on your Windows or Mac desktop labelled R. If you are using Ubuntu, in the Applications menu, you should see a new group named Programming with the application R. After the installation of R, the software is launched by Double-click the icon and you should see a window that look similar to figure <a href="#fig:fig101">1</a> popup. The default desktop layout include the <em>console</em>, which provide the interface between the software and the user, i.e., it accepts R commands typed after the prompt sign <code>&gt;</code>.</p>
+<div class="figure" style="text-align: left"><span id="fig:fig101"></span>
+<img src="../images/R_gui.png" alt="The graphical user interface of R" width="100%" />
+<p class="caption">
+Figure 1: The graphical user interface of R
+</p>
+</div>
+<p>Let’s enter some commands at the <em>prompt</em>, beggining with the following:</p>
+<p><code>print("Programming is fun!, sometimes challenging and occasionnaly frustrating")</code>. Make sure the text you typed inside the <code>print()</code> are either double or single quoted. Press <code>Enter</code> on your keyboard when you’ve finished typing the line.</p>
+<pre class="r"><code>print(&quot;Programming is fun!, sometimes challenging and occasionnaly frustrating&quot;)</code></pre>
+<pre><code>[1] &quot;Programming is fun!, sometimes challenging and occasionnaly frustrating&quot;</code></pre>
+<p>If you have entered the text correctly, the word should appear in the console and the prompt should reappear to let you know that the console is ready to accept more commands.</p>
+<p>The version and common packages used in this book can be accessed by simply passing a commands <code>devtools::session_info()</code> in the console. you can also check the version of R installed in your computer with the base <code>version()</code> function</p>
+<pre class="r"><code>version</code></pre>
+<pre><code>               _                           
+platform       x86_64-w64-mingw32          
+arch           x86_64                      
+os             mingw32                     
+system         x86_64, mingw32             
+status                                     
+major          4                           
+minor          0.3                         
+year           2020                        
+month          10                          
+day            10                          
+svn rev        79318                       
+language       R                           
+version.string R version 4.0.3 (2020-10-10)
+nickname       Bunny-Wunnies Freak Out     </code></pre>
+<p>By default, R stores all of your R–related files in the startup folder named R. You can check the path of the current working directory with the <code>getwd()</code> function.</p>
+<pre class="r"><code>getwd()</code></pre>
+<pre><code>[1] &quot;D:/semba/myblog/content/post/2020-01-01-basics-of-r-programming&quot;</code></pre>
+<p>Alternatively, you can create a personal working directory in which to read your files into R and also to export the files generated from processes in R. You should then define the path of the working directory using the <code>setwd()</code> function.</p>
+<pre class="r"><code>setwd(&quot;E:/bookdown/spatil_r/&quot;)</code></pre>
+<p>To see which files are in the working directory that you just defined or the default R working directory use the <code>list.files()</code> function</p>
+<pre class="r"><code>list.files()</code></pre>
+</div>
+<div id="what-is-rstudio" class="section level3">
+<h3>What is RStudio?</h3>
+<p>You have seen that R comes with a console that allows to program interactively. However, you need to install RStudio— an integrated development environment (IDE) for R programming. RStudio makes writing R codes easier and in a more user-friendly environment <span class="citation">[@xia]</span>. RStudio is a free and open-source integrated development environment (IDE) for R <span class="citation">[@rstudio]</span>. You must have already installed R in your machine before you install Rstudio. You can download the software from the R-studio website at this link <a href="http:/www.rstudio.com" class="uri">http:/www.rstudio.com</a>.</p>
+<p>Rstudio work in the four operating systems—Windows, Mac, Ubuntu and Fedora. To obtain the reference infomation for citing RStudio in publication by simply typing <code>RStudio.version()</code> command in the console.</p>
+</div>
+<div id="basic-features-of-rstudio" class="section level3">
+<h3>Basic Features of RStudio</h3>
+<p>After the installation is complete, open Rstudio and a window like the one shown in figure (Figure <a href="#fig:fig102">2</a> should open. Across the top is a standard menu bar with typicall menu items. Below the standard menu, the program is divided into different panels. The four fundamental panels in Rstudio that we will look are <em>editor</em>, <em>console</em>, <em>worksapce</em> and <em>plots</em>.</p>
+<div class="figure" style="text-align: left"><span id="fig:fig102"></span>
+<img src="../images//rstudio3.png" alt="The graphical user interface of RStudio showing the four main windows" width="100%" />
+<p class="caption">
+Figure 2: The graphical user interface of RStudio showing the four main windows
+</p>
+</div>
+<ul>
+<li><p><code>source editor and data viewer</code>: The top left corner contains the script <code>editor.</code> This a simple text editor for writing and editing R scripts and markdown documents. Several tabs can be opened in the <code>editor</code> window at once, with each tab representing a different document. These files can be saved from the <code>editor</code> into the working directory. The <code>editor</code> window is also used to view data frame similar to Excel spreadsheet. Source <code>editor</code> is recommended in most programming work because of its efficient way to manage scripts and Rmarkdown document for reproducible work.</p></li>
+<li><p><code>environment (workspace)</code>: The top right panel contains several tabs but I introduce the <strong>workspace</strong> and <strong>history</strong> tabs. The workspace list all the objects that are currently loaded in R’s memory. You can use the <code>ls()</code> function to check the list all files in the environment.You can also view the object in the workspace (environment) by clicking them or run <code>View()</code> function in console.</p></li>
+<li><p><code>history</code> tab provides a record of the recent commands executed in the console, scripts or rmarkdown documents.</p></li>
+<li><p><code>R consoles</code>: The bottom left window is the command line widely known as console. this window is similar to console in base R. This is used to directly enter commands into R. There are only few thing you need to know to become familiar with <code>console</code>. Click in the <code>console</code> and you should see a blicking <code>caret</code>appear next to the greater than sign <code>&gt;</code>, reffered as <code>prompt</code>. This is where you will type R’comands to executes one command at a time. For example, in a console type the <code>2+3</code> and click enter;</p></li>
+</ul>
+<pre class="r"><code>7+8</code></pre>
+<pre><code>[1] 15</code></pre>
+<p>Once you have entered commands here, press enter to execute the command and you will get the answer <code>25</code>. The console is useful for entering single lines of code and running them. Oftentime this occurs when you are exploring or testing a certain task with a combinations of functions and objects. But because coding is all about creating scripts that automate the analytical process, you will find that very rare you use the the console but rather write the code in <em>script</em> or <em>markdown</em> files.</p>
+<ul>
+<li><code>files, plots, packages, help, and viewer</code>: The bottom-right window has five tabs for files, plots, package, help and viewer. The files tab allows browsing of the computers file directory. The plots tab will show recent plots and figures drawn with graphic functions in R. The packages tabl list all packages installed in R and provide tools for download new package and update packages. The help tab is an invaluable tab, it help to search for functions and see examples of how they are used. The viewer tab is like the plot tab that both are used to show recent plots and figures. However, while the plots is for static plot, the viewer is for animations and interactive plots and figures.</li>
+</ul>
+<p>An important concept in R is the <strong>current working directory</strong>. This is the file folder that R points to by default. By default the software stores all of your R-related files in the startup folder, which is the <strong>Document</strong> folder. Alternatively, you can create a personal working directory in which to store your R-related files with the <code>setwd()</code> function. This is especially important when reading in data to R. The current working directory should be set to the folder containing the data to be loaded into R.</p>
+</div>
+<div id="rstudio-editor" class="section level3">
+<h3>Rstudio editor</h3>
+<p>You should be making use of Rstudio’s text edditor to code in R. It is important to practice writing good code that are easy to read and understand what they mean. In short make sure your code is easy to read and understand what it does. This will help you understand your own code later, and help other people understand your code when shared or when they ask you for a help.</p>
+</div>
+<div id="rmarkdown" class="section level3">
+<h3>Rmarkdown</h3>
+<p>Rstudio’s text editor allows to create markdown files called <em>rmarkdown</em>. Markdown is a plain text that combine codes and text and ability to ouput different format like word, PDF and HTML format. This ability of combining text and code has made <em>rmarkdown</em> a powerful markup language in R. In general, with <em>rmarkdown</em> you can write document with titles, headings, paragraphs, insert figures, tables and equations.</p>
+<p>Another useful feature of <strong>rmarkdown</strong> document is the option to publish R projects in various file format such as HTML, Latex, PDF EPUB, Word and many others. This feature enables you to share your results with colleagues who may or may not have <strong>R</strong> software. The published document includes formated plain text in section, heading and paragraphs that comes with code chunk, figures and tables.</p>
+</div>
+<div id="use-descriptive-names" class="section level3">
+<h3>Use descriptive names</h3>
+<p>While programming, you will often declare and assign names of the variables. R usually will not care what name you give to any variables. But declare a descriptive name is informative because you easily remember what it contains. Therefore, its is encouraged to give names that represent the meaning of the data stored in each variable.</p>
+</div>
+<div id="use-comments" class="section level3">
+<h3>Use comments</h3>
+<p>While working with R script, the hash tag <code>#</code> set a comment and tell the script to skip the line with the hash tag. In <em>rmarkdown</em>, the hash tag are used to set headings and therefore you can specify the comment with hash tage in the chunk code.
+Comments are useful as they help you and other people about a particular code and what particular aspect it does. Therefore, it is always recommend to write clear and precise comments that can help you in the future when you want to understand what the code does and also can help others follows with little consultation if shared.</p>
+</div>
+<div id="getting-help-in-r" class="section level3">
+<h3>Getting Help in R</h3>
+<p>Often, we get stuck whilee doing some analysis as either we do not know the correct function to use or its syntax. Its important for anyone who is new to R to knwo the right place to look for help. There are two ways to get help in R—built in help system and online.</p>
+<div id="built-in-system" class="section level4">
+<h4>Built in system</h4>
+<p>R has tons of tools to get you up and run with R base functions, these include</p>
+<ul>
+<li><code>help.start()</code> function that Start the hypertext (currently HTML) version of R’s online documentation.</li>
+</ul>
+<pre class="r"><code>?help.start()</code></pre>
+<ul>
+<li><code>help()</code> is the primary interface to access documentation of functions and datasets. A shortcut for <code>help()</code> is the <code>?</code></li>
+</ul>
+<pre class="r"><code>help(&quot;metR::Adiabat&quot;)
+?metR::Adiabat</code></pre>
+<ul>
+<li><code>help.search()</code> allows for searching the help system for documentation and return those matching the searched itme. The shortcut ofr <code>help.search()</code> function is <code>??</code></li>
+</ul>
+<pre class="r"><code>help.search(&quot;geom_contour&quot;)
+??ggplot2::geom_abline</code></pre>
+<ul>
+<li><code>demo</code> is an interactive platform that demonstrate certain topics provided in R packages. Typing <code>demo()</code> in the chunk or console gives the list of available topics.</li>
+</ul>
+<pre class="r"><code>demo()</code></pre>
+<ul>
+<li><code>example()</code> run the code and displays example of the specified topic that is available</li>
+</ul>
+<pre class="r"><code>example(&quot;t.test&quot;)</code></pre>
+<pre><code>
+t.test&gt; require(graphics)
+
+t.test&gt; t.test(1:10, y = c(7:20))      # P = .00001855
+
+    Welch Two Sample t-test
+
+data:  1:10 and c(7:20)
+t = -5.4349, df = 21.982, p-value = 1.855e-05
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -11.052802  -4.947198
+sample estimates:
+mean of x mean of y 
+      5.5      13.5 
+
+
+t.test&gt; t.test(1:10, y = c(7:20, 200)) # P = .1245    -- NOT significant anymore
+
+    Welch Two Sample t-test
+
+data:  1:10 and c(7:20, 200)
+t = -1.6329, df = 14.165, p-value = 0.1245
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -47.242900   6.376233
+sample estimates:
+mean of x mean of y 
+  5.50000  25.93333 
+
+
+t.test&gt; ## Classical example: Student&#39;s sleep data
+t.test&gt; plot(extra ~ group, data = sleep)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<pre><code>
+t.test&gt; ## Traditional interface
+t.test&gt; with(sleep, t.test(extra[group == 1], extra[group == 2]))
+
+    Welch Two Sample t-test
+
+data:  extra[group == 1] and extra[group == 2]
+t = -1.8608, df = 17.776, p-value = 0.07939
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -3.3654832  0.2054832
+sample estimates:
+mean of x mean of y 
+     0.75      2.33 
+
+
+t.test&gt; ## Formula interface
+t.test&gt; t.test(extra ~ group, data = sleep)
+
+    Welch Two Sample t-test
+
+data:  extra by group
+t = -1.8608, df = 17.776, p-value = 0.07939
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -3.3654832  0.2054832
+sample estimates:
+mean in group 1 mean in group 2 
+           0.75            2.33 
+
+
+t.test&gt; ## Formula interface to one-sample test
+t.test&gt; t.test(extra ~ 1, data = sleep)
+
+    One Sample t-test
+
+data:  extra
+t = 3.413, df = 19, p-value = 0.002918
+alternative hypothesis: true mean is not equal to 0
+95 percent confidence interval:
+ 0.5955845 2.4844155
+sample estimates:
+mean of x 
+     1.54 
+
+
+t.test&gt; ## Formula interface to paired test
+t.test&gt; ## The sleep data are actually paired, so could have been in wide format:
+t.test&gt; sleep2 &lt;- reshape(sleep, direction = &quot;wide&quot;, 
+t.test+                   idvar = &quot;ID&quot;, timevar = &quot;group&quot;)
+
+t.test&gt; t.test(Pair(extra.1, extra.2) ~ 1, data = sleep2)
+
+    Paired t-test
+
+data:  Pair(extra.1, extra.2)
+t = -4.0621, df = 9, p-value = 0.002833
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -2.4598858 -0.7001142
+sample estimates:
+mean of the differences 
+                  -1.58 </code></pre>
+</div>
+<div id="package-documentation" class="section level4">
+<h4>Package documentation</h4>
+<p>Add on package in R can be accessed with different tools below;</p>
+<ul>
+<li><code>library</code> allow access of the documentation of a package . Note that the package must be installed in your machine to access its documentation</li>
+</ul>
+<pre class="r"><code>library(help = &quot;metR&quot;)</code></pre>
+<ul>
+<li><code>vignette</code> allows to view a specific package vignette, or list the available ones. All available vignette in the local machine can be accessed by writing <code>vignette()</code>. Note that this can tak a long time</li>
+</ul>
+<pre class="r"><code>?vignette()</code></pre>
+<p>You can list vignettes from all <em>attached</em> packages in your working directory as;</p>
+<pre class="r"><code>vignette(all = FALSE)</code></pre>
+<p>And to access a vignette of a specific package, you simply type</p>
+<pre class="r"><code>vignette( package = &quot;sf&quot;)</code></pre>
+<p>You notice that the package <strong>sf</strong> has more than one vignette</p>
+</div>
+<div id="online-resources" class="section level4">
+<h4>Online Resources</h4>
+<ul>
+<li><strong>R bloggers</strong> contains several post covering on different topics in R. This is the place you should not miss to visi if you want help on topic such as R, data analysis, data visualization, data wrangling and machine learning. You can learn more about this platform <a href="www.rbloggers.com">here</a></li>
+<li><strong>Stack overflow</strong> is very resourful place to obtain answers of some code or package you are facing challenges. There is high changes that some one else with similar challenges has already presented the matter and you can benefit from the answers provided.</li>
+<li><strong>Twitter</strong> There is an active R commnity on Twitter comprised of experts who have dedicated their time and resources to help others. Use the hashtag <a href="www.twitter.com">#rstats</a> if you are asking for help or guidance on Twitter.</li>
+<li><strong>Rstudio community</strong> resemble stack overflow but differs in the sense you simply drop a questions related to Rstudio packages and services</li>
+<li><strong>r4ds</strong> Is an online system that promote community to learn data science using R. You can learn more about the communit <a href="www">here</a></li>
+<li><strong>Rstudio Resources</strong> offers learning resources like cheatsheets, webinars and blogs that deals with matter relating to R and Rstudio packages</li>
+<li><strong>Reddit</strong> is another platform that help you find answers to the challenges you face in R</li>
+<li><strong>Future learn</strong></li>
+<li><strong>coursera</strong>
+<strong>linkedIn</strong></li>
+<li><strong>udemy</strong></li>
+<li><strong>R weekly</strong> provide updates about R community. You can get information of new packages, blogs, conferences, workshops, tutorials and jobs</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p><a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>The formal rules of formulating the statements of a computer language<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>A precise step-by-step plan for a computational procedure that begins with an input value and yield an ouput value in a finite number of steps<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>

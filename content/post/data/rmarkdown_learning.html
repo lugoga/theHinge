@@ -1,0 +1,39 @@
+---
+title: "Learning Rmarkdown"
+author: "Masumbuko Semba"
+output: bookdown::html_document2
+bibliography: book.bib
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>We aimed at assessing the performance of different diet on chick weight. We use rmarkdown to automate the report that contain formatted plain text, code,figures, table and reference As mentioned previous, an R Markdown file is simply a plain text with and <code>.Rmd</code> extension.</p>
+<div id="data" class="section level2">
+<h2>Data</h2>
+<p>We use the data <code>ChickWeight</code> from the base R <strong>dataset</strong> package. It has four variables;</p>
+<ul>
+<li><code>weight</code>: a numeric vector with the body weight of the chick in gm</li>
+<li><code>Time</code>: a numeric vector with the number of days since the birth when the record begin at day zero</li>
+<li><code>Chick</code>: an ordered factor with levels that group chicks with the same diet together</li>
+<li><code>Diet</code>: A factor with levels 1–4 indicating the type of feed used for experimental</li>
+</ul>
+<p>We first need to load the tidyverse package developed by Hadley Wickham and others <span class="citation">(<a href="#ref-tidyverse" role="doc-biblioref">Wickham 2017</a>)</span>. We load using the <code>require()</code>function and used ggplot to make figure <a href="#fig:fig1">1</a>.</p>
+<div class="figure" style="text-align: center"><span id="fig:fig1"></span>
+<img src="/post/data/rmarkdown_learning_files/figure-html/fig1-1.png" alt="Performance of feed used to feed chicken for three weeks" width="480" />
+<p class="caption">
+Figure 1: Performance of feed used to feed chicken for three weeks
+</p>
+</div>
+</div>
+<div id="reference" class="section level2 unnumbered">
+<h2>Reference</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-tidyverse" class="csl-entry">
+Wickham, Hadley. 2017. <em>Tidyverse: Easily Install and Load the ’tidyverse’</em>. <a href="https://CRAN.R-project.org/package=tidyverse">https://CRAN.R-project.org/package=tidyverse</a>.
+</div>
+</div>
+</div>
+</div>

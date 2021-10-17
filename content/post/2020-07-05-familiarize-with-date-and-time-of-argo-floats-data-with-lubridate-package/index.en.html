@@ -1,0 +1,298 @@
+---
+title: Familiarize with date and time of Argo Floats data with lubridate package
+author: Masumbuko Semba
+date: '2020-07-05'
+slug: []
+categories:
+  - R
+tags:
+  - lubridate
+  - programming
+  - semba
+  - tidyverse
+  - R
+description: ''
+thumbnail: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+<script src="{{< blogdown/postref >}}index.en_files/kePrint/kePrint.js"></script>
+<link href="{{< blogdown/postref >}}index.en_files/lightable/lightable.css" rel="stylesheet" />
+
+
+<p>In this post we will learn to work with date and time data in R. We will use the <strong>lubridate</strong> package developed by Garrett Grolemund and Hadley Wickham ~<span class="citation">@lubridate</span>. This package makes it easy to work with dates and time. Let’s us load the packages that we will use</p>
+<pre class="r"><code>require(lubridate)
+require(tidyverse)
+require(magrittr)
+require(oce)</code></pre>
+<div id="data" class="section level2">
+<h2>Data</h2>
+<p>We will use the profiles data from Argo within the Indian Ocean. The data was downloaded from the Coriolis Global Data Assembly Center site (<a href="ftp://ftp.ifremer.fr/ifremer/argo/" class="uri">ftp://ftp.ifremer.fr/ifremer/argo/</a>) as NetCDF files.</p>
+</div>
+<div id="data-processing" class="section level2">
+<h2>Data processing</h2>
+<p>The argo profiles were converted from <code>.nc</code> format to data frame. The chunk below briefly describe each step. If you get stuck on the step, consult chapter @ref() that describe looping in details.</p>
+<p>There are 52 argo floats measured profiles of temperature and salinity as function of density between 2002-11-11 and 2002-11-11 and made a total of 8419 individual profiles.</p>
+<p>Say you want create a column that show the durationof each argo floats in the Indian Ocean. This information is important because it can help identify for on average how long does each float last or identify floats with the shortest or longest operation in the ocean.</p>
+<p>To accomplish this task and being able to answer those question, First, the argo floats were aggregated by id. Second, create two variable based on the Id, one variable contain the begin time of the float and the second variable is the end time of the variable. Third, compute the time interval and duration of the float based on the begin and end time. The table <a href="#tab:tab0899">1</a> show the sample of output resulted from the computation in the chunk below;</p>
+<pre class="r"><code>floats.duration = argo.ctd.indian %&gt;% 
+  filter(pressure == 5)  %&gt;% 
+  group_by(ID) %&gt;% 
+  summarise(start = first(time), 
+            end = last(time), 
+            period = interval(start, end) %&gt;% as.duration() %&gt;% as.numeric(&quot;years&quot;), 
+            count = n()) %&gt;% arrange(count %&gt;% desc())</code></pre>
+<pre class="r"><code>floats.duration %&gt;% 
+  slice(1,seq(3,52, 6),52) %&gt;%
+  kableExtra::kable(format = &quot;html&quot;, digits = 2, align = &quot;c&quot;, 
+                    caption = &quot;The period and number of profiles made of randomly selected Argo floats&quot;,
+                    col.names = c(&quot;Float ID&quot;, &quot;Begin&quot;, &quot;End&quot;, &quot;Duration (years)&quot;, &quot;Profile&quot;)) %&gt;%
+  kableExtra::column_spec(column = 1:3, width = &quot;3cm&quot;) %&gt;%
+  kableExtra::column_spec(column = 4, width = &quot;4cm&quot;) %&gt;%
+  kableExtra::add_header_above(c(&quot;&quot;, &quot;Time of Argo Float&quot; = 2, &quot;&quot;, &quot;&quot;))</code></pre>
+<table>
+<caption>
+<span id="tab:tab0899">Table 1: </span>The period and number of profiles made of randomly selected Argo floats
+</caption>
+<thead>
+<tr>
+<th style="empty-cells: hide;border-bottom:hidden;" colspan="1">
+</th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Time of Argo Float
+</div>
+</th>
+<th style="empty-cells: hide;border-bottom:hidden;" colspan="1">
+</th>
+<th style="empty-cells: hide;border-bottom:hidden;" colspan="1">
+</th>
+</tr>
+<tr>
+<th style="text-align:center;">
+Float ID
+</th>
+<th style="text-align:center;">
+Begin
+</th>
+<th style="text-align:center;">
+End
+</th>
+<th style="text-align:center;">
+Duration (years)
+</th>
+<th style="text-align:center;">
+Profile
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+5900946
+</td>
+<td style="text-align:center;width: 3cm; ">
+2005-05-26
+</td>
+<td style="text-align:center;width: 3cm; ">
+2014-12-11
+</td>
+<td style="text-align:center;width: 4cm; ">
+9.54
+</td>
+<td style="text-align:center;">
+333
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+1900270
+</td>
+<td style="text-align:center;width: 3cm; ">
+2004-11-26
+</td>
+<td style="text-align:center;width: 3cm; ">
+2014-01-28
+</td>
+<td style="text-align:center;width: 4cm; ">
+9.17
+</td>
+<td style="text-align:center;">
+320
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+1901163
+</td>
+<td style="text-align:center;width: 3cm; ">
+2011-05-03
+</td>
+<td style="text-align:center;width: 3cm; ">
+2018-06-05
+</td>
+<td style="text-align:center;width: 4cm; ">
+7.09
+</td>
+<td style="text-align:center;">
+259
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+1900409
+</td>
+<td style="text-align:center;width: 3cm; ">
+2006-10-16
+</td>
+<td style="text-align:center;width: 3cm; ">
+2012-11-10
+</td>
+<td style="text-align:center;width: 4cm; ">
+6.07
+</td>
+<td style="text-align:center;">
+219
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+1900269
+</td>
+<td style="text-align:center;width: 3cm; ">
+2004-11-26
+</td>
+<td style="text-align:center;width: 3cm; ">
+2010-02-19
+</td>
+<td style="text-align:center;width: 4cm; ">
+5.23
+</td>
+<td style="text-align:center;">
+181
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+1901166
+</td>
+<td style="text-align:center;width: 3cm; ">
+2011-05-08
+</td>
+<td style="text-align:center;width: 3cm; ">
+2014-12-18
+</td>
+<td style="text-align:center;width: 4cm; ">
+3.61
+</td>
+<td style="text-align:center;">
+131
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+1901512
+</td>
+<td style="text-align:center;width: 3cm; ">
+2010-10-20
+</td>
+<td style="text-align:center;width: 3cm; ">
+2013-11-11
+</td>
+<td style="text-align:center;width: 4cm; ">
+3.06
+</td>
+<td style="text-align:center;">
+105
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+1901307
+</td>
+<td style="text-align:center;width: 3cm; ">
+2013-06-26
+</td>
+<td style="text-align:center;width: 3cm; ">
+2016-02-01
+</td>
+<td style="text-align:center;width: 4cm; ">
+2.60
+</td>
+<td style="text-align:center;">
+95
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+1900306
+</td>
+<td style="text-align:center;width: 3cm; ">
+2004-01-07
+</td>
+<td style="text-align:center;width: 3cm; ">
+2005-12-16
+</td>
+<td style="text-align:center;width: 4cm; ">
+1.94
+</td>
+<td style="text-align:center;">
+66
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+1900188
+</td>
+<td style="text-align:center;width: 3cm; ">
+2003-09-25
+</td>
+<td style="text-align:center;width: 3cm; ">
+2004-10-18
+</td>
+<td style="text-align:center;width: 4cm; ">
+1.07
+</td>
+<td style="text-align:center;">
+38
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+2901093
+</td>
+<td style="text-align:center;width: 3cm; ">
+2007-12-05
+</td>
+<td style="text-align:center;width: 3cm; ">
+2008-01-13
+</td>
+<td style="text-align:center;width: 4cm; ">
+0.11
+</td>
+<td style="text-align:center;">
+5
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>floats.duration %&gt;% filter(period &lt; 2)</code></pre>
+<pre><code># A tibble: 8 x 5
+       ID start      end        period count
+    &lt;dbl&gt; &lt;date&gt;     &lt;date&gt;      &lt;dbl&gt; &lt;int&gt;
+1 1900814 2008-11-22 2010-11-12  1.97     68
+2 1900306 2004-01-07 2005-12-16  1.94     66
+3 1900170 2003-06-27 2005-03-08  1.70     60
+4 1900162 2003-06-26 2005-01-13  1.55     54
+5 1900186 2003-09-24 2005-03-13  1.47     52
+6 2900564 2005-09-16 2006-11-20  1.18     44
+7 1900188 2003-09-25 2004-10-18  1.07     38
+8 2901093 2007-12-05 2008-01-13  0.107     5</code></pre>
+<pre class="r"><code>argo2900564 = argo.ctd.indian %&gt;% filter(ID == 2900564)
+
+ggplot(data = argo2900564 %&gt;% filter(pressure == 5), 
+       aes(x = longitude, y = latitude, group = ID)) + geom_path()+geom_point() +
+  metR::scale_y_latitude(ticks = 2, expand = c(.1,.1)) +
+  metR::scale_x_longitude(ticks = 5, expand = c(.1,.1))</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+</div>

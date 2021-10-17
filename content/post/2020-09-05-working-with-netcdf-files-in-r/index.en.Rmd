@@ -1,0 +1,340 @@
+---
+title: Working with NetCDF files in R
+author: Masumbuko Semba
+date: '2020-09-05'
+slug: []
+categories:
+  - R
+tags:
+  - code
+  - programming
+  - R
+  - raster
+  - tidyverse
+description: ''
+thumbnail: ''
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+
+require(tidyverse)
+
+mycolor = c("#7f007f", "#0000ff",  "#007fff", "#00ffff", "#00bf00", "#7fdf00",
+"#ffff00", "#ff7f00", "#ff3f00", "#ff0000", "#bf0000")
+
+mycolor2 = c("#040ED8", "#2050FF", "#4196FF", "#6DC1FF", "#86D9FF", "#9CEEFF", "#AFF5FF", "#CEFFFF",
+"#FFFE47", "#FFEB00", "#FFC400", "#FF9000", "#FF4800", "#FF0000", "#D50000", "#9E0000")
+
+odv_color = c("#feb483", "#d31f2a", "#ffc000", "#27ab19", "#0db5e6", "#7139fe", "#d16cfa") %>% rev()
+
+pal = wesanderson::wes_palette("Zissou1", 21, type = "continuous")
+
+mycolor3 = c("#9000B0", "#C900B0", "#C760AF", "#1190F9", "#60C8F8", "#90C9F8", "#F8F8F8", "#F8F800",  "#F8D730", "#f8b030", "#f8602f", "#f80000")
+
+
+```
+ 
+## Introduction
+Network Common Data Form (NetCDF) is a widely used format for storing array--based data as variables. NetCDF  are developed and maintained by Unidata was originally developed for storing and distributiing climate data , such as those generatd by climate simulation or reanalysis models. It has also been adopted in other fields, particularly in oceanography, where large mutidimensional arrays of data are generatted from satellite observation systems. The NetCDF format is a platform-independent because can be transeerred among servers and coputers that are running different operating systems, without a need to convert the file that fit a particular sytem. The NetCDF is also self-describing---contains metadata that describe the what is contained in the file, like the dimensions of longitude and latitude of the grid, the names and units of variables in the dataset, and attributes that describe thingks like themissing values codesr, or offsets and scale facators that may have been used to compress the data.
+
+## Types of netCDF file 
+There are two version of netCDF. The first is netCDF version 3 (netCDF3), which is widely used, but has some size and performance limitations. The other is netCDF version 4 (netCDF4), which supports larger dataset and includes addtional capabilities like to compress the file and reduce the file size. 
+
+
+## Rading NetCDF with ncdf4 package
+The **ncdf4** package allows reading, writing, and creation of netCDF files, either netCDF version 3 or (optionally) netCDF version 4. Let's first load the packages we need. Note that the **ncddf4** package must already be installed on your machine.
+
+```{r, message=FALSE, warning=FALSE, comment=""}
+require(ncdf4)
+require(magrittr)
+require(tidyverse)
+
+```
+
+Once you have loaded the package, then use a function `nc_open()` to read an existing netCDF file
+```{r}
+nc.file = nc_open("../data/wio_ssh_july_2015.nc")
+
+```
+
+
+Once we have opened the file, we can print it to have a glimpse of some basic information about the file
+```{r}
+nc.file
+```
+
+By simply printing this `nc.file` file which is the returned object of `nc_open()` gave us a lot of information that is ovewhelming to grasp. This information describe about the file and is very important to understand the basic information embedded in it as we will require them later for extraction of the varibles. In summary, the metadata tells us about the;
+
+1. `filename`, which is a character string holding the name of the file; for our case is `File ./data/ml_depth__0.2deg_mean_grid_all_global_locean.nc`
+2. `ndims`, which is an integer holding the number of dimensions in the file; in our file there are three dimension of `time', `lat` and `lon`
+3. `nvars`, which is an integer holding the number of the variables in the file that are NOT coordinate variables (aka dimensional variables); the printed file showed there are seven variables `krig_std_dev, mask, med_dev, mld, mld_raw, mld_smth, n_profiles`
+4. `natts`, which is an integer holding the number of global attributes; 
+5. `unlimdimid`, which is an integer holding the dimension id of the unlimited dimension, or -1 if there is none; 6 dim, which is a list of objects of class ncdim4; 
+7. `var`, which is a list of objects of class ncvar4; 
+8. `writable`, which is TRUE or FALSE, depending on whether the file was opened with write=TRUE or write=FALSE.
+
+
+### Extracting the dimensions
+Based on the metadata, I can customize it to print only the information I need. I used the for loop to customize only the variable information I need shown. Here is the code that will print the dimensions in the files together with additional information
+
+```{r}
+for (j in 1:nc.file$ndims){
+  
+  a = nc.file$dim[[j]]
+  print(paste(" Here is information on variable number",j))
+  print(paste(" Name: ",a$name))
+	print(paste(" Units:",a$units))
+	print(paste(" Length:",a$len))
+	print(paste(" Values:"))
+	print(a$vals)
+  
+}
+
+```
+
+The output now give us the basic information of the variable name, the units, the length of the variable and the values. This is very simplified version and make more sense to grasp easily the information contained in the file. we can now extract the dimensions.
+
+### Extracting time
+The dimensions are extracted with the `ncvar_get()` function and parse along the arguments required. But before we extract let's run the loop to have a glimpse again of the structure of the time dimension
+
+```{r, echo=FALSE}
+for (j in 1){
+  
+  a = nc.file$dim[[j]]
+  print(paste(" Here is information on variable number",j))
+  print(paste(" Name: ",a$name))
+	print(paste(" Units:",a$units))
+	print(paste(" Length:",a$len))
+	print(paste(" Values:"))
+	print(a$vals)
+  
+}
+
+```
+
+```{r}
+time = ncvar_get(nc = nc.file, varid = "time")
+
+```
+
+We notice that time is in numerical number---julian days. Using the original time `1950-01-01 00:00:00`, we can transform julian date into gregorian calender.Since the time we are given is in julian, We need to convert the original time to julian to ensure its in the same format with time. Then to get the real time, we add up the original time to time and convert them from julian to gregorian. We used `JD` function from **insol** package for conversion of date between Julian and Gregorian [@insol]
+
+```{r}
+
+
+to = insol::JD(lubridate::ymd_hms("1950-01-01 00:00:00", tz = ""))
+jd = time + to
+date = insol::JD(x = jd, inverse = TRUE) 
+
+```
+
+
+### Extracting Latitude
+Similary, we can have a glimpse of latidude with the loop code as;
+```{r, echo=FALSE}
+for (j in 2){
+  
+  a = nc.file$dim[[j]]
+  print(paste(" Here is information on variable number",j))
+  print(paste(" Name: ",a$name))
+	print(paste(" Units:",a$units))
+	print(paste(" Length:",a$len))
+	# print(paste(" Values:"))
+	# print(a$vals)
+  
+}
+
+```
+We notice the latitude values span from `r metR::LatLabel(-88)` to  `r metR::LatLabel(89.5)`.We extract with the `ncget_var()` function;
+
+```{r}
+lat = ncvar_get(nc = nc.file, varid = "lat")
+```
+
+
+
+### Extracting Longitude
+
+```{r, echo=FALSE}
+for (j in 3){
+  
+  a = nc.file$dim[[j]]
+  print(paste(" Here is information on variable number",j))
+  print(paste(" Name: ",a$name))
+	print(paste(" Units:",a$units))
+	print(paste(" Length:",a$len))
+	# print(paste(" Values:"))
+	# print(a$vals)
+  
+}
+
+```
+Unlike the convention range of longitude which span from `r metR::LonLabel(-180)` to `r metR::LonLabel(180)`, here we see that longitud range from 0 to 360. Let's extract the longitude values with the `ncvar_get()` function. 
+
+```{r}
+lon = ncvar_get(nc = nc.file, varid = "lon")
+```
+
+### Extracting the variable
+As we have seen, obtaining the information from the metadata printout more information that we need, we can customize how we want the information to be printed with a loop. For instance the code of lines in the chunk below show how to printout information about the variables embbed in the file. Here is the code
+```{r}
+
+for( i in 1:nc.file$nvars ) {
+  
+	v <- nc.file$var[[i]]
+	
+	print(paste(" Here is information on variable number",i))
+	print(paste(" Name: ",v$name))
+	print(paste(" Units:",v$units))
+	print(paste(" Missing value:",v$missval))
+	print(paste("# dimensions :",v$ndims))
+	print(paste(" Variable size:",v$varsize))
+	
+	}
+
+```
+
+We notice also there are two variables. here we are only interested with the variable 2, which is the sea surface height in meters. Let's extract the variable
+
+
+```{r}
+adt.array = ncvar_get(nc = nc.file, varid = "adt")
+
+```
+
+Once we have extracted the time, lat ,lon and mld, we need to verify their dimension. The dimension of atomic vector lon,lat and time must correspond to the dimension of the mld array. We can check the length of the lon, lat, time with the `length()`
+```{r}
+length(lon);length(lat);length(time)
+```
+
+The output display that there are 180 longitude, 90 latitude and 12 months. To check for dimension of the array we use the `dim()` function instead of the `length()`
+```{r}
+dim(adt.array)
+```
+That's perfect, the length of the dimensions matches the dimension of the mld array
+
+
+### Replace FillValue with NA
+In a netCDF file, values of a variable that are either missing or simply not available (i.e. ocean grid points in a terrestrial data set) are flagged using specific “fill values” (_FillValue) or missing values (missing_value), the values of which are set as attributes of a variable. In R, such unavailable data are indicated using the “NA” value. We can explore the value of the mld with the `hist()` 
+```{r}
+adt.array %>% hist()
+
+```
+The histogram display only two bars, which indicated the skewness of the data. Looking back on the metadata, we observed that there the value `1e+09` was used to mask the land. Therefore, in R, we need to set all pixel with the `1e+09` values to NA. The following code fragment illustrates how to replace the netCDF variable’s fill values with R NA’s .
+```{r}
+adt.array[adt.array == v$missval] = NA
+
+```
+
+
+
+We can explore again the value of the mld with the `hist()` functions and the values now look good
+```{r}
+adt.array %>% hist()
+```
+
+### Obtain a slice
+NetCDF variables are read and written as one-dimensional vectors (e.g. longitudes), two-dimensional arrays or matrices (raster “slices”), or multi-dimensional arrays (raster “bricks”). In such data structures, the coordinate values for each grid point are implicit, inferred from the marginal values of, for example, longitude, latitude and time. In contrast, in R, the principal data structure for a variable is the `data.frame.`For instance, the adt.array data file is the multidimensional array consist of longitude, latitude and 12 columns of long-term means for each month, with the full data set thus consisting of `r adt.array%>% length()` rows (`r length(lon)` by `length(lat)`) and 12 columns.
+```{r}
+
+adt.array %>% dim()
+180*90
+```
+
+
+In the kinds of data sets usually stored as netCDF files, each row in the data frame will contain the data for an individual grid point, with each column representing a particular variable, including explicit values for longitude and latitude (and perhaps time). This particular structure of this data set can be illustrated by selecting a single slice from the `adt.array` “brick”. Therefore, you need to convert extract matrices from array by indexing. For instance, we can extract the january matrix by typing
+
+
+```{r}
+first = adt.array[,,1]
+
+
+```
+
+once we have the mld for january, we can map the spatial pattern of the mixed layer depth with the `imagep()` function from `oce` package. Note that the values were normalized with the ``inverse_hyperbolic(),` function. 
+```{r}
+
+oce::imagep(x = lon,y = lat, 
+            z = first, 
+            xlim = c(37,52), ylim = c(-17,2), 
+            zlim = c(0.55,1.3), zclip = TRUE,
+            filledContour = FALSE,
+            col = oce::oceColors9A(120), 
+            # at = seq(3.5,6.5,.5), 
+            # labels = seq(20,500, length.out = 7),  
+            xlab = "Longitude", ylab = "Latitude", zlab = "Sea Surface Height Anomaly (m)", zlabPosition = "side")
+
+```
+
+```{r}
+## expand the longitude and latitude
+lon.lat = expand.grid(lon,lat) 
+
+## convert the january matrix to a vector
+first.vector = first %>% as.vector() 
+
+## combine the expanded lon.lat with vectorized matrix of january
+first.df = data.frame(lon.lat, first.vector) %>% 
+  tibble::as_tibble() %>%
+  dplyr::rename(lon = 1, lat = 2, ssha= 3)
+  
+```
+
+```{r}
+wio = spData::world %>% sf::st_crop(xmin =  20, ymin = -80,xmax = 130, ymax =30)
+ssha.eacc = first.df %>% filter(lon > 30 & lon < 53 & lat > -19 & lat < 3)
+
+ggplot()+
+  geom_sf(data =wio) +
+  metR::geom_contour_fill(data = ssha.eacc, 
+                          aes(x = lon, y = lat, z =ssha),
+                          bins = 28, na.fill = TRUE) +
+  scale_fill_gradientn(colors = odv_color)+
+  geom_sf(data =wio) +
+  coord_sf(xlim = c(37,51), ylim = c(-17,2), datum = sf::st_crs(4326)) +
+  metR::scale_x_latitude(ticks = 5) + 
+  metR::scale_x_longitude(ticks = 4)+
+  labs(x = NULL, y = NULL, subtitle = paste("Sea surface height of ", date[1]))+
+  theme_bw() %+%
+  theme(axis.text = element_text(size = 11)) +
+  guides(fill = guide_colorbar(barheight = 15, 
+                               barwidth = .85, 
+                               raster = FALSE, 
+                               title = "Sea surface height (m)",
+                               title.position = "right", 
+                               title.hjust = .5, 
+                               title.theme = element_text(angle = 90)))
+
+```
+
+```{r}
+## expand the longitude and latitude
+lon.lat = expand.grid(lon,lat) 
+
+## preallocate
+ssha = list()
+
+for (j in 1:length(date)){
+  ## chop the blick
+  data = adt.array[,,j]
+  
+  ## create a data frame
+  ssha[[j]] = data.frame(lon.lat, first.vector) %>% 
+    tibble::as_tibble() %>%
+    dplyr::rename(lon = 1, lat = 2, ssha= 3) %>% 
+    dplyr::mutate(date = date[j])
+  
+}
+
+ssha = ssha %>% 
+  dplyr::bind_rows() %>% 
+  dplyr::filter(lon > 30 & lon < 53 & lat > -19 & lat < 3) %>% 
+  dplyr::mutate(day = lubridate::day(date),
+                jd = lubridate::yday(date) %>% as.integer(),
+                week = lubridate::week(date))
+```
+
+

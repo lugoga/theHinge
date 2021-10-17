@@ -1,0 +1,392 @@
+---
+title: Reshaping data with tidyr
+author: Masumbuko Semba
+date: '2020-06-04'
+slug: []
+categories:
+  - ''
+tags:
+  - code
+  - programming
+  - R
+  - semba
+  - tidyverse
+description: ''
+thumbnail: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+<script src="{{< blogdown/postref >}}index.en_files/kePrint/kePrint.js"></script>
+<link href="{{< blogdown/postref >}}index.en_files/lightable/lightable.css" rel="stylesheet" />
+
+
+<p>One of the key task in data preparation is to organize thee dataset in a way that makes analysis and plottng easier. In practice, the data is often not stored like that and the data comes to us with repeated observations included on a single row. This is often done as a memory saving technique or because there is some structure in the data that makes the ‘wide’ format attractive. As a result, we need a way to convert data from <em>wide</em><a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> to <em>long</em><a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a> and vice-versa <span class="citation">[@mathew]</span>.</p>
+<p>Structuring data frames to have the desired shape can be the most daunting part of statistical analysis, visualisation, and modeling. Several studies reported that 80% of data analysis is spent on the cleaning and preparing data. Tidy in this context means organize the data in a presentable and consistent format that facilitate data analysis and visualization. When you are doing data preparation in R for analysis or plottng, the first thing you do is a throughly mental thought on the desired structure of that data frame. You need to determine what each row and column will represent, so that you can consistently and clearly manipulate that data (e.g., you know what you will be selecting and what you will be filtering).</p>
+<p>There are basically three principles that we can follow to make a tidy dataset. First each variable must have its own a column, second each observation must have its own row, and finally, each cell must have its own value. The tidyr package is used to structure and work with data fames that follow three principles of tidy data. There are three advantages of using tidy data in R. First, having a consistent, uniform data structure is very important. Popular packages like dplyr <span class="citation">[ @dplyr]</span>, ggplot2 <span class="citation">[@ggplot]</span>, and all the other packages in the tidyverse <span class="citation">[@tidyverse]</span> and their extensions like sf <span class="citation">[@sf]</span>, metR <span class="citation">[@metr]</span>, ggspatial <span class="citation">[@ggspatial]</span>, ggrepel <span class="citation">[@ggrepel]</span> etc are designed to work with tidy data <span class="citation">[@tidyr]</span>. So consistent of tidy data ensure efficient processing, analysis and plotting of data. Third, placing variables into columns, facilities easy vectorization in R.</p>
+<p>Unfortunate, Many datasets that you receove are untidy and will require some work on your end. There are several reasons why a dataset messy. Often times the people who created the dataset aren’t familiar with the principles of tidy data. Another common reason that most datasets are messy is that data is often organized to facilitate something other than analysis. Data entry is perhaps the most common of the reasons that fall into this category. To make data entry as easy as possible, people will often arrange data in ways that aren’t tidy. So, many datasets require some sort of tidying before you can begin your analysis.</p>
+<p>As <span class="citation">@r4d</span> put it tidy data means that yo can plot or summarize the data efficiently. In othet words, it comes down to which data is represented as columns in a data frame and which is not.In principle, this means that there is column in the data frame that you can work with for the analysis you want to do. For example, if I want to look at the ctd dataset and see how the fluorescence varies among station in the upper water surface, we simply plot a boxplot of the station column against the fluorescence column shown in figure <a href="#fig:floro-station">1</a></p>
+<pre class="r"><code>require(tidyverse)
+require(magrittr)</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:floro-station"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/floro-station-1.png" alt="Fluorescence variation against stations" width="288" />
+<p class="caption">
+Figure 1: Fluorescence variation against stations
+</p>
+</div>
+<p>This works because I have a column for the x-axis and another for the y-axis. But what happens if I want to plot the different measurements of the irises to see how those are? Each measurement is a separate column. They are Petal.Length, Petal.Width, and so on.Now I have a bit of a problem because the different measurements are in different columns in my data frame. I cannot easily map them to an x-axis and a y-axis.The tidyr package addresses that. It contains functions for both mapping columns to values—, widely recognised as long format and for mapping back from values to columns—wide format.</p>
+<p>We are going to look for the function that are regularly used to tidy the data frames. These inlude:</p>
+<ul>
+<li>Gathering</li>
+<li>Spreading</li>
+<li>Separating</li>
+<li>Uniting</li>
+</ul>
+<div id="gatherfrom-wide-to-long-format." class="section level2">
+<h2>Gather—from wide to long format.</h2>
+<p>Look at example of dataset. It has one common problem that the column names are not variables but rather values of a variable. In the table <a href="#tab:wide-format">1</a>, the columns are actually values of the variable pressure. Each row in the existing table actually represents five observations from each station.</p>
+<table>
+<caption>
+<span id="tab:wide-format">Table 1: </span>Wide format format
+</caption>
+<thead>
+<tr>
+<th style="empty-cells: hide;border-bottom:hidden;" colspan="1">
+</th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="11">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Water Depth (meters)
+</div>
+</th>
+</tr>
+<tr>
+<th style="text-align:left;">
+station
+</th>
+<th style="text-align:right;">
+10
+</th>
+<th style="text-align:right;">
+20
+</th>
+<th style="text-align:right;">
+30
+</th>
+<th style="text-align:right;">
+40
+</th>
+<th style="text-align:right;">
+50
+</th>
+<th style="text-align:right;">
+60
+</th>
+<th style="text-align:right;">
+70
+</th>
+<th style="text-align:right;">
+80
+</th>
+<th style="text-align:right;">
+90
+</th>
+<th style="text-align:right;">
+100
+</th>
+<th style="text-align:right;">
+110
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;width: 2cm; ">
+st1
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.599
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.678
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.729
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.693
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.752
+</td>
+<td style="text-align:right;width: 2cm; ">
+1.098
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.857
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.481
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.313
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.221
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.138
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 2cm; ">
+st2
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.631
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.733
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.992
+</td>
+<td style="text-align:right;width: 2cm; ">
+1.114
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.988
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.715
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.496
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.524
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.280
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.277
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.225
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 2cm; ">
+st3
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.980
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.934
+</td>
+<td style="text-align:right;width: 2cm; ">
+1.149
+</td>
+<td style="text-align:right;width: 2cm; ">
+1.200
+</td>
+<td style="text-align:right;width: 2cm; ">
+1.187
+</td>
+<td style="text-align:right;width: 2cm; ">
+1.035
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.854
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.530
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.437
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.347
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.324
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 2cm; ">
+st4
+</td>
+<td style="text-align:right;width: 2cm; ">
+NA
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.623
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.603
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.742
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.724
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.799
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.914
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.819
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.801
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.692
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.444
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 2cm; ">
+st5
+</td>
+<td style="text-align:right;width: 2cm; ">
+NA
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.350
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.415
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.421
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.566
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.593
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.591
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.634
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.751
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.774
+</td>
+<td style="text-align:right;width: 2cm; ">
+0.575
+</td>
+</tr>
+</tbody>
+</table>
+<p>The tidyr package can be used to gather these existing columns into a new variable. In this case, we need to create a new column called pressure and then gather the existing values in the these variable columns into the new pressure variable</p>
+<pre class="r"><code>ctd.long = ctd.wide %&gt;%  
+      gather (key = &quot;depth&quot;, value = &quot;fluorescence &quot;,  2:12)
+ctd.long</code></pre>
+<pre><code># A tibble: 55 x 3
+   station depth `fluorescence `
+   &lt;chr&gt;   &lt;chr&gt;           &lt;dbl&gt;
+ 1 st1     10              0.599
+ 2 st2     10              0.631
+ 3 st3     10              0.98 
+ 4 st4     10             NA    
+ 5 st5     10             NA    
+ 6 st1     20              0.678
+ 7 st2     20              0.733
+ 8 st3     20              0.934
+ 9 st4     20              0.623
+10 st5     20              0.350
+# ... with 45 more rows</code></pre>
+<p>As you can see from the chunk above, there are three arguments required in the <code>gather()</code> function. First is the <code>key</code>, which takes the variable names. Second, the <code>value</code>—the name of the variable whose values are spread over the cells. Finnaly, then you specify the <code>set of columns</code> that hold the values and not the variable names</p>
+</div>
+<div id="spread-from-long-to-wide-format" class="section level2">
+<h2>spread() —from long to wide format</h2>
+<p>A second tidy tool is spread(), which does the opposite of <code>gather()</code> function. It is used to convert a long format data frame to wide format. What this function does is to spread observation across multiple rows.</p>
+<pre class="r"><code>ctd.long %&gt;% 
+  spread(key = &quot;depth&quot;, value = `fluorescence `)</code></pre>
+<pre><code># A tibble: 5 x 12
+  station   `10` `100` `110`  `20`  `30`  `40`  `50`  `60`  `70`  `80`  `90`
+  &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+1 st1      0.599 0.221 0.138 0.678 0.729 0.693 0.752 1.10  0.857 0.481 0.313
+2 st2      0.631 0.277 0.225 0.733 0.992 1.11  0.988 0.715 0.496 0.524 0.280
+3 st3      0.98  0.347 0.324 0.934 1.15  1.20  1.19  1.03  0.854 0.530 0.437
+4 st4     NA     0.692 0.444 0.623 0.603 0.742 0.724 0.799 0.914 0.819 0.801
+5 st5     NA     0.774 0.575 0.350 0.415 0.421 0.566 0.592 0.591 0.634 0.751</code></pre>
+<p>The <code>spread()</code> function takes two arguments: the column that contains variable names, known as the key and
+a column that contains values from multiple variables – the value.</p>
+</div>
+<div id="separate" class="section level2">
+<h2>separate()</h2>
+<p>Another common in tidyr package is a separate ()function, which split the variable into two or more variables. For example, the dataset below has a date column that actually contains the date and time variables separated by a space.</p>
+<pre class="r"><code>ctd</code></pre>
+<pre><code># A tibble: 115 x 12
+   station time                  lon   lat pressure temperature salinity oxygen
+   &lt;chr&gt;   &lt;dttm&gt;              &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;
+ 1 st1     2004-08-18 15:27:46  40.6 -10.5        5        25.2     33.9   3.93
+ 2 st1     2004-08-18 15:27:46  40.6 -10.5       10        25.1     34.9   4.49
+ 3 st1     2004-08-18 15:27:46  40.6 -10.5       15        25.1     34.9   4.50
+ 4 st1     2004-08-18 15:27:46  40.6 -10.5       20        25.0     34.9   4.51
+ 5 st1     2004-08-18 15:27:46  40.6 -10.5       25        24.9     34.9   4.51
+ 6 st1     2004-08-18 15:27:46  40.6 -10.5       30        24.9     34.9   4.50
+ 7 st1     2004-08-18 15:27:46  40.6 -10.5       35        24.9     34.9   4.49
+ 8 st1     2004-08-18 15:27:46  40.6 -10.5       40        24.9     34.9   4.48
+ 9 st1     2004-08-18 15:27:46  40.6 -10.5       45        24.8     34.9   4.46
+10 st1     2004-08-18 15:27:46  40.6 -10.5       50        24.6     34.9   4.44
+# ... with 105 more rows, and 4 more variables: fluorescence &lt;dbl&gt;, spar &lt;dbl&gt;,
+#   par &lt;dbl&gt;, density &lt;dbl&gt;</code></pre>
+<p>We use the <code>separate()</code> function splits the datetime column into two variables: date and time</p>
+<pre class="r"><code>ctd %&gt;% 
+  separate(col = time, into = c(&quot;Date&quot;, &quot;Time&quot;), sep = &quot; &quot;)</code></pre>
+<pre><code># A tibble: 115 x 13
+   station Date       Time       lon   lat pressure temperature salinity oxygen
+   &lt;chr&gt;   &lt;chr&gt;      &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;
+ 1 st1     2004-08-18 15:27:46  40.6 -10.5        5        25.2     33.9   3.93
+ 2 st1     2004-08-18 15:27:46  40.6 -10.5       10        25.1     34.9   4.49
+ 3 st1     2004-08-18 15:27:46  40.6 -10.5       15        25.1     34.9   4.50
+ 4 st1     2004-08-18 15:27:46  40.6 -10.5       20        25.0     34.9   4.51
+ 5 st1     2004-08-18 15:27:46  40.6 -10.5       25        24.9     34.9   4.51
+ 6 st1     2004-08-18 15:27:46  40.6 -10.5       30        24.9     34.9   4.50
+ 7 st1     2004-08-18 15:27:46  40.6 -10.5       35        24.9     34.9   4.49
+ 8 st1     2004-08-18 15:27:46  40.6 -10.5       40        24.9     34.9   4.48
+ 9 st1     2004-08-18 15:27:46  40.6 -10.5       45        24.8     34.9   4.46
+10 st1     2004-08-18 15:27:46  40.6 -10.5       50        24.6     34.9   4.44
+# ... with 105 more rows, and 4 more variables: fluorescence &lt;dbl&gt;, spar &lt;dbl&gt;,
+#   par &lt;dbl&gt;, density &lt;dbl&gt;</code></pre>
+<p>The <code>separate()</code> function accepts arguments for the name of the variable to separate. You also need to specify the names of the variable to separate into, and an optional separator.</p>
+<p>##unite ()
+The unite()function is the exact opposite of <code>separate()</code> in that it combines multiple columns into a single column. While not used nearly as often as <code>separate()</code> , there may be times when you need the functionality provided by unite(). For example, we can combine the variable <code>Date</code> and <code>Time</code> to form <code>siku.muda</code>, and separate them with <code>:-:</code> symbol between the two variables.</p>
+<pre class="r"><code>ctd.un %&gt;% unite(col = &quot;siku_muda&quot;, c(&quot;Date&quot;, &quot;Time&quot;), sep = &quot;:-:&quot;)</code></pre>
+<pre><code># A tibble: 115 x 12
+   station siku_muda              lon   lat pressure temperature salinity oxygen
+   &lt;chr&gt;   &lt;chr&gt;                &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;
+ 1 st1     2004-08-18:-:15:27:~  40.6 -10.5        5        25.2     33.9   3.93
+ 2 st1     2004-08-18:-:15:27:~  40.6 -10.5       10        25.1     34.9   4.49
+ 3 st1     2004-08-18:-:15:27:~  40.6 -10.5       15        25.1     34.9   4.50
+ 4 st1     2004-08-18:-:15:27:~  40.6 -10.5       20        25.0     34.9   4.51
+ 5 st1     2004-08-18:-:15:27:~  40.6 -10.5       25        24.9     34.9   4.51
+ 6 st1     2004-08-18:-:15:27:~  40.6 -10.5       30        24.9     34.9   4.50
+ 7 st1     2004-08-18:-:15:27:~  40.6 -10.5       35        24.9     34.9   4.49
+ 8 st1     2004-08-18:-:15:27:~  40.6 -10.5       40        24.9     34.9   4.48
+ 9 st1     2004-08-18:-:15:27:~  40.6 -10.5       45        24.8     34.9   4.46
+10 st1     2004-08-18:-:15:27:~  40.6 -10.5       50        24.6     34.9   4.44
+# ... with 105 more rows, and 4 more variables: fluorescence &lt;dbl&gt;, spar &lt;dbl&gt;,
+#   par &lt;dbl&gt;, density &lt;dbl&gt;</code></pre>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Data frame structured in wide format consist of each line or row represents observations and each each column represent a variable.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>Unlike the wide format in which each column represent the variables, the long format also called indexing. In the long format, the column are values and not names<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>

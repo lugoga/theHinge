@@ -1,0 +1,415 @@
+---
+title: Vector Data in R
+author: Masumbuko Semba
+date: '2020-02-04'
+slug: []
+categories:
+  - ''
+tags:
+  - code
+  - programming
+  - R
+  - semba
+  - tidyverse
+description: ''
+thumbnail: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+<script src="{{< blogdown/postref >}}index.en_files/kePrint/kePrint.js"></script>
+<link href="{{< blogdown/postref >}}index.en_files/lightable/lightable.css" rel="stylesheet" />
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>This chapter provides brief explanations of the fundamental vector model. You will get familiar with the theory behind vector model and the disciplines in which they predominate, before demonstrating its implementation in R.</p>
+<p>Vector is the most basic data structure in R. It is a sequence of elements of the same data type. if the elemenets are of different data types, they be coerced to a commontype that can accomodate all the elelements. Vector are generally created using the <code>c()</code> function widely called <code>concatenate</code>, though depeending on the type vector being created, other medhod.</p>
+</div>
+<div id="numeric-vector" class="section level2">
+<h2>Numeric Vector</h2>
+<p>We create a numeric vector using a <code>c()</code> function but you can use any function that creates a sequence of numbers</p>
+<pre class="r"><code>sst = c(25.4, 26, 28, 27.8, 29, 24.8, 22.3)</code></pre>
+<p>We can use the <code>is.vector()</code> function to check if is is avector and class to check the data type</p>
+<pre class="r"><code>is.vector(sst); class(sst)</code></pre>
+<pre><code>FALSE [1] TRUE</code></pre>
+<pre><code>FALSE [1] &quot;numeric&quot;</code></pre>
+</div>
+<div id="integer-vector" class="section level2">
+<h2>Integer vector</h2>
+<p>Creating an integer vector is similar to numeric vector except that we need to instruct R to treat the data as integer and not numeric or double. To command R creating integer, we specify a suffix <code>L</code> to an element</p>
+<pre class="r"><code>depth = c(5L, 10L, 15L, 20L, 25L,30L)
+is.vector(depth);class(depth)</code></pre>
+<pre><code>FALSE [1] TRUE</code></pre>
+<pre><code>FALSE [1] &quot;integer&quot;</code></pre>
+</div>
+<div id="character-vector" class="section level2">
+<h2>Character vector</h2>
+<p>A character vector may contain a single character , a word or a group of words. The elements must be enclosed with a single or double quotations mark.</p>
+<pre class="r"><code>sites = c(&quot;Pemba Channel&quot;, &quot;Zanzibar Channnel&quot;, &quot;Pemba Channel&quot;)
+is.vector(sites); class(sites)</code></pre>
+<pre><code>FALSE [1] TRUE</code></pre>
+<pre><code>FALSE [1] &quot;character&quot;</code></pre>
+</div>
+<div id="logical-vector" class="section level2">
+<h2>Logical Vector</h2>
+<p>A vector of logical values will either contain TRUE or FALSE or both</p>
+<pre class="r"><code>presence = c(TRUE,TRUE, FALSE, TRUE, FALSE)
+is.vector(presence);class(presence)</code></pre>
+<pre><code>FALSE [1] TRUE</code></pre>
+<pre><code>FALSE [1] &quot;logical&quot;</code></pre>
+</div>
+<div id="vector-data" class="section level2">
+<h2>Vector Data</h2>
+<p>The geographic vector model is based on points located within a coordinate reference system (CRS). Points can represent self-standing features (e.g., the locations where research sample were taken ) or they can be linked together to form complex geometries like lines and polygons. Most point geometries contain only two dimensions with longitude and latitude together with the attribute information. However 3-dimensional points contain an additional <span class="math inline">\(z\)</span> value— representing a thrid dimension—elevation, bathmetry etc.</p>
+<p>The standard and widely implemented spatial format for vector data is shapefile. shapefile format is popular geospatial vector data format for geographical information system (GIS) software.It is developed and maintained by Esri. Despite what its name may imply, a “single” shapefile is actually composed of at least three files, and as many as eight. Each file that makes up a “shapefile” has a common filename but different extension type. The list of files that define a “shapefile” are shown in table <a href="#tab:tab41">1</a>. Note that each file has a specific role in defining a shapefile.</p>
+<table>
+<caption>
+<span id="tab:tab41">Table 1: </span>Eight Common files that makes a shapefile
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Description
+</th>
+<th style="text-align:left;">
+Extension
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+Attribute information
+</td>
+<td style="text-align:left;width: 4cm; ">
+.dbf
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+Feature geometry
+</td>
+<td style="text-align:left;width: 4cm; ">
+.shp
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+Feature geometry index
+</td>
+<td style="text-align:left;width: 4cm; ">
+.shx
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+Attribute index
+</td>
+<td style="text-align:left;width: 4cm; ">
+.aih
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+Attribute index
+</td>
+<td style="text-align:left;width: 4cm; ">
+.ain
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+Coordinate system information
+</td>
+<td style="text-align:left;width: 4cm; ">
+.prj
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+Spatial index file
+</td>
+<td style="text-align:left;width: 4cm; ">
+.sbn
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+Spatial index file
+</td>
+<td style="text-align:left;width: 4cm; ">
+.sbx
+</td>
+</tr>
+</tbody>
+</table>
+<p>Until recent, shapefile format was the de facto form ofvector data basis for libraries such as GDAL. R has well-supported classes for storing spatial data and interfacing to the shapefile format, but has so far lacked a complete implementation of <em>simple features</em>, making conversions at times convoluted, inefficient or incomplete <span class="citation">[@sf]</span>.</p>
+<div id="simple-features" class="section level3">
+<h3>Simple features</h3>
+<p><span class="citation">@sf</span> plainly described <em>simple features</em> as hierachical data model that present objects in the real world in computers, with emphasis on the spatial geometry of these objects. Out of 17, there are only seven seven simple feature types described in Table <a href="#tab:tab42">2</a> that are commonly used. <strong>sf</strong> can represent common vector geometry types—points, lines, polygons and their respective ‘multi’ versions. <strong>sf</strong> also supports geometry collections, which can contain multiple geometry types in a single object.</p>
+<table>
+<caption>
+<span id="tab:tab42">Table 2: </span>Common simple features
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Type
+</th>
+<th style="text-align:left;">
+Description
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;width: 4cm; ">
+Point
+</td>
+<td style="text-align:left;width: 12cm; ">
+zero-dimensional geometry containing a single point
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 4cm; ">
+Linestring
+</td>
+<td style="text-align:left;width: 12cm; ">
+sequence of points connected by straight, non-self intersecting line pieces; one-dimensional geometry
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 4cm; ">
+Polygon
+</td>
+<td style="text-align:left;width: 12cm; ">
+geometry with a positive area (two-dimensional); sequence of points form a closed, non-self intersecting ring; the first ring denotes the exterior ring, zero or more subsequent rings denote holes in this exterior ring
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 4cm; ">
+Multipoint
+</td>
+<td style="text-align:left;width: 12cm; ">
+set of points; a MULTIPOINT is simple if no two Points in the MULTIPOINT are equal
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 4cm; ">
+Multilinestring
+</td>
+<td style="text-align:left;width: 12cm; ">
+Set of linestrings
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 4cm; ">
+Multipolygon
+</td>
+<td style="text-align:left;width: 12cm; ">
+set of polygons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 4cm; ">
+Geometrycollection
+</td>
+<td style="text-align:left;width: 12cm; ">
+Set of geometries of any type with exception of geometrycollection
+</td>
+</tr>
+</tbody>
+</table>
+<p>These core geometry types are fully supported by the R package <strong>sf</strong> <span class="citation">[@sf]</span>. <strong>sf</strong> is a package providing a class system for geographic vector data <span class="citation">[@geocomputation]</span> supersede, <strong>sp</strong>—methods for spatial data <span class="citation">[@sp]</span>. It also provides a consistent command-line interface to GEOS and GDAL, superseding <strong>rgdal</strong>— for data read/write <span class="citation">[@rgdal]</span> and <strong>rgeos</strong>—for spatial operations <span class="citation">[@rgeos]</span> packages</p>
+</div>
+</div>
+<div id="reading-vector-data" class="section level2">
+<h2>Reading vector data</h2>
+<p>We will use the <strong>sf</strong> package to work with vector data in R [<span class="citation">@sf</span>. Notice that the <strong>rgdal</strong> package automatically loads when <strong>sf</strong> is loaded. The <strong>sf</strong> package has the <code>st_read()</code> function that read different types of vector data to sf object.</p>
+<pre class="r"><code>require(sf)</code></pre>
+<div id="reading-shapefiles" class="section level3">
+<h3>Reading shapefiles</h3>
+<p>Shapefile is the widely used vector format in GIS software. The function <code>st_read()</code> import any type of shapefile into R. for example the chunk block below show how to import the sampling location that are in shapefile format into simple feature object in R’s worksapace.</p>
+<pre class="r"><code>location = st_read(&quot;data/simple_feature.shp&quot;, quiet = TRUE)
+location</code></pre>
+<pre><code>FALSE Simple feature collection with 11 features and 4 fields
+FALSE Geometry type: POINT
+FALSE Dimension:     XY
+FALSE Bounding box:  xmin: 39.50958 ymin: -8.425115 xmax: 42.00623 ymax: -6.414011
+FALSE Geodetic CRS:  WGS 84
+FALSE First 10 features:
+FALSE     id   type depth      sst                   geometry
+FALSE 1  294 marker    29 27.87999 POINT (39.50958 -6.438159)
+FALSE 2  300 marker  -604 27.97999  POINT (39.6318 -6.621774)
+FALSE 3  306 marker  -569 27.97999 POINT (39.65447 -6.746649)
+FALSE 4  312 marker  -485 28.03999 POINT (39.62563 -6.805321)
+FALSE 5  318 marker  -325 28.03999 POINT (39.58374 -6.833973)
+FALSE 6  326 marker  -461 28.03999 POINT (39.66476 -6.837384)
+FALSE 7  414 marker  -505 28.02999 POINT (39.95728 -7.843535)
+FALSE 8  428 marker  -132 28.23999 POINT (39.67712 -8.136846)
+FALSE 9  434 marker  -976 28.16999 POINT (39.74853 -8.425115)
+FALSE 10 456 marker -3311 28.33999 POINT (42.00623 -7.025368)</code></pre>
+<p>When we print the this simple feature it tells us that it has 18 features that span between longitude 39.45336°E and 39.55239°E and latitude 6.850945°S and 6.461915°S with defined geographical coordinate system of <code>WGS84</code>.</p>
+</div>
+<div id="reading-gpx-file" class="section level3">
+<h3>Reading GPX file</h3>
+<p>The <code>st_read()</code> function can also read files from GPS devices with the <code>.gpx</code> extension.</p>
+<pre class="r"><code>track = st_read(&quot;data/Track-180911-063740.gpx&quot;, quiet  = TRUE)
+track</code></pre>
+<pre><code>FALSE Simple feature collection with 1 feature and 24 fields
+FALSE Geometry type: POINT
+FALSE Dimension:     XY
+FALSE Bounding box:  xmin: 39.44527 ymin: -6.907095 xmax: 39.44527 ymax: -6.907095
+FALSE Geodetic CRS:  WGS 84
+FALSE    ele                time magvar geoidheight                    name  cmt
+FALSE 1 14.4 2018-09-11 07:42:07     NA          NA Track Recording Stopped &lt;NA&gt;
+FALSE                                                                                 desc
+FALSE 1 Recording stopped at 33&#39;00&quot; because the user stopped it after 6.58km (0.50m gain).
+FALSE    src link1_href link1_text link1_type link2_href link2_text link2_type  sym
+FALSE 1 &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt; &lt;NA&gt;
+FALSE   type  fix sat hdop vdop pdop ageofdgpsdata dgpsid  x_speed
+FALSE 1 &lt;NA&gt; &lt;NA&gt;  NA   NA   NA   NA            NA     NA 0.385527
+FALSE                     geometry
+FALSE 1 POINT (39.44527 -6.907095)</code></pre>
+<p>We can assess the geographical extent of the simple feature track with the <code>st_bbox()</code> function.</p>
+<pre class="r"><code>track %&gt;% st_bbox()</code></pre>
+<pre><code>FALSE      xmin      ymin      xmax      ymax 
+FALSE 39.445274 -6.907095 39.445274 -6.907095</code></pre>
+<p>And check the type of geographical coordinate system with <code>st_crs()</code> function</p>
+<pre class="r"><code>track %&gt;% st_crs()</code></pre>
+<pre><code>FALSE Coordinate Reference System:
+FALSE   User input: WGS 84 
+FALSE   wkt:
+FALSE GEOGCRS[&quot;WGS 84&quot;,
+FALSE     DATUM[&quot;World Geodetic System 1984&quot;,
+FALSE         ELLIPSOID[&quot;WGS 84&quot;,6378137,298.257223563,
+FALSE             LENGTHUNIT[&quot;metre&quot;,1]]],
+FALSE     PRIMEM[&quot;Greenwich&quot;,0,
+FALSE         ANGLEUNIT[&quot;degree&quot;,0.0174532925199433]],
+FALSE     CS[ellipsoidal,2],
+FALSE         AXIS[&quot;geodetic latitude (Lat)&quot;,north,
+FALSE             ORDER[1],
+FALSE             ANGLEUNIT[&quot;degree&quot;,0.0174532925199433]],
+FALSE         AXIS[&quot;geodetic longitude (Lon)&quot;,east,
+FALSE             ORDER[2],
+FALSE             ANGLEUNIT[&quot;degree&quot;,0.0174532925199433]],
+FALSE     ID[&quot;EPSG&quot;,4326]]</code></pre>
+</div>
+</div>
+<div id="make-shapefiles-from-tabular-data" class="section level2">
+<h2>Make shapefiles from Tabular data</h2>
+<p>Sometimes the geographical information are in tabular form and you need to convert them into simple feature to work with spatial analysis and mapping. The <strong>sf</strong> package provide a <code>st_as_sf()</code> function that can make simple feature from the location information in the table. To illustrate this point, let us first load the file that contain the geographical information into the workspace.</p>
+<pre class="r"><code>location = read_csv(&quot;data/kimbiji_kizimkazi_transect.csv&quot;)</code></pre>
+<p>Looking the internal structure of the location object we loaded, we find that there are eighteen observations and each observation has the longitude and latitude information.</p>
+<pre class="r"><code>location %&gt;% glimpse()</code></pre>
+<pre><code>FALSE Rows: 18
+FALSE Columns: 2
+FALSE $ lon &lt;dbl&gt; 39.45336, 39.45336, 39.46751, 39.47458, 39.47812, 39.49226, 39.485~
+FALSE $ lat &lt;dbl&gt; -6.850945, -6.822652, -6.787286, -6.758993, -6.730700, -6.713016, ~</code></pre>
+<p>The file contain only the geographical information. We can add the column for station names. <code>mutate()</code> function from <strong>dplyr</strong> package add the third column. Because the station name should be sequentially numbered, the <code>paste()</code> function was used to do this.</p>
+<pre class="r"><code>location = location %&gt;% 
+  mutate(name = paste(&quot;station&quot;, 1:18))</code></pre>
+<p>Once we know that the dataset contain the longitude and latitude information, we can use these spatial information to make simple feature object using the <code>st_as_sf()</code> from <strong>sf</strong> package</p>
+<pre class="r"><code>location.sf = location %&gt;% 
+  st_as_sf(coords = c(&quot;lon&quot;, &quot;lat&quot;))
+
+location.sf</code></pre>
+<pre><code>FALSE Simple feature collection with 18 features and 1 field
+FALSE Geometry type: POINT
+FALSE Dimension:     XY
+FALSE Bounding box:  xmin: 39.45336 ymin: -6.850945 xmax: 39.55239 ymax: -6.461915
+FALSE CRS:           NA
+FALSE # A tibble: 18 x 2
+FALSE    name                   geometry
+FALSE    &lt;chr&gt;                   &lt;POINT&gt;
+FALSE  1 station 1  (39.45336 -6.850945)
+FALSE  2 station 2  (39.45336 -6.822652)
+FALSE  3 station 3  (39.46751 -6.787286)
+FALSE  4 station 4  (39.47458 -6.758993)
+FALSE  5 station 5    (39.47812 -6.7307)
+FALSE  6 station 6  (39.49226 -6.713016)
+FALSE  7 station 7  (39.48519 -6.695333)
+FALSE  8 station 8  (39.49226 -6.659967)
+FALSE  9 station 9   (39.50641 -6.64582)
+FALSE 10 station 10 (39.51702 -6.631674)
+FALSE 11 station 11  (39.52056 -6.61399)
+FALSE 12 station 12 (39.52763 -6.578624)
+FALSE 13 station 13 (39.52763 -6.557404)
+FALSE 14 station 14  (39.5347 -6.539721)
+FALSE 15 station 15 (39.54178 -6.518501)
+FALSE 16 station 16 (39.54531 -6.497281)
+FALSE 17 station 17 (39.54531 -6.483135)
+FALSE 18 station 18 (39.55239 -6.461915)</code></pre>
+<p>The <code>coords</code> parameter is given the <code>latitude</code> and <code>longitude</code> value columns–values used to locate the points associated with each record. We now have a simple featuere with 18 points. However, the simple feature lack the coordinate system. We can define the coordinate system for the simple feature with the <code>st_set_crs()</code> function and parse the epsg code of WGS84.</p>
+<pre class="r"><code>location.sf = location.sf %&gt;% 
+  st_set_crs(4326)</code></pre>
+<p>Let us check if the <code>location.sf</code> is indeed a spatial object</p>
+<pre class="r"><code>location.sf</code></pre>
+<pre><code>FALSE Simple feature collection with 18 features and 1 field
+FALSE Geometry type: POINT
+FALSE Dimension:     XY
+FALSE Bounding box:  xmin: 39.45336 ymin: -6.850945 xmax: 39.55239 ymax: -6.461915
+FALSE Geodetic CRS:  WGS 84
+FALSE # A tibble: 18 x 2
+FALSE    name                   geometry
+FALSE  * &lt;chr&gt;               &lt;POINT [°]&gt;
+FALSE  1 station 1  (39.45336 -6.850945)
+FALSE  2 station 2  (39.45336 -6.822652)
+FALSE  3 station 3  (39.46751 -6.787286)
+FALSE  4 station 4  (39.47458 -6.758993)
+FALSE  5 station 5    (39.47812 -6.7307)
+FALSE  6 station 6  (39.49226 -6.713016)
+FALSE  7 station 7  (39.48519 -6.695333)
+FALSE  8 station 8  (39.49226 -6.659967)
+FALSE  9 station 9   (39.50641 -6.64582)
+FALSE 10 station 10 (39.51702 -6.631674)
+FALSE 11 station 11  (39.52056 -6.61399)
+FALSE 12 station 12 (39.52763 -6.578624)
+FALSE 13 station 13 (39.52763 -6.557404)
+FALSE 14 station 14  (39.5347 -6.539721)
+FALSE 15 station 15 (39.54178 -6.518501)
+FALSE 16 station 16 (39.54531 -6.497281)
+FALSE 17 station 17 (39.54531 -6.483135)
+FALSE 18 station 18 (39.55239 -6.461915)</code></pre>
+<p>let us check the class of the simple feature</p>
+<pre class="r"><code>location.sf %&gt;% 
+  class()</code></pre>
+<pre><code>FALSE [1] &quot;sf&quot;         &quot;tbl_df&quot;     &quot;tbl&quot;        &quot;data.frame&quot;</code></pre>
+<p>Note the object has four class <code>sf</code>, <code>tbl_df</code>, <code>tbl</code>, and <code>data_frame</code>. The data frame contents was also carried over into the attributes table of the simple feature. There was only one attribute, <code>name</code>, other than <code>lon</code> and <code>lat</code> in the tabular data used to create this simple feature.</p>
+<p>Looking on the file clearly the projection is defined to <code>WGS84</code>. We can further transform the geographical coordinate system that is degree into the UTM, which is in metric. The function <code>st_transform()</code> from <strong>sf</strong> package handle transformation of coordinate system <span class="citation">[@sf]</span>. The epsg code for zone 37 south is 32737, which is parsed into the function.</p>
+<pre class="r"><code>location.utm = location.sf %&gt;% 
+  st_transform(32737)
+
+location.utm</code></pre>
+<pre><code>FALSE Simple feature collection with 18 features and 1 field
+FALSE Geometry type: POINT
+FALSE Dimension:     XY
+FALSE Bounding box:  xmin: 550090.3 ymin: 9242705 xmax: 561079.7 ymax: 9285701
+FALSE Projected CRS: WGS 84 / UTM zone 37S
+FALSE # A tibble: 18 x 2
+FALSE    name                 geometry
+FALSE  * &lt;chr&gt;             &lt;POINT [m]&gt;
+FALSE  1 station 1  (550090.3 9242705)
+FALSE  2 station 2  (550093.2 9245833)
+FALSE  3 station 3  (551660.2 9249741)
+FALSE  4 station 4  (552444.8 9252868)
+FALSE  5 station 5  (552838.7 9255995)
+FALSE  6 station 6  (554404.1 9257949)
+FALSE  7 station 7  (553624.3 9259904)
+FALSE  8 station 8    (554410 9263813)
+FALSE  9 station 9  (555975.3 9265376)
+FALSE 10 station 10 (557149.7 9266938)
+FALSE 11 station 11 (557542.7 9268893)
+FALSE 12 station 12 (558328.7 9272802)
+FALSE 13 station 13 (558331.2 9275147)
+FALSE 14 station 14 (559115.3 9277101)
+FALSE 15 station 15 (559899.8 9279446)
+FALSE 16 station 16 (560293.4 9281792)
+FALSE 17 station 17 (560295.1 9283356)
+FALSE 18 station 18 (561079.7 9285701)</code></pre>
+</div>
+<div id="export-simple-feature-as-shapefile" class="section level2">
+<h2>Export simple feature as shapefile</h2>
+<p>Once the simple feature is created, you might be interested to export as shapefile for use with other GIS software like QGIS and Esri ARCGIS. The <strong>sf</strong> package has a <code>st_write()</code> function that export simple feature from the workspace into shapefiles in the working directory. The chunk block below demonstrates the export of simple feature object location.sf into the location.shp in the working directory—denoted with <code>./</code></p>
+<pre class="r"><code>location.sf %&gt;% st_write(&quot;./location.shp&quot;)</code></pre>
+</div>

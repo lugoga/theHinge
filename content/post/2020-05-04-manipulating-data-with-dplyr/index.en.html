@@ -1,0 +1,425 @@
+---
+title: Manipulating Data with dplyr
+author: Masumbuko Semba
+date: '2020-05-04'
+slug: []
+categories:
+  - ''
+tags:
+  - code
+  - programming
+  - R
+  - semba
+  - tidyverse
+description: ''
+thumbnail: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<p>Before a dataset can be analysed in R, its often manipulated or transformed in various ways. For years manipulating data in R required more programming than actually analyzing data. That has improved dramatically with the <strong>dplyr</strong> package. It provides programmers with an intuitive vocabulary for executing data management and analysis tasks. Hadley Wickham <span class="citation">[-@dplyr]</span>, the original creator of the <strong>dplyr</strong> package, refers to it as a <em>Grammar of Data Manipulation</em>. Because the package provides a set of functions (verbs) that let you modify data and perform common data preparation tasks. The key challenge in programming is mapping from questions about a data set to specific programming operations. With dplyr’s verbs, makes this process smoother, as it enables you to use the same vocabulary to both ask questions and write your code. In other words, the dplyr verbs lets you easily talk with data and transform a dataset in various ways with easy.</p>
+<div id="why-use-dplyr" class="section level2">
+<h2>Why use dplyr?</h2>
+<p>Using this package’s functions will allow you to code expressively—code that are easy to write and read, which make you effective and efficient data scientists.</p>
+<ol style="list-style-type: decimal">
+<li>Great for data exploration and manipulation</li>
+<li>Intuitive to write and easy to read, especially when using the chaining syntax</li>
+<li>Fast on data frame—tabular dataset</li>
+</ol>
+</div>
+<div id="core-dplyr-functions" class="section level2">
+<h2>Core dplyr Functions</h2>
+<p>I will not go through all of the <strong>dplyr</strong> functions in this chapter. I will demonstrate the core functions that are used regularly for manipulating data. The five core functions also called verbs include:</p>
+<ul>
+<li><code>select()</code> to select columns based on their names</li>
+<li><code>filter()</code> to rows in data frame</li>
+<li><code>arrange()</code> to re-order or arrange the rows in ascending or descending order</li>
+<li><code>mutate()</code> to create new columns—add new variable</li>
+<li><code>summarise()</code> to make a summary of variable(s)</li>
+<li><code>group_by()</code> to group observation</li>
+<li><code>sample_n()</code> and <code>rename()</code>to make random sample from the data set</li>
+</ul>
+<p>The <code>group_by()</code> function perform other common task which are related to the <em>split-apply-combine</em> concept. You can use these verbs when you describe the algorithm or process for interrogating data, and then use <strong>dplyr</strong> verbs to write code that will closely follow your “plain language” description because it uses functions and procedures that share the same language.</p>
+<p>For most of us who are familiar with the R base function, you will find that most <strong>dplyr</strong> functions on data frames can be expressed succinctly because you don’t need to repeat the name of the data frame. This becomes handy in operation, because <code>dplyr</code> package comes with the pipe operateor <code>%&gt;%</code> from the <code>magrittr</code> package <span class="citation">[@magrittr]</span>, which allows to combine several functions in a chain to manipulate data.</p>
+<p>To use dplyr functions to manipulate your data, it must be already installed in your machine so that you can load with a <code>require ()</code> function. Once the package is loaded, its functions are available for use.
+dplyr is a key package of the tidyverse ecosystem—a collection of R packages, which also includes other packages like, <strong>readr</strong>, <strong>purr</strong>,<strong>tibble</strong>, <strong>stringr</strong>, <strong>forcats</strong>, <strong>tidyr</strong> and <strong>ggplot2</strong>.</p>
+<pre class="r"><code>require(tidyverse)</code></pre>
+</div>
+<div id="data" class="section level2">
+<h2>Data</h2>
+<p>Data frames are ideal for representing data where each row is an observations and each column is a variable. Nearly all packages in a tidyverse work on data frames new version called <em>tibble</em>. A tibble provides stricter checking and better formatting than the traditional data frame.</p>
+<p>To demonstrate the usefulness of the <strong>dplyr</strong> package for manipulating data, we will use the CTD data of 22 stations casted along the coastal water of Tanzania. I have prepared the data, cleaned and align the profile into 5 meter standard depth for each cast and merged them into a single <code>.csv</code> file. You need to load the file into your R session. We can import the file with <code>read_csv()</code> function from the <strong>readr</strong> package <span class="citation">[@readr]</span>. The <code>read_csv()</code> function gives out a <em>tibble</em>.</p>
+<pre class="r"><code>ctd = read_csv(&quot;../data/algoa_ctd.csv&quot;)</code></pre>
+</div>
+<div id="choosing-rows-filtering-observations" class="section level2">
+<h2>Choosing rows: Filtering observations</h2>
+<p>The first dplyr verb we’ll explore is <code>filter()</code>. This function is primarily used to create a subset of observations that meet a specified conditions. The <code>filter()</code> function lets you pick out rows based on logical expressions. You give the function a predicate, specifying what a row should satisfy to be included. For instance, take a look at the chunk below:</p>
+<pre class="r"><code>surface = ctd %&gt;% 
+  filter(pressure &lt; 150)
+surface</code></pre>
+<pre><code># A tibble: 637 x 12
+   station time                  lon   lat pressure temperature salinity oxygen
+   &lt;chr&gt;   &lt;dttm&gt;              &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;
+ 1 st1     2004-08-18 15:27:46  40.6 -10.5        5        25.2     33.9   3.93
+ 2 st1     2004-08-18 15:27:46  40.6 -10.5       10        25.1     34.9   4.49
+ 3 st1     2004-08-18 15:27:46  40.6 -10.5       15        25.1     34.9   4.50
+ 4 st1     2004-08-18 15:27:46  40.6 -10.5       20        25.0     34.9   4.51
+ 5 st1     2004-08-18 15:27:46  40.6 -10.5       25        24.9     34.9   4.51
+ 6 st1     2004-08-18 15:27:46  40.6 -10.5       30        24.9     34.9   4.50
+ 7 st1     2004-08-18 15:27:46  40.6 -10.5       35        24.9     34.9   4.49
+ 8 st1     2004-08-18 15:27:46  40.6 -10.5       40        24.9     34.9   4.48
+ 9 st1     2004-08-18 15:27:46  40.6 -10.5       45        24.8     34.9   4.46
+10 st1     2004-08-18 15:27:46  40.6 -10.5       50        24.6     34.9   4.44
+# ... with 627 more rows, and 4 more variables: fluorescence &lt;dbl&gt;, spar &lt;dbl&gt;,
+#   par &lt;dbl&gt;, density &lt;dbl&gt;</code></pre>
+<p>The expression calls the ctd dataset and feed into the <code>filter()</code>and pick all observations with pressure below 150meters and create a new datase called surface. This is an expression where a single conditional statement is used.</p>
+<p>We can also limit the of the variable of interest by combining multiple conditional expressions as part of the <code>filter()</code>. Each expression (argument) is combined with an “AND” clause by default. This means that all expressions must be matched for a recorded to be returned. For instance we want to pick observations that were measured between 5 and 10 meters water only. We combine theses expressions with <code>&amp;</code> operator;</p>
+<pre class="r"><code>ctd %&gt;% 
+  filter(pressure &gt;= 0 &amp; pressure &lt;= 10)</code></pre>
+<pre><code># A tibble: 44 x 12
+   station time                  lon   lat pressure temperature salinity oxygen
+   &lt;chr&gt;   &lt;dttm&gt;              &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;
+ 1 st1     2004-08-18 15:27:46  40.6 -10.5        5        25.2     33.9   3.93
+ 2 st1     2004-08-18 15:27:46  40.6 -10.5       10        25.1     34.9   4.49
+ 3 st2     2004-08-18 17:00:01  40.8 -10.5        5        25.2     34.8   4.47
+ 4 st2     2004-08-18 17:00:01  40.8 -10.5       10        25.2     34.8   4.47
+ 5 st3     2004-08-18 20:32:54  41.0 -10.5        5        NA       NA    NA   
+ 6 st3     2004-08-18 20:32:54  41.0 -10.5       10        25.0     34.9   4.49
+ 7 st4     2004-08-18 22:44:56  41.1 -10.5        5        NA       NA    NA   
+ 8 st4     2004-08-18 22:44:56  41.1 -10.5       10        NA       NA    NA   
+ 9 st5     2004-08-19 00:59:59  41.3 -10.5        5        NA       NA    NA   
+10 st5     2004-08-19 00:59:59  41.3 -10.5       10        NA       NA    NA   
+# ... with 34 more rows, and 4 more variables: fluorescence &lt;dbl&gt;, spar &lt;dbl&gt;,
+#   par &lt;dbl&gt;, density &lt;dbl&gt;</code></pre>
+<p>We can also use the <code>between()</code> function, which is equivalent to <code>pressure &gt;= 0 &amp; pressure &lt;= 10</code> in above chunk to achive the same result.</p>
+<pre class="r"><code>ctd %&gt;% 
+  filter(between(pressure, 5,10))</code></pre>
+<pre><code># A tibble: 44 x 12
+   station time                  lon   lat pressure temperature salinity oxygen
+   &lt;chr&gt;   &lt;dttm&gt;              &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;
+ 1 st1     2004-08-18 15:27:46  40.6 -10.5        5        25.2     33.9   3.93
+ 2 st1     2004-08-18 15:27:46  40.6 -10.5       10        25.1     34.9   4.49
+ 3 st2     2004-08-18 17:00:01  40.8 -10.5        5        25.2     34.8   4.47
+ 4 st2     2004-08-18 17:00:01  40.8 -10.5       10        25.2     34.8   4.47
+ 5 st3     2004-08-18 20:32:54  41.0 -10.5        5        NA       NA    NA   
+ 6 st3     2004-08-18 20:32:54  41.0 -10.5       10        25.0     34.9   4.49
+ 7 st4     2004-08-18 22:44:56  41.1 -10.5        5        NA       NA    NA   
+ 8 st4     2004-08-18 22:44:56  41.1 -10.5       10        NA       NA    NA   
+ 9 st5     2004-08-19 00:59:59  41.3 -10.5        5        NA       NA    NA   
+10 st5     2004-08-19 00:59:59  41.3 -10.5       10        NA       NA    NA   
+# ... with 34 more rows, and 4 more variables: fluorescence &lt;dbl&gt;, spar &lt;dbl&gt;,
+#   par &lt;dbl&gt;, density &lt;dbl&gt;</code></pre>
+<p>In the next example, two conditional expressions are passed. The first is used to filter surface water below 200 m, and the second statement filter records that above latitude 6°S</p>
+<pre class="r"><code>ctd %&gt;% 
+  filter(pressure &lt; 200 &amp; lat &gt; -6)</code></pre>
+<pre><code># A tibble: 223 x 12
+   station time                  lon   lat pressure temperature salinity oxygen
+   &lt;chr&gt;   &lt;dttm&gt;              &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;
+ 1 st17    2004-08-23 19:42:30  40.1 -5.49        5        25.6     35.2   4.40
+ 2 st17    2004-08-23 19:42:30  40.1 -5.49       10        25.4     35.1   4.45
+ 3 st17    2004-08-23 19:42:30  40.1 -5.49       15        25.3     35.1   4.48
+ 4 st17    2004-08-23 19:42:30  40.1 -5.49       20        25.4     35.2   4.48
+ 5 st17    2004-08-23 19:42:30  40.1 -5.49       25        25.4     35.2   4.48
+ 6 st17    2004-08-23 19:42:30  40.1 -5.49       30        25.4     35.2   4.48
+ 7 st17    2004-08-23 19:42:30  40.1 -5.49       35        25.4     35.2   4.46
+ 8 st17    2004-08-23 19:42:30  40.1 -5.49       40        25.4     35.2   4.48
+ 9 st17    2004-08-23 19:42:30  40.1 -5.49       45        25.4     35.2   4.47
+10 st17    2004-08-23 19:42:30  40.1 -5.49       50        25.4     35.2   4.45
+# ... with 213 more rows, and 4 more variables: fluorescence &lt;dbl&gt;, spar &lt;dbl&gt;,
+#   par &lt;dbl&gt;, density &lt;dbl&gt;</code></pre>
+<p>In this case, the surface.transect dataset has records where both conditions are met—the pressure is blow 200 meter and latitude above -6. Note that when two or more conditions are paased, the &amp; operator is used.</p>
+<p>You may sometimes want to know stations and at what depth a particular variable has missing values. You can pick all variable in the data frame using <code>is.na()</code> function.</p>
+<pre class="r"><code>ctd %&gt;% 
+  filter(is.na(fluorescence))</code></pre>
+<pre><code># A tibble: 7 x 12
+  station time                  lon    lat pressure temperature salinity oxygen
+  &lt;chr&gt;   &lt;dttm&gt;              &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;
+1 st3     2004-08-18 20:32:54  41.0 -10.5         5          NA       NA     NA
+2 st4     2004-08-18 22:44:56  41.1 -10.5         5          NA       NA     NA
+3 st4     2004-08-18 22:44:56  41.1 -10.5        10          NA       NA     NA
+4 st5     2004-08-19 00:59:59  41.3 -10.5         5          NA       NA     NA
+5 st5     2004-08-19 00:59:59  41.3 -10.5        10          NA       NA     NA
+6 st10    2004-08-19 19:36:50  39.7  -8.83        5          NA       NA     NA
+7 st10    2004-08-19 19:36:50  39.7  -8.83       10          NA       NA     NA
+# ... with 4 more variables: fluorescence &lt;dbl&gt;, spar &lt;dbl&gt;, par &lt;dbl&gt;,
+#   density &lt;dbl&gt;</code></pre>
+<p>You can also drop the observation with missing values in the data frame using the <code>!is.na()</code> operator</p>
+<pre class="r"><code>ctd %&gt;% 
+  filter(!is.na(fluorescence))</code></pre>
+<pre><code># A tibble: 2,789 x 12
+   station time                  lon   lat pressure temperature salinity oxygen
+   &lt;chr&gt;   &lt;dttm&gt;              &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;
+ 1 st1     2004-08-18 15:27:46  40.6 -10.5        5        25.2     33.9   3.93
+ 2 st1     2004-08-18 15:27:46  40.6 -10.5       10        25.1     34.9   4.49
+ 3 st1     2004-08-18 15:27:46  40.6 -10.5       15        25.1     34.9   4.50
+ 4 st1     2004-08-18 15:27:46  40.6 -10.5       20        25.0     34.9   4.51
+ 5 st1     2004-08-18 15:27:46  40.6 -10.5       25        24.9     34.9   4.51
+ 6 st1     2004-08-18 15:27:46  40.6 -10.5       30        24.9     34.9   4.50
+ 7 st1     2004-08-18 15:27:46  40.6 -10.5       35        24.9     34.9   4.49
+ 8 st1     2004-08-18 15:27:46  40.6 -10.5       40        24.9     34.9   4.48
+ 9 st1     2004-08-18 15:27:46  40.6 -10.5       45        24.8     34.9   4.46
+10 st1     2004-08-18 15:27:46  40.6 -10.5       50        24.6     34.9   4.44
+# ... with 2,779 more rows, and 4 more variables: fluorescence &lt;dbl&gt;,
+#   spar &lt;dbl&gt;, par &lt;dbl&gt;, density &lt;dbl&gt;</code></pre>
+<p>When you have string variable in the data frame with character or factor format, you can filter the certain observation with <code>%in%</code> statement. For example, to obtain profiles from three stations: st1, st8, and st13, we can write the code as;</p>
+<pre class="r"><code>ctd %&gt;% 
+  filter(station %in% c(&quot;st1&quot;, &quot;st8&quot;, &quot;st13&quot;))</code></pre>
+<pre><code># A tibble: 347 x 12
+   station time                  lon   lat pressure temperature salinity oxygen
+   &lt;chr&gt;   &lt;dttm&gt;              &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;
+ 1 st1     2004-08-18 15:27:46  40.6 -10.5        5        25.2     33.9   3.93
+ 2 st1     2004-08-18 15:27:46  40.6 -10.5       10        25.1     34.9   4.49
+ 3 st1     2004-08-18 15:27:46  40.6 -10.5       15        25.1     34.9   4.50
+ 4 st1     2004-08-18 15:27:46  40.6 -10.5       20        25.0     34.9   4.51
+ 5 st1     2004-08-18 15:27:46  40.6 -10.5       25        24.9     34.9   4.51
+ 6 st1     2004-08-18 15:27:46  40.6 -10.5       30        24.9     34.9   4.50
+ 7 st1     2004-08-18 15:27:46  40.6 -10.5       35        24.9     34.9   4.49
+ 8 st1     2004-08-18 15:27:46  40.6 -10.5       40        24.9     34.9   4.48
+ 9 st1     2004-08-18 15:27:46  40.6 -10.5       45        24.8     34.9   4.46
+10 st1     2004-08-18 15:27:46  40.6 -10.5       50        24.6     34.9   4.44
+# ... with 337 more rows, and 4 more variables: fluorescence &lt;dbl&gt;, spar &lt;dbl&gt;,
+#   par &lt;dbl&gt;, density &lt;dbl&gt;</code></pre>
+</div>
+<div id="select" class="section level2">
+<h2>select</h2>
+<p>The second verb we are going to demonstrate is the <code>select()</code> function. Often you work with large datasets with many columns but only a few are actually of interest to you. The <code>select()</code> function selects columns of the data frame. <code>select()</code> function allows you to choose variables that are of interest. You can use it to pick out a some columns from the dataset. For instance, fi we want pressure, temprature, salinity, fluorescence and ovygen variables from the data frame, we can simply write a code as;</p>
+<pre class="r"><code>ctd %&gt;% 
+  select (pressure, temperature, salinity, fluorescence, oxygen)</code></pre>
+<pre><code># A tibble: 2,796 x 5
+   pressure temperature salinity fluorescence oxygen
+      &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;        &lt;dbl&gt;  &lt;dbl&gt;
+ 1        5        25.2     33.9        0.560   3.93
+ 2       10        25.1     34.9        0.599   4.49
+ 3       15        25.1     34.9        0.650   4.50
+ 4       20        25.0     34.9        0.678   4.51
+ 5       25        24.9     34.9        0.760   4.51
+ 6       30        24.9     34.9        0.729   4.50
+ 7       35        24.9     34.9        0.740   4.49
+ 8       40        24.9     34.9        0.693   4.48
+ 9       45        24.8     34.9        0.703   4.46
+10       50        24.6     34.9        0.752   4.44
+# ... with 2,786 more rows</code></pre>
+<p>Besides just selecting columns, you can use a minus sign to remove variables you do not need from the data frame.</p>
+<pre class="r"><code>ctd %&gt;% 
+  select(-spar, -par, -density, -time) </code></pre>
+<pre><code># A tibble: 2,796 x 8
+   station   lon   lat pressure temperature salinity oxygen fluorescence
+   &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;        &lt;dbl&gt;
+ 1 st1      40.6 -10.5        5        25.2     33.9   3.93        0.560
+ 2 st1      40.6 -10.5       10        25.1     34.9   4.49        0.599
+ 3 st1      40.6 -10.5       15        25.1     34.9   4.50        0.650
+ 4 st1      40.6 -10.5       20        25.0     34.9   4.51        0.678
+ 5 st1      40.6 -10.5       25        24.9     34.9   4.51        0.760
+ 6 st1      40.6 -10.5       30        24.9     34.9   4.50        0.729
+ 7 st1      40.6 -10.5       35        24.9     34.9   4.49        0.740
+ 8 st1      40.6 -10.5       40        24.9     34.9   4.48        0.693
+ 9 st1      40.6 -10.5       45        24.8     34.9   4.46        0.703
+10 st1      40.6 -10.5       50        24.6     34.9   4.44        0.752
+# ... with 2,786 more rows</code></pre>
+<pre class="r"><code>## or you can bind the variable you want to remove
+ctd %&gt;% 
+  select(-c(spar, par, density, time))</code></pre>
+<pre><code># A tibble: 2,796 x 8
+   station   lon   lat pressure temperature salinity oxygen fluorescence
+   &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;        &lt;dbl&gt;
+ 1 st1      40.6 -10.5        5        25.2     33.9   3.93        0.560
+ 2 st1      40.6 -10.5       10        25.1     34.9   4.49        0.599
+ 3 st1      40.6 -10.5       15        25.1     34.9   4.50        0.650
+ 4 st1      40.6 -10.5       20        25.0     34.9   4.51        0.678
+ 5 st1      40.6 -10.5       25        24.9     34.9   4.51        0.760
+ 6 st1      40.6 -10.5       30        24.9     34.9   4.50        0.729
+ 7 st1      40.6 -10.5       35        24.9     34.9   4.49        0.740
+ 8 st1      40.6 -10.5       40        24.9     34.9   4.48        0.693
+ 9 st1      40.6 -10.5       45        24.8     34.9   4.46        0.703
+10 st1      40.6 -10.5       50        24.6     34.9   4.44        0.752
+# ... with 2,786 more rows</code></pre>
+<p>You can drop a range of variables in the data frame with <code>select()</code> function. For instance, the code below drop all variables beween temperature to fluorescence. You can also select those variables in range by removing the negative sign</p>
+<pre class="r"><code># hide a range of columns
+ctd %&gt;% 
+  select(-(temperature:fluorescence))</code></pre>
+<pre><code># A tibble: 2,796 x 8
+   station time                  lon   lat pressure  spar   par density
+   &lt;chr&gt;   &lt;dttm&gt;              &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
+ 1 st1     2004-08-18 15:27:46  40.6 -10.5        5 1177. 53.9    1022.
+ 2 st1     2004-08-18 15:27:46  40.6 -10.5       10 1151. 40.3    1023.
+ 3 st1     2004-08-18 15:27:46  40.6 -10.5       15 1135. 31.3    1023.
+ 4 st1     2004-08-18 15:27:46  40.6 -10.5       20 1124. 25.6    1023.
+ 5 st1     2004-08-18 15:27:46  40.6 -10.5       25 1111. 21.1    1023.
+ 6 st1     2004-08-18 15:27:46  40.6 -10.5       30 1103. 17.2    1023.
+ 7 st1     2004-08-18 15:27:46  40.6 -10.5       35 1097. 13.9    1023.
+ 8 st1     2004-08-18 15:27:46  40.6 -10.5       40 1091. 11.2    1023.
+ 9 st1     2004-08-18 15:27:46  40.6 -10.5       45 1087.  9.05   1024.
+10 st1     2004-08-18 15:27:46  40.6 -10.5       50 1084.  7.30   1024.
+# ... with 2,786 more rows</code></pre>
+<p>Just like you can pick columns with the matching name, you can also drop any column with a matching name</p>
+<pre class="r"><code>ctd %&gt;% 
+  select(-contains(&quot;t&quot;))</code></pre>
+<pre><code># A tibble: 2,796 x 6
+     lon pressure oxygen fluorescence  spar   par
+   &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;        &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+ 1  40.6        5   3.93        0.560 1177. 53.9 
+ 2  40.6       10   4.49        0.599 1151. 40.3 
+ 3  40.6       15   4.50        0.650 1135. 31.3 
+ 4  40.6       20   4.51        0.678 1124. 25.6 
+ 5  40.6       25   4.51        0.760 1111. 21.1 
+ 6  40.6       30   4.50        0.729 1103. 17.2 
+ 7  40.6       35   4.49        0.740 1097. 13.9 
+ 8  40.6       40   4.48        0.693 1091. 11.2 
+ 9  40.6       45   4.46        0.703 1087.  9.05
+10  40.6       50   4.44        0.752 1084.  7.30
+# ... with 2,786 more rows</code></pre>
+<p>Because of the naming conventions, many of the column names that you import dont make sense. You will often need to change the name of the variable. <code>select()</code> function allows you to accomplish that. For example, we want to select station, pressure and fluoresence, but we need also change the name of station to be Cast, pressure to Depth and fluorescence to Chlorophyll. You can achieve that with code written as;</p>
+<pre class="r"><code>ctd %&gt;% 
+  select(Cast = station, Depth = pressure, Chlorophyll = fluorescence)</code></pre>
+<pre><code># A tibble: 2,796 x 3
+   Cast  Depth Chlorophyll
+   &lt;chr&gt; &lt;dbl&gt;       &lt;dbl&gt;
+ 1 st1       5       0.560
+ 2 st1      10       0.599
+ 3 st1      15       0.650
+ 4 st1      20       0.678
+ 5 st1      25       0.760
+ 6 st1      30       0.729
+ 7 st1      35       0.740
+ 8 st1      40       0.693
+ 9 st1      45       0.703
+10 st1      50       0.752
+# ... with 2,786 more rows</code></pre>
+<blockquote>
+<p>There are also a number of handy helper functions that you can use with the <code>select()</code> function to filter the returned columns. These include <code>starts_with()</code>, <code>ends_with()</code>, <code>contains()</code>, <code>matches()</code>, and <code>num_range()</code>. I wont illustrate them here, however, you can consult the help document for more information.</p>
+</blockquote>
+<div id="adding-new-variables-mutate-transmute-add_rownames" class="section level3">
+<h3>Adding new variables: mutate, transmute, add_rownames</h3>
+<p>Besides selecting sets of existing columns, it’s often useful to add new columns that are functions of existing columns. This is the job of <code>mutate()</code>: Any new variable created with the mutate() function will be added to the end of the data frame. For example, raw fluorescence values are often skewed (Figure <a href="#fig:fl-trans">1</a>a) and we often transform them to have normal distribution (figure <a href="#fig:fl-trans">1</a>b).</p>
+<div class="figure"><span id="fig:fl-trans"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/fl-trans-1.png" alt="Histogram showing the distribution of a) raw fluorence and b) log-transformed fluorescence values" width="672" />
+<p class="caption">
+Figure 1: Histogram showing the distribution of a) raw fluorence and b) log-transformed fluorescence values
+</p>
+</div>
+<p>At this situation, its handy to add a new column with transformed values in the data frame as shown in the code;</p>
+<pre class="r"><code>ctd %&gt;% 
+  select(pressure, fluorescence) %&gt;%
+  mutate(log.fluorescence = fluorescence %&gt;% log10())</code></pre>
+<pre><code># A tibble: 2,796 x 3
+   pressure fluorescence log.fluorescence
+      &lt;dbl&gt;        &lt;dbl&gt;            &lt;dbl&gt;
+ 1        5        0.560           -0.251
+ 2       10        0.599           -0.223
+ 3       15        0.650           -0.187
+ 4       20        0.678           -0.169
+ 5       25        0.760           -0.119
+ 6       30        0.729           -0.138
+ 7       35        0.740           -0.131
+ 8       40        0.693           -0.159
+ 9       45        0.703           -0.153
+10       50        0.752           -0.124
+# ... with 2,786 more rows</code></pre>
+<p>The code tells important two steps: the first steps involved selecting the pressure and fluorescence variables, once these variables were selected fromt he ctd data frame were fed into a <code>mutate()</code> function, which computed the logarithmic of fluorescence and assign a new <code>log.fluorescence</code> variable into the data frame.</p>
+<p>In a similar way above, we can create a new variable of anomaly as the code below shows;</p>
+<pre class="r"><code>ctd %&gt;% 
+  select(pressure, fluorescence) %&gt;%
+  mutate(anomaly = fluorescence - mean(fluorescence, na.rm = TRUE))</code></pre>
+<pre><code># A tibble: 2,796 x 3
+   pressure fluorescence anomaly
+      &lt;dbl&gt;        &lt;dbl&gt;   &lt;dbl&gt;
+ 1        5        0.560   0.425
+ 2       10        0.599   0.464
+ 3       15        0.650   0.515
+ 4       20        0.678   0.542
+ 5       25        0.760   0.624
+ 6       30        0.729   0.593
+ 7       35        0.740   0.604
+ 8       40        0.693   0.557
+ 9       45        0.703   0.568
+10       50        0.752   0.617
+# ... with 2,786 more rows</code></pre>
+</div>
+<div id="arranging-rows" class="section level3">
+<h3>Arranging rows</h3>
+<p>The <code>arrange()</code> function in the <strong>dplyr</strong> package can be used to order the rows in a data frame. This function accepts a set of columns to order by with the default row ordering being in ascending order.</p>
+<pre class="r"><code>ctd %&gt;% 
+  arrange(pressure)</code></pre>
+<pre><code># A tibble: 2,796 x 12
+   station time                  lon    lat pressure temperature salinity oxygen
+   &lt;chr&gt;   &lt;dttm&gt;              &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;
+ 1 st1     2004-08-18 15:27:46  40.6 -10.5         5        25.2     33.9   3.93
+ 2 st2     2004-08-18 17:00:01  40.8 -10.5         5        25.2     34.8   4.47
+ 3 st3     2004-08-18 20:32:54  41.0 -10.5         5        NA       NA    NA   
+ 4 st4     2004-08-18 22:44:56  41.1 -10.5         5        NA       NA    NA   
+ 5 st5     2004-08-19 00:59:59  41.3 -10.5         5        NA       NA    NA   
+ 6 st6     2004-08-19 11:49:08  40.3  -8.83        5        25.2     34.9   4.48
+ 7 st7     2004-08-19 13:33:31  40.2  -8.83        5        25.3     34.9   4.52
+ 8 st8     2004-08-19 15:28:18  40.0  -8.83        5        25.0     34.9   4.59
+ 9 st9     2004-08-19 17:39:39  39.8  -8.83        5        25.1     34.9   4.64
+10 st10    2004-08-19 19:36:50  39.7  -8.83        5        NA       NA    NA   
+# ... with 2,786 more rows, and 4 more variables: fluorescence &lt;dbl&gt;,
+#   spar &lt;dbl&gt;, par &lt;dbl&gt;, density &lt;dbl&gt;</code></pre>
+<p>By default, it orders numerical values in increasing order, but you can ask for decreasing order using the <code>desc()</code> function:</p>
+<pre class="r"><code>ctd %&gt;% 
+  arrange(pressure %&gt;% desc())</code></pre>
+<pre><code># A tibble: 2,796 x 12
+   station time                  lon   lat pressure temperature salinity oxygen
+   &lt;chr&gt;   &lt;dttm&gt;              &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;
+ 1 st3     2004-08-18 20:32:54  41.0 -10.5     1015        6.43     34.8   2.13
+ 2 st3     2004-08-18 20:32:54  41.0 -10.5     1010        6.45     34.8   2.13
+ 3 st3     2004-08-18 20:32:54  41.0 -10.5     1005        6.45     34.8   2.13
+ 4 st3     2004-08-18 20:32:54  41.0 -10.5     1000        6.45     34.8   2.13
+ 5 st3     2004-08-18 20:32:54  41.0 -10.5      995        6.46     34.8   2.13
+ 6 st3     2004-08-18 20:32:54  41.0 -10.5      990        6.48     34.8   2.13
+ 7 st3     2004-08-18 20:32:54  41.0 -10.5      985        6.55     34.8   2.11
+ 8 st3     2004-08-18 20:32:54  41.0 -10.5      980        6.60     34.8   2.14
+ 9 st3     2004-08-18 20:32:54  41.0 -10.5      975        6.60     34.8   2.17
+10 st3     2004-08-18 20:32:54  41.0 -10.5      970        6.62     34.8   2.17
+# ... with 2,786 more rows, and 4 more variables: fluorescence &lt;dbl&gt;,
+#   spar &lt;dbl&gt;, par &lt;dbl&gt;, density &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<div id="summarizing-and-grouping" class="section level2">
+<h2>Summarizing and Grouping</h2>
+<p>Summary statistics for a data frame can be produced with the <code>summarise()</code> function. The summarise() function produces a single row of data containing summary statistics from a data frame. For example, you can compute for the mean of fluorescence values:</p>
+<pre class="r"><code>ctd %&gt;% 
+  summarise(fl.mean = mean(fluorescence, na.rm = TRUE))</code></pre>
+<pre><code># A tibble: 1 x 1
+  fl.mean
+    &lt;dbl&gt;
+1   0.118</code></pre>
+<p>By itself, it’s not that useful until chained with the <code>group_by()</code> verb to compute summary statistics. There you can split the data into different groups and compute the summaries for each group.For example, you can ask for the mean of and standard deviation values of fluorescence for each station in the data frame:</p>
+<pre class="r"><code>ctd %&gt;% group_by(station) %&gt;%
+  summarise(Mean = mean(fluorescence, na.rm = TRUE),
+           STD = sd(fluorescence, na.rm = TRUE))</code></pre>
+<pre><code># A tibble: 5 x 3
+  station   Mean   STD
+  &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt;
+1 st1     0.304  0.319
+2 st13    0.0897 0.179
+3 st18    0.101  0.287
+4 st4     0.0970 0.233
+5 st8     0.125  0.381</code></pre>
+<p>You can group by one or more variables; you just specify the columns you want to separate into different subsets to the function. It works best when grouping by factors or discrete numbers; there isn’t much fun in grouping by real numbers.</p>
+<pre class="r"><code>ctd %&gt;% group_by(station, lon)%&gt;%
+  summarise(Mean = mean(fluorescence, na.rm = TRUE),
+           STD = sd(fluorescence, na.rm = TRUE))</code></pre>
+<pre><code># A tibble: 5 x 4
+# Groups:   station [5]
+  station   lon   Mean   STD
+  &lt;chr&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
+1 st1      40.6 0.304  0.319
+2 st13     40.1 0.0897 0.179
+3 st18     39.9 0.101  0.287
+4 st4      41.1 0.0970 0.233
+5 st8      40.0 0.125  0.381</code></pre>
+<p>summarise() can be used to count the number of rows in each group with <code>nc()</code>—which just counts how many observations you have in a subset of your data: You only need to parse the argument <code>n()</code> in the summarise()` function as;</p>
+<pre class="r"><code>ctd %&gt;% 
+  group_by(station) %&gt;% 
+  summarise(frequency = n())</code></pre>
+<pre><code># A tibble: 5 x 2
+  station frequency
+  &lt;chr&gt;       &lt;int&gt;
+1 st1            50
+2 st13          135
+3 st18          163
+4 st4           186
+5 st8           162</code></pre>
+</div>

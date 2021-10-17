@@ -1,0 +1,67 @@
+baseurl: https://example.com
+# title: Hugo DPSG
+languageCode: de
+DefaultContentLanguage: en
+paginate: '5'
+theme: hugo-dpsg
+Author:
+  avatar: img/avatar.png
+  bio: A data scientist by passion. Sourced the skills from Prof Google and Dr. Youtube
+  name: Masumbuko Semba
+Params:
+  authorbox: yes
+  copyright: Semba
+  dateformat: 02.01.2006
+  description: We Modernize Analytics with R!
+  footer:
+    right: The Golden Age of Data!
+    text: '[Data for Decision Making](/imprint)'
+  indexPager: yes
+  logo:
+    header: img/header_new.png
+    image: img/myblog.png
+    subtitle: Welcome to Our Analytic Gateway
+    title: The Hinge
+  mainSections:
+    - post
+    - blog
+    - news
+  opengraph: yes
+  pager: yes
+  post_meta:
+    - author
+    - date
+    - categories
+    - translations
+  readmore: yes
+  schema: yes
+  sidebar:
+    home: right
+    list: left
+    single: no
+    widgets:
+      - search
+      - recent
+      - categories
+      - taglist
+      - social
+      - languages
+  style:
+    vars:
+      highlightColor: '#003056'
+  toc: yes
+  twitter_cards: yes
+  widgets:
+    recent_num: 5
+    tags_counter: no
+menu:
+  main:
+    - identifier: start
+      name: Home
+      url: /
+      weight: 1
+    - identifier: about
+      name: About
+      url: /about/
+      weight: 2
+

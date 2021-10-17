@@ -1,0 +1,133 @@
+---
+title: Reshaping data with tidyr
+author: Masumbuko Semba
+date: '2020-06-04'
+slug: []
+categories:
+  - ''
+tags:
+  - code
+  - programming
+  - R
+  - semba
+  - tidyverse
+description: ''
+thumbnail: ''
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+
+
+```
+
+
+
+One of the key task in data preparation is to  organize thee dataset in a way that makes analysis and plottng easier. In practice, the data is often not stored like that and the data comes to us with repeated observations included on a single row. This is often done as a memory saving technique or because there is some structure in the data that makes the 'wide' format attractive. As a result, we need a way to convert data from *wide*^[Data frame structured in wide format consist of each line or row represents observations and each each column represent a variable.] to *long*^[Unlike the wide format in which each column represent the variables, the long format also called indexing. In the long format, the column are values and not names] and vice-versa [@mathew]. 
+
+Structuring data frames to have the desired shape can be the most daunting part of statistical analysis, visualisation, and modeling. Several studies reported that 80% of data analysis is spent on the cleaning and preparing data. Tidy in this context means organize the data in a presentable and consistent format that facilitate data analysis and visualization. When you are doing data preparation in R for analysis or plottng,  the first thing you do is a throughly mental thought on the desired structure of that data frame. You need to determine what each row and column will represent, so that you can consistently and clearly manipulate that data (e.g., you know what you will be selecting and what you will be filtering). 
+
+There are basically three principles that we can follow to make a tidy dataset. First each variable  must have its own a column, second each observation must have its own row, and finally, each cell must have its own value. The tidyr package is used to structure and work with data fames that follow three principles of tidy data. There are three advantages of using tidy data in R.  First, having a consistent, uniform data structure is very important. Popular packages like dplyr [ @dplyr], ggplot2 [@ggplot], and all the other packages in the tidyverse [@tidyverse] and their extensions like sf [@sf], metR [@metr], ggspatial [@ggspatial], ggrepel [@ggrepel] etc are designed to work with tidy data [@tidyr]. So consistent of tidy data ensure efficient processing, analysis and plotting of  data. Third, placing variables into columns, facilities easy vectorization  in R.
+
+Unfortunate, Many datasets that you receove are untidy and will require some work on your end. There are several reasons why a dataset messy. Often times the people who created the dataset aren’t familiar with the principles of tidy data. Another common reason that most datasets are messy is that data is often organized to facilitate something other than analysis. Data entry is perhaps the most common of the reasons that fall into this category. To make data entry as easy as possible, people will often arrange data in ways that aren’t tidy. So, many datasets require some sort of tidying before you can begin your analysis.
+
+As @r4d put it tidy data means that yo can plot or summarize the data efficiently. In othet words, it comes down to which data is represented as columns in a data frame and which is not.In principle, this means that there is column in the data frame that you can work with for the analysis you want to do. For example, if I want to look at the ctd dataset and see how the fluorescence varies among station in the upper water surface, we simply plot a boxplot of the station column against the  fluorescence column shown in figure \@ref(fig:floro-station)    
+
+```{r}
+require(tidyverse)
+require(magrittr)
+```
+
+
+```{r floro-station, fig.height=4, fig.width=3, fig.align='center', echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Fluorescence variation against stations"}
+
+
+ctd = read_csv("../data/algoa_ctd.csv")%>% 
+  filter(station %in% c("st1", "st2", "st3", "st4", "st5"))%>% 
+  filter(pressure < 120)
+
+ggplot(ctd, aes(station, fluorescence)) + 
+  geom_boxplot() +
+  theme(axis.text = element_text(size = 11), axis.title = element_text(size = 12)) + 
+  labs(x = "Sampling stations",y = expression(Fluorescence~concentration~(mgm^{-3})))
+
+
+```
+
+This works because I have a column for the x-axis and another for the y-axis. But what happens if I want to plot  the different measurements of the irises to see how those are? Each measurement is a separate column. They are Petal.Length, Petal.Width, and so on.Now I have a bit of a problem because the different measurements are in different columns in my data frame. I cannot easily map them to an x-axis and a y-axis.The tidyr package addresses that. It contains functions for both mapping columns to values---, widely recognised as long format and for mapping back from values to columns---wide format. 
+
+
+We are going to look for the function that are regularly used to tidy the data frames. These inlude:
+
+- Gathering
+- Spreading
+- Separating
+- Uniting
+
+## Gather---from wide to long format.
+Look at example of dataset. It has one common problem  that the column names are not variables but rather values of a variable. In the table \@ref(tab:wide-format), the columns are actually values of the variable pressure. Each row in the existing table actually represents five observations from each station. 
+
+```{r wide-format,echo=FALSE}
+
+ctd.wide = ctd %>% 
+  filter(pressure %in% seq(10,110,10)) %>% 
+  select(station, pressure, fluorescence) %>% 
+  spread(key = pressure, value = fluorescence)
+
+ctd.wide %>% kableExtra::kable(format = "html", caption = "Wide format format", digits = 3) %>%
+  kableExtra::column_spec(column = 1:12, width = "2cm") %>%
+  kableExtra::add_header_above(c("", "Water Depth (meters)" = 11))
+```
+
+The tidyr package can be used to gather these existing columns into a new variable. In this case, we need to create a new column called pressure and then gather the existing values in the these variable columns into the new pressure variable
+
+```{r}
+ctd.long = ctd.wide %>%  
+      gather (key = "depth", value = "fluorescence ",  2:12)
+ctd.long
+```
+
+
+As you can see from the chunk above, there are three arguments required  in the `gather()` function. First is the `key`, which takes the variable names. Second, the `value`---the name of the variable whose values are spread over the cells. Finnaly, then you specify the `set of columns` that hold the values and not the variable names
+
+## spread() ---from long to wide format 
+A second tidy tool is spread(), which  does the opposite of `gather()` function. It is used to convert a long format data frame to wide format. What this function does is to spread observation across multiple rows. 
+
+```{r}
+ctd.long %>% 
+  spread(key = "depth", value = `fluorescence `)
+```
+
+The `spread()` function takes two arguments: the column that contains variable names, known as the key and
+a column that contains values from multiple variables – the value.
+
+## separate()
+Another common in tidyr package is a separate ()function, which split the variable into two or more variables. For example, the dataset below has a date column that actually contains the date and time variables separated by a space. 
+```{r}
+ctd
+```
+
+
+We use the `separate()` function splits the datetime column into two variables: date and time
+
+```{r}
+ctd %>% 
+  separate(col = time, into = c("Date", "Time"), sep = " ")
+```
+
+The `separate()` function accepts arguments for the name of the variable  to separate. You also need to specify the names of the variable to separate into, and an optional separator.
+
+##unite ()
+The unite()function is the exact opposite of `separate()` in that it combines multiple columns into a single column. While not used nearly as often as `separate()` , there may be times when you need the functionality provided by unite(). For example, we can combine the variable `Date` and `Time` to form `siku.muda`, and separate them with `:-:` symbol between the two variables. 
+
+```{r, echo=FALSE}
+ctd.un = ctd %>% 
+  separate(col = time, into = c("Date", "Time"), sep = " ")
+```
+
+```{r}
+ctd.un %>% unite(col = "siku_muda", c("Date", "Time"), sep = ":-:")
+```
+

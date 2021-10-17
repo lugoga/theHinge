@@ -1,0 +1,1073 @@
+---
+title: 'Begginer guide: get familar with coding in R'
+author: Masumbuko Semba
+date: '2020-01-02'
+slug: []
+categories:
+  - R
+tags:
+  - code
+  - R
+  - programming
+description: ''
+thumbnail: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+<script src="{{< blogdown/postref >}}index.en_files/kePrint/kePrint.js"></script>
+<link href="{{< blogdown/postref >}}index.en_files/lightable/lightable.css" rel="stylesheet" />
+
+
+<p>In the previous post, you installed and got a glimpse of <strong>R</strong> and <strong>Rstudio</strong> program. In this chapter you begin to do something with them. We will begin with some simple calculations and then move on to variables. We then move to functions and later to packages. We will learn the basic data types that are widely used in R and how to construct them</p>
+<blockquote>
+<p>This chapter provides example of foundational programming concepts in R. These include the basic tasks like importing data in R, manipulating data, visualizing the data and conduct explatory and inferencial statistics. These basics will provide building blocks for handling data, analysing data and make plots with R. In the examples, R codes are presented in the light gray chunk blocks. Inside these chunk blocks, lines that begin with two number signs (##) are the outputs of the preceding lines of codes that have been executed and lines without the number signs are are the code that generated the output.</p>
+</blockquote>
+<div id="maths-in-r" class="section level2">
+<h2>Maths in R</h2>
+<p>Before proceeding, we need to clear the workspace by typing;</p>
+<pre class="r"><code>rm(list = ls())</code></pre>
+<p>Clearing the workspace before you begin a new project is an important task in R because it avoid name conflicts with previous projects. We can also clear figures from the plot windows by simply typing;</p>
+<pre class="r"><code>graphics.off()</code></pre>
+<p>Creating a vector files of numerical number of strings in R is easy. To combine more than one element in a vector simply use the <code>c</code> function, which stands for <em>concatenate</em>.</p>
+<pre class="r"><code>age = c(45,75,65,85,45,32,57,65,52,45,65,32,89,45,66)</code></pre>
+<p>which first assign <code>age</code> as the name of the object, then combine the list of elements in paretheses with <code>c</code> function.</p>
+<div id="r-operators" class="section level3">
+<h3>R operators</h3>
+<p><strong>R</strong> provides standard arithmetic operators for <code>addition</code> , <code>substraction</code>, <code>multiplication</code>, <code>division</code>, and <code>exponential</code>. The basic symbols used by R to perform mathematical operations are called operators. Some of the mathematical operators are listed in table <a href="#tab:tab201">1</a>. Note that the forward slash <code>(/)</code> is used for division because it’s similar to the division line that you would use when writing a fraction.</p>
+<pre class="r"><code>require(magrittr)
+
+data.frame(Symbol = c(&quot;+&quot;, &quot;-&quot;, &quot;*&quot;, &quot;/&quot;), 
+           Operation = c(&quot;Addition&quot;, &quot;Substraction&quot;,&quot;Multiplication&quot;,&quot;Division&quot;)) %&gt;%
+  knitr::kable(format = &quot;html&quot;, align = &quot;l&quot;, caption = &quot;Basic R operators&quot;)</code></pre>
+<table>
+<caption>
+<span id="tab:tab201">Table 1: </span>Basic R operators
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Symbol
+</th>
+<th style="text-align:left;">
+Operation
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Addition
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Substraction
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+<ul>
+<li></td>
+<td style="text-align:left;">
+Multiplication
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+/
+</td>
+<td style="text-align:left;">
+Division
+</td>
+</tr>
+</tbody>
+</table></li>
+</ul></li>
+</ul></li>
+</ul>
+<p>Because of the convinient, we will use <strong>Rstudio</strong> console, just write an expression <code>2 + 3</code> and click <code>Enter</code></p>
+<pre class="r"><code>2+3</code></pre>
+<pre><code>[1] 5</code></pre>
+<p>As we expected, R returns the answer as 5. Unlike other programming languages, coding in R does not need to terminate the expression or lines with a semicolon.</p>
+<pre class="r"><code>10-4</code></pre>
+<pre><code>[1] 6</code></pre>
+<pre class="r"><code>23*2</code></pre>
+<pre><code>[1] 46</code></pre>
+<pre class="r"><code>8/2</code></pre>
+<pre><code>[1] 4</code></pre>
+<pre class="r"><code>5^2</code></pre>
+<pre><code>[1] 25</code></pre>
+<pre class="r"><code>5%%3</code></pre>
+<pre><code>[1] 2</code></pre>
+<pre class="r"><code>5%%5</code></pre>
+<pre><code>[1] 0</code></pre>
+</div>
+<div id="precedence" class="section level3">
+<h3>Precedence</h3>
+<p>R can be used to express complicated mathematical formulas. For anyone unfamiliar with writing formulas on computers, it is important to recognize that R will make assumptions about which part of the formulas to compute first. This order of operations is referred as <em>predecence</em>. Multiplication and division have a higher order than addition and subtraction. For example guess what is the answer for the mathematical expression in the chunk below.</p>
+<pre class="r"><code>5 - 3 + 8 / 2 * 3</code></pre>
+<p>The answer should be <code>14</code>. According <em>precedence</em>, the number 8 is first divided by 2 to get 4 as product which is multiplied by 3 to obtain 12 and then 5 is added to get 17, which is substracted by 3 to get 14 as final result. We use parentheses in a R to control the order of operations like in the expression below. Can you make a mental calculation and provide the answer before you click <code>enter</code> for the expression in the chunk below?</p>
+<pre class="r"><code>5 - (3 + 8) / 2 * 3</code></pre>
+<p>The result of the expression is -11.5 and not 14 because the parentheses tell R to do the operation in the parentheses firs and then do the operation outside the parentheses.</p>
+</div>
+</div>
+<div id="assignment-operator" class="section level2">
+<h2>Assignment operator</h2>
+<p>We often use an assignment operator to assing the value of an expression to a variable. R has two assignment operators—the conventional assignment operator <code>=</code>, which is present in most programming languages, and the arrows <code>&lt;-</code> and <code>-&gt;</code> which are specific to R. The expression <code>x = 5</code> assign the value 5 to x, likewise the expression <code>x &lt;- 5</code> and <code>5 -&gt; x</code> have the same effect. Throughout this book, we stick on the conventional assignment operator <code>(=)</code></p>
+<div id="variables" class="section level3">
+<h3>Variables</h3>
+<p>We can create expression using variables. for instance, we assign the value 5 to the variable x and evaluate the square of x using the exponential <code>^</code> operator.</p>
+<pre class="r"><code>x = 5
+x^2</code></pre>
+<pre><code>[1] 25</code></pre>
+<p>R has many types of variables that store different kinds of data in different ways. Example you can store a list of numbers or text</p>
+<pre class="r"><code>days= c(&quot;Monday&quot;, &quot;Tuesday&quot;, &quot;Wednesday&quot;)
+speed  = c(128, 158, 89)</code></pre>
+<p>R has peculiar syntax when it comes to variable names. The dot character <code>.</code> has a completely different meaning as compared to other programming languages. In R, we can use <code>.</code> in the variable names, so x.1 and x_1 are perfectly valid. In practice, the dot operator is used as a visual separator in variable names, similar to underscore in most other programming languages.</p>
+</div>
+<div id="naming-conventions" class="section level3">
+<h3>Naming conventions</h3>
+<ul>
+<li>Name must begin with a letter. Do not use number, dollar sign or underscore</li>
+<li>R is case sensitive; average and Average are two different objects in R</li>
+<li>Use descriptive names</li>
+<li>if the name is made of more than one word, used period (. or underscore to separate the words)</li>
+</ul>
+</div>
+<div id="functions" class="section level3">
+<h3>Functions</h3>
+<p>Functions in R are <code>first class objects</code>, which means that they can be treated much like any other R object. Importantly,</p>
+<ul>
+<li>Functions can be passed as arguments to other functions</li>
+<li>Functions can be nested, so that you can define a function inside of another function</li>
+</ul>
+<p>The return value of a function is the last expression in the function
+body to be evaluated.</p>
+<p>R functions arguments can be matched positionally or by name. So the following calls to <code>sd</code> are all equivalent</p>
+<pre class="r"><code>data = rnorm(25)
+sum(data)</code></pre>
+<pre><code>[1] 2.875542</code></pre>
+<pre class="r"><code>sd(data)</code></pre>
+<pre><code>[1] 0.9071268</code></pre>
+<pre class="r"><code>mean(data)</code></pre>
+<pre><code>[1] 0.1150217</code></pre>
+<pre class="r"><code>median(data)</code></pre>
+<pre><code>[1] 0.1755854</code></pre>
+</div>
+<div id="essential-functions" class="section level3">
+<h3>Essential functions</h3>
+<p>R has many built-in functions that can be used fo a great variety of tasks. These can be suplemented with packages, which contains more functions bundled in one document. Here is a list of common and widely used functions
++ <code>rep()</code> — repeates a value some number of times to make a list
++ <code>seq()</code> — creates a sequence of values between a start and end number and spaced at certain interval
++ <code>aggregate()</code> — used to bin data by condition
++ <code>table()</code> — used to summarise categorical data
++ <code>plot()</code> — graphical plots of data
++ <code>hist()</code> — a function for plotting a histogram
++ <code>boxplot()</code> — a function for plotting boxplot
++ <code>mean()</code> — compute arithmetric mean
++ <code>sd()</code> — compute arithmetric standard deviation
++ <code>sum()</code> — compute the total of the set of elements
++ <code>length()</code> — function to count the number of elements in a vector</p>
+</div>
+</div>
+<div id="wdirectory" class="section level2">
+<h2>Setting Working Directory</h2>
+<p><span class="citation">@xia</span> defined a working directory as a folder in your computer or server where you stores the raw data, codes and output for that specific project. This folder is important in programming because it allows to read the data and write outputs to this working directory. In R you can set working directory with <code>setwd()</code> function and check whether you are in the right working directory with the <code>getwd()</code> function.</p>
+<pre class="r"><code>getwd()
+
+setwd(&quot;./Data Manipulation/R_dege/&quot;)</code></pre>
+</div>
+<div id="packages-or-libraries" class="section level2">
+<h2>Packages or Libraries</h2>
+<p>R is made up of many user-written package. The base version of R allows user to get started in R, but the capabilities of base R are limited and additional packages are required for smooth performance of working with data. packages are collections of R functions, data, and compiled code in a well-defined format. A package bundles together code, data, documentation and tests and provide ana easy method to share with others. Until November 2018, there were 1300+ packages available for download on CRAN and countless more avaialble trought GitHub. The huge number of package has made R so successful and the chance is that some one has already created a package that can solve the problem you about to tackle and you can benefit from their work by downloading their package.</p>
+<div id="installing-packages" class="section level3">
+<h3>Installing packages</h3>
+<p>R comes with a standard set of packages. Others are available for download and installation. The primary of stable package is the CRAN. In R you can install a package from CRAN with an <code>install.packages("packagename")</code> function that allows you to install the package you want to use into R. In have already installed the <strong>ggplot2</strong> packages in my machine, so if you want to install in your machine you can simply uncomment the chunk below by removing the hash tag (#)</p>
+<pre class="r"><code>## install.packages(&quot;ggplot2&quot;)
+## install.packages(&quot;dplyr&quot;)
+## install.packages(&quot;lubridate&quot;)
+## install.packages(&quot;factoextra&quot;)
+## install.packages(&quot;readxl&quot;)
+## install.packages(&quot;kableextra&quot;)
+## install.packages(&quot;haven&quot;)
+## install.packages(&quot;readr&quot;)</code></pre>
+</div>
+<div id="loading-packages" class="section level3">
+<h3>Loading packages</h3>
+<p>Once package is downloaded and installed in your computer, you have to them into the session to access its functions and resources of the package. Yu can load the packages you want ot use with ether <code>library()</code> or <code>required()</code> function.</p>
+<pre class="r"><code>require(dplyr)
+library(readr)
+require(lubridate)
+library(readxl)
+require(haven)
+library(ggplot2)
+require(kableExtra)</code></pre>
+</div>
+</div>
+<div id="understanding-data-in-r" class="section level2">
+<h2>Understanding Data in R</h2>
+<p>Clearing the workspace is always recommended before working on a new R project to avoid name conflicts with provious projects. We can also clear all figures using <code>graphics.off()' function and clear the console with a combinantion of</code>CTRL+L`. It is a good code practise that a new R project start with the code in the chunk below:</p>
+<pre class="r"><code>rm(list = ls())
+graphics.off()</code></pre>
+<div id="data-types" class="section level3">
+<h3>Data Types</h3>
+<p>R is a flexible language that allows to work with different kind of data format <span class="citation">[@bradley]</span>. This inluced integer, numeric, character, complex, dates and logical. The default data type or class in <strong>R</strong> is double precision—numeric. In a nutshell, R treats all kind of data into five categories but we deal with only four in this book. Before proceeding, we need to clear the workspace by typing <code>rm(list = ls())</code> after the prompt in the in a console.</p>
+<ol style="list-style-type: decimal">
+<li><code>Integers</code>:Integer values do not have decimal places. They are commonly used for counting or indexing.</li>
+</ol>
+<pre class="r"><code>aa = c(20,68,78,50)</code></pre>
+<p>You can check if the data is integer with <code>is.integer()</code> and can convert numeric value to an integer with <code>as.integer()</code></p>
+<pre class="r"><code>is.integer(aa)</code></pre>
+<pre><code>[1] FALSE</code></pre>
+<p>You can query the class of the object with the <code>class()</code> to know the class of the object</p>
+<pre class="r"><code>class(aa)</code></pre>
+<pre><code>[1] &quot;numeric&quot;</code></pre>
+<p>Although the object bb is integer as confirmed with <code>as.integer()</code> function, the <code>class()</code> ouput the answer as numeric. This is because the defaul type of number in r is numeric. However, you can use the function <code>as.integer()</code> to convert numeric value to integer</p>
+<pre class="r"><code>class(as.integer(aa))</code></pre>
+<pre><code>[1] &quot;integer&quot;</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li><code>Numeric</code>: The numeric class holds the set of real numbers — decimal place numbers. The numeric class is more general than the integer class, and inclused the integer numbers.</li>
+</ol>
+<p>These could be any number (whole or decimal number). You can check if the data is integer with <code>is.integer()</code></p>
+<pre class="r"><code>bb = c(12.5, 45.68, 2.65)
+class(bb)</code></pre>
+<pre><code>[1] &quot;numeric&quot;</code></pre>
+<pre class="r"><code>is.numeric(bb)</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li><code>Strings</code>: These collection of characters. This often are <code>text</code> data like names. You can check if the data is integer with <code>is.character()</code></li>
+</ol>
+<pre class="r"><code>kata = c(&quot;Dege&quot;, &quot;Mchikichini&quot;, &quot;Mwembe Mdogo&quot;, &quot;Cheka&quot;)
+class(kata)</code></pre>
+<pre><code>[1] &quot;character&quot;</code></pre>
+<ol start="4" style="list-style-type: decimal">
+<li><code>Factor</code>: These are strings from finite set of values. For example, we might wish to store a variable that records gender of people. You can check if the data is factor with <code>is.factor()</code> and use <code>as.factor()</code> to convert <code>string</code> to <code>factor</code></li>
+</ol>
+<pre class="r"><code>sex = c(&quot;Male&quot;, &quot;Female&quot;, &quot;Male&quot;, &quot;Male&quot;, &quot;Female&quot;)
+sex = as.factor(sex)
+class(sex)</code></pre>
+<pre><code>[1] &quot;factor&quot;</code></pre>
+<pre class="r"><code>levels(sex)</code></pre>
+<pre><code>[1] &quot;Female&quot; &quot;Male&quot;  </code></pre>
+<p>Often times we need to know the possible groups that are in the factor data. This can be achieved with the <code>levels()</code> function</p>
+<pre class="r"><code>levels(sex)</code></pre>
+<pre><code>[1] &quot;Female&quot; &quot;Male&quot;  </code></pre>
+<pre class="r"><code>levels(kata)</code></pre>
+<pre><code>NULL</code></pre>
+<p>Often we wish to take a continuous numerical vector and transform it into a factor. The function <code>cut()</code> takes a vector of numerical data and creates a factor based on your give cut-points. Let us make a fictional income of 508 people with <code>rnorm()</code> function.</p>
+<pre class="r"><code>income = rnorm(n = 508, mean = 500, sd = 80)
+hist(income, col = &quot;green&quot;, main = &quot;&quot;, las = 1, xlab = &quot;Individual Income&quot;)</code></pre>
+<div class="figure"><span id="fig:hist1"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/hist1-1.png" alt="Income distribution" width="672" />
+<p class="caption">
+Figure 1: Income distribution
+</p>
+</div>
+<pre class="r"><code>#mosaic::plotDist(dist = &quot;norm&quot;, mean = 500, sd = 80)</code></pre>
+<p>We can now breaks the distribution into groups and make a simple plot as shown in figure <a href="#fig:fig299">2</a>, where those with income less than 400 were about 50, followed with a group with income range between 400 and 500 of about 200 and 250 people receive income above 500</p>
+<pre class="r"><code>group = cut(income, breaks = c(300,400,500,800),
+            labels = c(&quot;Below 400&quot;, &quot;400-500&quot;, &quot;Above 500&quot;))
+is.factor(group)</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<pre class="r"><code>levels(group)</code></pre>
+<pre><code>[1] &quot;Below 400&quot; &quot;400-500&quot;   &quot;Above 500&quot;</code></pre>
+<pre class="r"><code>barplot(table(group), las = 1, horiz = FALSE, col = c(&quot;blue&quot;, &quot;red&quot;, &quot;blue&quot;), ylab = &quot;Frequency&quot;, xlab = &quot;Group of Income&quot;)</code></pre>
+<div class="figure"><span id="fig:fig299"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/fig299-1.png" alt="Barplot of grouped income" width="672" />
+<p class="caption">
+Figure 2: Barplot of grouped income
+</p>
+</div>
+<pre class="r"><code>data = data.frame(group, income)</code></pre>
+<ol start="5" style="list-style-type: decimal">
+<li><p><code>Logicals</code>: This is a special case of a factor that can only take on the values <code>TRUE</code> and <code>FALSE</code>. R is case-sensitive, therefore you must always capitalize <code>TRUE</code> and <code>FALSE</code> in function in R.</p></li>
+<li><p><code>Date and time</code></p></li>
+</ol>
+</div>
+<div id="vectors" class="section level3">
+<h3>Vectors</h3>
+<p>Ofen times we want to store a set of numbers in once place. One way to do this is using the vectors in R. Vectors store severl numbers– a set of numbers in one container. let us look on the example below</p>
+<pre class="r"><code>id = c(1,2,3,4,5)
+people = c(158,659,782,659,759)
+street = c(&quot;Dege&quot;, &quot;Mchikichini&quot;, &quot;Mwembe Mdogo&quot;, &quot;Mwongozo&quot;,  &quot;Cheka&quot;)</code></pre>
+<p>Notice that the <code>c()</code> function, which is short for concatenate wraps the list of numbers. The <code>c()</code> function combines all numbers together into one container. Notice also that all the individual numbers are separated with a comma. The comma is reffered to an an item-delimiter. It allows R to hold each of the numbers separately. This is vital as without the item-delimiter, R will treat a vector as one big, unsperated number.</p>
+</div>
+<div id="indexing-the-element" class="section level3">
+<h3>Indexing the element</h3>
+<p>One advantage of vector is that you can extract individual element in the vector object by indexing, which is accomplished using the square bracket as illustrated below.</p>
+<pre class="r"><code>id[5]</code></pre>
+<pre><code>[1] 5</code></pre>
+<pre class="r"><code>people[5]</code></pre>
+<pre><code>[1] 759</code></pre>
+<pre class="r"><code>street[5]</code></pre>
+<pre><code>[1] &quot;Cheka&quot;</code></pre>
+<p>Apart from extracting single element, indexing allows to extract a range of element in a vector. This is extremely important because it allows to subset a portion of data in a vector. A colon operator is used to extract a range of data</p>
+<pre class="r"><code>street[2:4]</code></pre>
+<pre><code>[1] &quot;Mchikichini&quot;  &quot;Mwembe Mdogo&quot; &quot;Mwongozo&quot;    </code></pre>
+</div>
+<div id="adding-and-replacing-an-element-in-a-vector" class="section level3">
+<h3>Adding and Replacing an element in a vector</h3>
+<p>It is possible to add element of an axisting vecor. Here ia an example</p>
+<pre class="r"><code>id[6] = 6
+people[6] = 578
+street[6] = &quot;Mwongozo&quot;</code></pre>
+<p>Sometimes you may need to replace an element from a vector, this can be achieved with indexing</p>
+<pre class="r"><code>people[1] = 750</code></pre>
+</div>
+<div id="number-of-elements-in-a-vector" class="section level3">
+<h3>Number of elements in a vector</h3>
+<p>Sometimes you may have a long vector and want to know the numbers of elements in the object. R has <code>length()</code> function that allows you to query the vector and print the answer</p>
+<pre class="r"><code>length(people)</code></pre>
+<pre><code>[1] 6</code></pre>
+</div>
+</div>
+<div id="data-frame" class="section level2">
+<h2>Data Frame</h2>
+<p><code>data.frame</code> is very much like a simple Excel spreadsheet where each column represents a variable type and each row represent observations. Perhaps the easiest way to create a data frame is to parse vectors in <code>data.frame()</code> function.</p>
+<pre class="r"><code># create vectors
+Name  = c(&#39;Bob&#39;,&#39;Jeff&#39;,&#39;Mary&#39;)
+Score = c(90, 75, 92)
+
+dt = data.frame(Name, Score)</code></pre>
+<p>Table <a href="#tab:tab21">2</a> show the the data frame created by fusing the two vectors together.</p>
+<table>
+<caption>
+<span id="tab:tab21">Table 2: </span>Variables in the data frame
+</caption>
+<thead>
+<tr>
+<th style="text-align:center;">
+Name
+</th>
+<th style="text-align:center;">
+Score
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;width: 4cm; ">
+Bob
+</td>
+<td style="text-align:center;width: 4cm; ">
+90
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 4cm; ">
+Jeff
+</td>
+<td style="text-align:center;width: 4cm; ">
+75
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 4cm; ">
+Mary
+</td>
+<td style="text-align:center;width: 4cm; ">
+92
+</td>
+</tr>
+</tbody>
+</table>
+<p>Because the columns have meaning and we have given them column names, it is desirable to want to access an element by the name of the column as opposed to the column number.In large Excel spreadsheets I often get annoyed trying to remember which column something was. The <code>$</code>sign and <code>[]</code>are used in R to select variable from the data frame.</p>
+<pre class="r"><code>dt$Name</code></pre>
+<pre><code>[1] &quot;Bob&quot;  &quot;Jeff&quot; &quot;Mary&quot;</code></pre>
+<pre class="r"><code>dt[,1]</code></pre>
+<pre><code>[1] &quot;Bob&quot;  &quot;Jeff&quot; &quot;Mary&quot;</code></pre>
+<pre class="r"><code>dt$Score</code></pre>
+<pre><code>[1] 90 75 92</code></pre>
+<pre class="r"><code>dt[,2]</code></pre>
+<pre><code>[1] 90 75 92</code></pre>
+<p>R has build in dataset that we can use for illustration. For example, <span class="citation">@longley</span> created a <code>longley</code> dataset, which is data frame with 7 economic variables observed every year from 1947 ti 1962 (Table <a href="#tab:tab299">3</a>). We can add the data in the workspace with <code>data()</code> function</p>
+<pre class="r"><code>data(longley)
+
+longley %&gt;% 
+  kable(caption = &quot;Longleys&#39; Economic dataset&quot;, align = &quot;c&quot;, row.names = F) %&gt;%
+  column_spec(1:7, width = &quot;3cm&quot;)</code></pre>
+<table>
+<caption>
+<span id="tab:tab299">Table 3: </span>Longleys’ Economic dataset
+</caption>
+<thead>
+<tr>
+<th style="text-align:center;">
+GNP.deflator
+</th>
+<th style="text-align:center;">
+GNP
+</th>
+<th style="text-align:center;">
+Unemployed
+</th>
+<th style="text-align:center;">
+Armed.Forces
+</th>
+<th style="text-align:center;">
+Population
+</th>
+<th style="text-align:center;">
+Year
+</th>
+<th style="text-align:center;">
+Employed
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+83.0
+</td>
+<td style="text-align:center;width: 3cm; ">
+234.289
+</td>
+<td style="text-align:center;width: 3cm; ">
+235.6
+</td>
+<td style="text-align:center;width: 3cm; ">
+159.0
+</td>
+<td style="text-align:center;width: 3cm; ">
+107.608
+</td>
+<td style="text-align:center;width: 3cm; ">
+1947
+</td>
+<td style="text-align:center;width: 3cm; ">
+60.323
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+88.5
+</td>
+<td style="text-align:center;width: 3cm; ">
+259.426
+</td>
+<td style="text-align:center;width: 3cm; ">
+232.5
+</td>
+<td style="text-align:center;width: 3cm; ">
+145.6
+</td>
+<td style="text-align:center;width: 3cm; ">
+108.632
+</td>
+<td style="text-align:center;width: 3cm; ">
+1948
+</td>
+<td style="text-align:center;width: 3cm; ">
+61.122
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+88.2
+</td>
+<td style="text-align:center;width: 3cm; ">
+258.054
+</td>
+<td style="text-align:center;width: 3cm; ">
+368.2
+</td>
+<td style="text-align:center;width: 3cm; ">
+161.6
+</td>
+<td style="text-align:center;width: 3cm; ">
+109.773
+</td>
+<td style="text-align:center;width: 3cm; ">
+1949
+</td>
+<td style="text-align:center;width: 3cm; ">
+60.171
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+89.5
+</td>
+<td style="text-align:center;width: 3cm; ">
+284.599
+</td>
+<td style="text-align:center;width: 3cm; ">
+335.1
+</td>
+<td style="text-align:center;width: 3cm; ">
+165.0
+</td>
+<td style="text-align:center;width: 3cm; ">
+110.929
+</td>
+<td style="text-align:center;width: 3cm; ">
+1950
+</td>
+<td style="text-align:center;width: 3cm; ">
+61.187
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+96.2
+</td>
+<td style="text-align:center;width: 3cm; ">
+328.975
+</td>
+<td style="text-align:center;width: 3cm; ">
+209.9
+</td>
+<td style="text-align:center;width: 3cm; ">
+309.9
+</td>
+<td style="text-align:center;width: 3cm; ">
+112.075
+</td>
+<td style="text-align:center;width: 3cm; ">
+1951
+</td>
+<td style="text-align:center;width: 3cm; ">
+63.221
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+98.1
+</td>
+<td style="text-align:center;width: 3cm; ">
+346.999
+</td>
+<td style="text-align:center;width: 3cm; ">
+193.2
+</td>
+<td style="text-align:center;width: 3cm; ">
+359.4
+</td>
+<td style="text-align:center;width: 3cm; ">
+113.270
+</td>
+<td style="text-align:center;width: 3cm; ">
+1952
+</td>
+<td style="text-align:center;width: 3cm; ">
+63.639
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+99.0
+</td>
+<td style="text-align:center;width: 3cm; ">
+365.385
+</td>
+<td style="text-align:center;width: 3cm; ">
+187.0
+</td>
+<td style="text-align:center;width: 3cm; ">
+354.7
+</td>
+<td style="text-align:center;width: 3cm; ">
+115.094
+</td>
+<td style="text-align:center;width: 3cm; ">
+1953
+</td>
+<td style="text-align:center;width: 3cm; ">
+64.989
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+100.0
+</td>
+<td style="text-align:center;width: 3cm; ">
+363.112
+</td>
+<td style="text-align:center;width: 3cm; ">
+357.8
+</td>
+<td style="text-align:center;width: 3cm; ">
+335.0
+</td>
+<td style="text-align:center;width: 3cm; ">
+116.219
+</td>
+<td style="text-align:center;width: 3cm; ">
+1954
+</td>
+<td style="text-align:center;width: 3cm; ">
+63.761
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+101.2
+</td>
+<td style="text-align:center;width: 3cm; ">
+397.469
+</td>
+<td style="text-align:center;width: 3cm; ">
+290.4
+</td>
+<td style="text-align:center;width: 3cm; ">
+304.8
+</td>
+<td style="text-align:center;width: 3cm; ">
+117.388
+</td>
+<td style="text-align:center;width: 3cm; ">
+1955
+</td>
+<td style="text-align:center;width: 3cm; ">
+66.019
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+104.6
+</td>
+<td style="text-align:center;width: 3cm; ">
+419.180
+</td>
+<td style="text-align:center;width: 3cm; ">
+282.2
+</td>
+<td style="text-align:center;width: 3cm; ">
+285.7
+</td>
+<td style="text-align:center;width: 3cm; ">
+118.734
+</td>
+<td style="text-align:center;width: 3cm; ">
+1956
+</td>
+<td style="text-align:center;width: 3cm; ">
+67.857
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+108.4
+</td>
+<td style="text-align:center;width: 3cm; ">
+442.769
+</td>
+<td style="text-align:center;width: 3cm; ">
+293.6
+</td>
+<td style="text-align:center;width: 3cm; ">
+279.8
+</td>
+<td style="text-align:center;width: 3cm; ">
+120.445
+</td>
+<td style="text-align:center;width: 3cm; ">
+1957
+</td>
+<td style="text-align:center;width: 3cm; ">
+68.169
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+110.8
+</td>
+<td style="text-align:center;width: 3cm; ">
+444.546
+</td>
+<td style="text-align:center;width: 3cm; ">
+468.1
+</td>
+<td style="text-align:center;width: 3cm; ">
+263.7
+</td>
+<td style="text-align:center;width: 3cm; ">
+121.950
+</td>
+<td style="text-align:center;width: 3cm; ">
+1958
+</td>
+<td style="text-align:center;width: 3cm; ">
+66.513
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+112.6
+</td>
+<td style="text-align:center;width: 3cm; ">
+482.704
+</td>
+<td style="text-align:center;width: 3cm; ">
+381.3
+</td>
+<td style="text-align:center;width: 3cm; ">
+255.2
+</td>
+<td style="text-align:center;width: 3cm; ">
+123.366
+</td>
+<td style="text-align:center;width: 3cm; ">
+1959
+</td>
+<td style="text-align:center;width: 3cm; ">
+68.655
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+114.2
+</td>
+<td style="text-align:center;width: 3cm; ">
+502.601
+</td>
+<td style="text-align:center;width: 3cm; ">
+393.1
+</td>
+<td style="text-align:center;width: 3cm; ">
+251.4
+</td>
+<td style="text-align:center;width: 3cm; ">
+125.368
+</td>
+<td style="text-align:center;width: 3cm; ">
+1960
+</td>
+<td style="text-align:center;width: 3cm; ">
+69.564
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+115.7
+</td>
+<td style="text-align:center;width: 3cm; ">
+518.173
+</td>
+<td style="text-align:center;width: 3cm; ">
+480.6
+</td>
+<td style="text-align:center;width: 3cm; ">
+257.2
+</td>
+<td style="text-align:center;width: 3cm; ">
+127.852
+</td>
+<td style="text-align:center;width: 3cm; ">
+1961
+</td>
+<td style="text-align:center;width: 3cm; ">
+69.331
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+116.9
+</td>
+<td style="text-align:center;width: 3cm; ">
+554.894
+</td>
+<td style="text-align:center;width: 3cm; ">
+400.7
+</td>
+<td style="text-align:center;width: 3cm; ">
+282.7
+</td>
+<td style="text-align:center;width: 3cm; ">
+130.081
+</td>
+<td style="text-align:center;width: 3cm; ">
+1962
+</td>
+<td style="text-align:center;width: 3cm; ">
+70.551
+</td>
+</tr>
+</tbody>
+</table>
+<p>Sometimes you may need to create set of values and store them in vectors, then combine the vectors into a data frame. Let us see how this can be done. First create three vectors. One contains id for ten individuals, the second vector hold the time each individual signed in the attendane book and the third vector is the distance of each individual from office. We can concatenate the set of values to make vectors.</p>
+<pre class="r"><code>id  = c(1,2,3,4,5,6,7,8,9,10)
+
+time = lubridate::ymd_hms(c(&quot;2018-11-20 06:35:25 EAT&quot;, &quot;2018-11-20 06:52:05 EAT&quot;, 
+                 &quot;2018-11-20 07:08:45 EAT&quot;, &quot;2018-11-20 07:25:25 EAT&quot;, 
+                 &quot;2018-11-20 07:42:05 EAT&quot;, &quot;2018-11-20 07:58:45 EAT&quot;, 
+                 &quot;2018-11-20 08:15:25 EAT&quot;, &quot;2018-11-20 08:32:05 EAT&quot;, 
+                 &quot;2018-11-20 08:48:45 EAT&quot;, &quot;2018-11-20 09:05:25 EAT&quot;), tz = &quot;&quot;)
+
+distance = c(20, 85, 45, 69, 42,  52, 6, 45, 36, 7)</code></pre>
+<p>Once we have the vectors that have the same length dimension, we can use the function <code>data.frame()</code> to combine the the three vectors into one data frame shown in table <a href="#tab:tab239">4</a></p>
+<pre class="r"><code>arrival = data.frame(id, time, distance)</code></pre>
+<table>
+<caption>
+<span id="tab:tab239">Table 4: </span>The time employees enter into the office with the distance from their residential areas to the office
+</caption>
+<thead>
+<tr>
+<th style="text-align:right;">
+IDs
+</th>
+<th style="text-align:left;">
+Time
+</th>
+<th style="text-align:right;">
+Distance
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+1
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 06:35:25
+</td>
+<td style="text-align:right;width: 4cm; ">
+20
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+2
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 06:52:05
+</td>
+<td style="text-align:right;width: 4cm; ">
+85
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+3
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 07:08:45
+</td>
+<td style="text-align:right;width: 4cm; ">
+45
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+4
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 07:25:25
+</td>
+<td style="text-align:right;width: 4cm; ">
+69
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+5
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 07:42:05
+</td>
+<td style="text-align:right;width: 4cm; ">
+42
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+6
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 07:58:45
+</td>
+<td style="text-align:right;width: 4cm; ">
+52
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+7
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 08:15:25
+</td>
+<td style="text-align:right;width: 4cm; ">
+6
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+8
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 08:32:05
+</td>
+<td style="text-align:right;width: 4cm; ">
+45
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+9
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 08:48:45
+</td>
+<td style="text-align:right;width: 4cm; ">
+36
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+10
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 09:05:25
+</td>
+<td style="text-align:right;width: 4cm; ">
+7
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="tibbles" class="section level2">
+<h2>tibbles</h2>
+<p>A tibble is a modern data.frame, which keep keep what has proven to be effective and throw out what is not. Tibbles are data.frames that are llazy and surly—they do not change variable names or types and never do partial matching. Tibbles have an enhanced print_method, which makes them easier to use with large dataset containing diffeent objects with large number of variables.</p>
+<p>A tibble is created with <code>tibble()</code> function from <strong>tibble</strong> package <span class="citation">[@tibble]</span></p>
+<pre class="r"><code>data.tb = tibble::tibble(time, distance)
+tibble::is_tibble(data.tb);class(data.tb) </code></pre>
+<pre><code>[1] TRUE</code></pre>
+<pre><code>[1] &quot;tbl_df&quot;     &quot;tbl&quot;        &quot;data.frame&quot;</code></pre>
+<p>You can also use the <code>as_tibble()</code> to convert data.frame to tibble</p>
+<pre class="r"><code>## create a data.frame
+data.df = data.frame(time, distance)
+## create a tibble
+data.tbl = tibble::as_tibble(data.df)
+## printout 
+tibble::is_tibble(data.df); tibble::is_tibble(data.tb)</code></pre>
+<pre><code>[1] FALSE</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<div id="column-names" class="section level3">
+<h3>Column Names</h3>
+<p>Unlike data.frame that is strict on column names, tibble need not be valid R variable names. They can contain unusual characters like a space or a smiley but be enclosed in ticks.</p>
+<pre class="r"><code>tibble::tibble(id = 1:10,
+               &quot;:&quot; = rep(c(&quot;NE&quot;, &quot;SE&quot;), each = 5), 
+               &quot;-&quot; = rnorm(10, 25,2), 
+               chl = rnorm(10,.25,.01))</code></pre>
+<pre><code># A tibble: 10 x 4
+      id `:`     `-`   chl
+   &lt;int&gt; &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt;
+ 1     1 NE     22.4 0.246
+ 2     2 NE     24.4 0.250
+ 3     3 NE     22.2 0.258
+ 4     4 NE     24.8 0.263
+ 5     5 NE     22.1 0.239
+ 6     6 SE     28.4 0.247
+ 7     7 SE     21.2 0.253
+ 8     8 SE     26.4 0.246
+ 9     9 SE     26.5 0.255
+10    10 SE     27.4 0.242</code></pre>
+<p>However, when we use <code>data.frame()</code>instead of <code>tibble()</code> with the same arguments, we notice that the <code>data.frame()</code> function has modified the column names.</p>
+<pre class="r"><code>data.frame(id = 1:10,
+           &quot;:&quot; = rep(c(&quot;NE&quot;, &quot;SE&quot;), each = 5), 
+           &quot;-&quot; = rnorm(10, 25,2), 
+           chl = rnorm(10,.25,.01))</code></pre>
+<pre><code>   id X.     X..1       chl
+1   1 NE 23.54136 0.2392456
+2   2 NE 26.30564 0.2516395
+3   3 NE 28.08723 0.2420568
+4   4 NE 26.36949 0.2482949
+5   5 NE 23.30528 0.2553076
+6   6 SE 27.58529 0.2332887
+7   7 SE 25.80831 0.2552407
+8   8 SE 22.65104 0.2502862
+9   9 SE 25.10100 0.2497607
+10 10 SE 24.84666 0.2503427</code></pre>
+</div>
+<div id="add-rows-and-columns" class="section level3">
+<h3>Add rows and columns</h3>
+<p><code>tibble</code> allows you to add column and rows. Let us add the unique ID in the <code>data.tb</code> we created earlier using <code>add_column()</code> function. This function allows us to specify wher we want to place the column we will create. for this case we want the id variable to be the first, hence we specify <code>.before = 1</code> argument.</p>
+<pre class="r"><code>tibble::add_column(.data = data.tb, id = 1:10, .before = 1)</code></pre>
+<pre><code># A tibble: 10 x 3
+      id time                distance
+   &lt;int&gt; &lt;dttm&gt;                 &lt;dbl&gt;
+ 1     1 2018-11-20 06:35:25       20
+ 2     2 2018-11-20 06:52:05       85
+ 3     3 2018-11-20 07:08:45       45
+ 4     4 2018-11-20 07:25:25       69
+ 5     5 2018-11-20 07:42:05       42
+ 6     6 2018-11-20 07:58:45       52
+ 7     7 2018-11-20 08:15:25        6
+ 8     8 2018-11-20 08:32:05       45
+ 9     9 2018-11-20 08:48:45       36
+10    10 2018-11-20 09:05:25        7</code></pre>
+<p>We can also add row(s) in tibble with the <code>add_row()</code> function and specify at which row location we want to insert the rows. For instance, in the code below, we command the rows to be inserted from row 5</p>
+<pre class="r"><code>tibble::add_row(.data = data.tb, 
+                time = seq(lubridate::dmy(120514),lubridate::dmy(150514), by = &quot;day&quot;), 
+                distance = rnorm(4, 23,6), 
+                .before = 5)</code></pre>
+<pre><code># A tibble: 14 x 2
+   time                distance
+   &lt;dttm&gt;                 &lt;dbl&gt;
+ 1 2018-11-20 06:35:25     20  
+ 2 2018-11-20 06:52:05     85  
+ 3 2018-11-20 07:08:45     45  
+ 4 2018-11-20 07:25:25     69  
+ 5 2014-05-12 00:00:00     22.5
+ 6 2014-05-13 00:00:00     18.4
+ 7 2014-05-14 00:00:00     15.1
+ 8 2014-05-15 00:00:00     16.3
+ 9 2018-11-20 07:42:05     42  
+10 2018-11-20 07:58:45     52  
+11 2018-11-20 08:15:25      6  
+12 2018-11-20 08:32:05     45  
+13 2018-11-20 08:48:45     36  
+14 2018-11-20 09:05:25      7  </code></pre>
+</div>
+</div>
+<div id="exercise" class="section level2">
+<h2>Exercise</h2>
+<ol style="list-style-type: decimal">
+<li>Create a vector of character strings with six elements</li>
+</ol>
+<pre class="r"><code>test &lt;- c(&#39;red&#39;,&#39;red&#39;,&#39;blue&#39;,&#39;yellow&#39;,&#39;blue&#39;,&#39;green&#39;)</code></pre>
+<p>and then</p>
+<ul>
+<li>Transform the test vector just you created into a factor.</li>
+<li>Use the <code>levels()</code> command to determine the levels (and order) of the factor you just created.</li>
+<li>Transform the factor you just created into integers. Comment on the relationship between the integers and the order of the levels you found in part (b).</li>
+<li>Use some sort of comparison to create a vector that identifies which factor elements are the red group.</li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>Suppose we vectors that give a students name, their GPA, and their major. We want to come up with a list of forestry students with a GPA of greater than 3.0.</li>
+</ol>
+<pre class="r"><code>Name &lt;- c(&#39;Adam&#39;,&#39;Benjamin&#39;,&#39;Caleb&#39;,&#39;Daniel&#39;,&#39;Ephriam&#39;, &#39;Frank&#39;,&#39;Gideon&#39;)
+GPA &lt;- c(3.2, 3.8, 2.6, 2.3, 3.4, 3.7, 4.0)
+Major &lt;- c(&#39;Math&#39;,&#39;Forestry&#39;,&#39;Biology&#39;,&#39;Forestry&#39;,&#39;Forestry&#39;,&#39;Math&#39;,&#39;Forestry&#39;)</code></pre>
+<ul>
+<li>Create a vector of TRUE/FALSE values that indicate whether the students GPA is greater than 3.0.</li>
+<li>Create a vector of TRUE/FALSE values that indicate whether the students’ major is forestry.</li>
+<li>Create a vector of TRUE/FALSE values that indicates if a student has a GPA greater than 3.0 and is a forestry major.</li>
+<li>Convert the vector of TRUE/FALSE values in part (c) to integer values using the as.numeric() function. Which numeric value corresponds to TRUE?</li>
+<li>Sum (using the sum() function) the vector you created to count the number of students with GPA &gt; 3.0 and are a forestry major.</li>
+</ul>
+</div>
+<div id="exercise-1" class="section level2">
+<h2>Exercise</h2>
+<ol style="list-style-type: decimal">
+<li>Create a data.frame named my.trees that has the following columns:</li>
+</ol>
+<pre class="r"><code>Girth = c(8.3, 8.6, 8.8, 10.5, 10.7, 10.8, 11.0)
+Height= c(70, 65, 63, 72, 81, 83, 66)
+Volume= c(10.3, 10.3, 10.2, 16.4, 18.8, 19.7, 15.6)</code></pre>
+<ol style="list-style-type: lower-alpha">
+<li>Extract the third observation (i.e. the third row)</li>
+<li>Extract the Girth column referring to it by name (don’t use whatever order you placed the columns in).</li>
+<li>Print out a data frame of all the observations except for the fourth observation. (i.e. Remove the fourth observation/row.)</li>
+</ol>
+</div>

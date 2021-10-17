@@ -1,0 +1,126 @@
+---
+title: Time interval with lubridate in R
+author: Masumbuko Semba
+date: '2020-07-06'
+slug: []
+categories:
+  - R
+tags:
+  - lubridate
+  - programming
+  - R
+  - tidyverse
+description: ''
+thumbnail: ''
+---
+
+
+```{r , include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, comment = "")
+
+```
+
+
+## Time Interval
+You can save an interval of time an an interval object in R with lubridate. This is quite useful for example, you want to understand the interval between two or more successive CTD casts
+
+
+
+```{r}
+algoa = list.files("d:/semba/CTDs/algoa/processing/updown files/", pattern = "dst", full.names = TRUE)
+```
+
+
+we notice that the files has an .cnv extenstion, which is **oce**--readable. We therefore load the **oce** package together the package in tidyverse.
+
+```{r}
+require(oce)
+require(tidyverse)
+require(lubridate)
+
+
+```
+
+## ctd list
+
+We create a list that accomodate and store the ctd file for each cast. To *automate* the reading of these twenty one files, the  nested`for()` was used. The first loop imported the `.cnv` files from the working directory into the workspace. Once the file is the `oce` object format, the second `for` loop with latter `j` was used to convert the oce object to data frame. The data frame was sliced and only the the first rows that contain the cast date and, maximum depth together with longitude and latitude coordinates at each cast was retained. 
+
+```{r, warning=FALSE}
+
+ctd.list = list()
+ctd.time = list()
+
+for (i in 1:length(algoa)){
+  
+  ## First loop: read files from the working directory and convert them to oce object stored in the list
+  ctd.list[[i]] = read.ctd(algoa[i]) %>% 
+    ctdDecimate(p = 5)
+  
+  ## second loop: convert oce object into data frame and slice only the first observation picked
+        for (j in 1:length(ctd.list)){
+          
+          ctd.time[[j]] = ctd.list[[j]]@data%>%
+            as_tibble()%>%select(pressure) %>% 
+            mutate(date = ctd.list[[j]][["startTime"]], 
+                   lon = ctd.list[[j]][["longitude"]], 
+                   lat  = ctd.list[[j]][["latitude"]], 
+                   max.depth = max(pressure)) %>% slice(1) %>% 
+            select(max.depth, lon,lat, date)
+        } 
+  }
+
+ctd.time = ctd.time %>% bind_rows()
+
+```
+
+Once we have the data fram, we pulled the date variable as a vector and then used the `interval()` and `as.duration()` function from lubridate to obtain the duration. Durations simply measure the time span between start and end dates. As the results show, Algoa took 133.26 hours(~5.55 days) to complete its mission along coastal waters of Tanzania. 
+
+```{r}
+ctd.time.vector = ctd.time%>% pull(date)
+
+duration = lubridate::interval(start = ctd.time.vector[1], 
+                               end = ctd.time.vector[21]) %>% 
+  lubridate::as.duration() 
+
+#duration %>% as.numeric("hour")
+
+```
+
+
+## Arithmetic with date times
+
+Often times CTD instruments records date times in UTC, which need to be standardized to the local time. For instance the `ctd.time.vector` we simply created is in UTC, to obtain the  real local time, which is the East African time, which is three hours ahead, we need to add them up. **lubridate** package has `Durations` and `Periods` classes that help to handle the issues. 
+
+
+The helper functions for creating periods are names after the units of time(plural) as highlighted in the chunk below
+
+```{r}
+lubridate::minutes(10); lubridate::hours(2);lubridate::seconds(10)
+```
+
+Similar to helper functions for periods, the helper functions for creating durations follows the same format, but they begin with prefix `d`---for durations.
+```{r}
+lubridate::dminutes(10); lubridate::dhours(2);lubridate::dseconds(10)
+
+```
+
+Once we know the diffrence of the helper functions for periods and durations, we can then convert the UTC time to local time. We know that Tanzania is +3 hours of greenwhich, therefore , we create a local.time by add the three hours time on the date variable in the ctd.time.
+```{r}
+
+ctd.time.local = ctd.time %>% 
+  mutate(local.time = date + lubridate::dhours(3))
+ctd.time.local
+
+```
+
+## Dealing with Time Zones
+
+lubridate package has a `with_tz()` functions, which change the time moment to the actual time at corresponding time zone. For example here we compute the now time for East Africa , which is three hours above the UTC then each time we define the respective time with the `with_tz()` function to obtain the  local time. Printing the results, we see that the eac is real ahead by three hours to the utc. 
+```{r}
+
+utc = now() %>%with_tz(tzone = "UTC")
+eac = now() %>%with_tz(tzone = "Africa/Nairobi")
+utc;eac
+
+```

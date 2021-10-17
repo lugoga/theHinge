@@ -1,0 +1,978 @@
+---
+title: Data types in R
+author: Masumbuko Semba
+date: '2020-01-04'
+slug: []
+categories:
+  - ''
+tags:
+  - code
+  - programming
+  - semba
+  - R
+  - tidyverse
+description: ''
+thumbnail: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+<script src="{{< blogdown/postref >}}index.en_files/kePrint/kePrint.js"></script>
+<link href="{{< blogdown/postref >}}index.en_files/lightable/lightable.css" rel="stylesheet" />
+
+
+<p>R is a flexible language that allows to work with different kind of data format <span class="citation">[@bradley]</span>. This inluced integer, numeric, character, complex, dates and logical. The default data type or class in <strong>R</strong> is double precision—numeric. In a nutshell, R treats all kind of data into five categories but we deal with only four in this book. Before proceeding, we need to clear the workspace by typing <code>rm(list = ls())</code> after the prompt in the in a console.</p>
+<p>But before we move further, let’s us clean our working environment by clicking a combination of <code>Ctrl+L</code>. Clearing the workspace is always recommended before working on a new R project to avoid name conflicts with provious projects. We can also clear all figures using <code>graphics.off()</code> function. It is a good code practise that a new R project start with the code in the chunk below:</p>
+<pre class="r"><code>rm(list = ls())
+graphics.off()</code></pre>
+<ol style="list-style-type: decimal">
+<li><code>Integers</code>:Integer values do not have decimal places. They are commonly used for counting or indexing.</li>
+</ol>
+<pre class="r"><code>aa = c(20,68,78,50)</code></pre>
+<p>You can check if the data is integer with <code>is.integer()</code> and can convert numeric value to an integer with <code>as.integer()</code></p>
+<pre class="r"><code>is.integer(aa)</code></pre>
+<pre><code>FALSE [1] FALSE</code></pre>
+<p>You can query the class of the object with the <code>class()</code> to know the class of the object</p>
+<pre class="r"><code>class(aa)</code></pre>
+<pre><code>FALSE [1] &quot;numeric&quot;</code></pre>
+<p>Although the object bb is integer as confirmed with <code>as.integer()</code> function, the <code>class()</code> ouput the answer as numeric. This is because the defaul type of number in r is numeric. However, you can use the function <code>as.integer()</code> to convert numeric value to integer</p>
+<pre class="r"><code>class(as.integer(aa))</code></pre>
+<pre><code>FALSE [1] &quot;integer&quot;</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li><code>Numeric</code>: The numeric class holds the set of real numbers — decimal place numbers. The numeric class is more general than the integer class, and inclused the integer numbers.</li>
+</ol>
+<p>These could be any number (whole or decimal number). You can check if the data is integer with <code>is.integer()</code></p>
+<pre class="r"><code>bb = c(12.5, 45.68, 2.65)
+class(bb)</code></pre>
+<pre><code>FALSE [1] &quot;numeric&quot;</code></pre>
+<pre class="r"><code>is.numeric(bb)</code></pre>
+<pre><code>FALSE [1] TRUE</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li><code>Strings</code>: In programming terms, we usually call text as <em>string</em>.This often are <code>text</code> data like names.</li>
+</ol>
+<pre class="r"><code>countries = c(&quot;Kenya&quot;, &quot;Uganda&quot;, &quot;Rwanda&quot;, &quot;Tanzania&quot;)
+class(countries)</code></pre>
+<pre><code>FALSE [1] &quot;character&quot;</code></pre>
+<p>We can be sure whether the object is a string with <code>is.character()</code> or check the class of the object with <code>class()</code>.</p>
+<ol start="4" style="list-style-type: decimal">
+<li><code>Factor</code>: These are strings from finite set of values. For example, we might wish to store a variable that records gender of people. You can check if the data is factor with <code>is.factor()</code> and use <code>as.factor()</code> to convert <code>string</code> to <code>factor</code></li>
+</ol>
+<pre class="r"><code>sex = c(&quot;Male&quot;, &quot;Female&quot;, &quot;Male&quot;, &quot;Male&quot;, &quot;Female&quot;)
+sex = as.factor(sex)
+class(sex)</code></pre>
+<pre><code>FALSE [1] &quot;factor&quot;</code></pre>
+<p>Often times we need to know the possible groups that are in the factor data. This can be achieved with the <code>levels()</code> function</p>
+<pre class="r"><code>levels(sex)</code></pre>
+<pre><code>FALSE [1] &quot;Female&quot; &quot;Male&quot;</code></pre>
+<pre class="r"><code>levels(countries)</code></pre>
+<pre><code>FALSE NULL</code></pre>
+<p>Often we wish to take a continuous numerical vector and transform it into a factor. The function <code>cut()</code> takes a vector of numerical data and creates a factor based on your give cut-points. Let us make a fictional income of 508 people with <code>rnorm()</code> function.</p>
+<pre class="r"><code>income = rnorm(n = 508, mean = 500, sd = 80)
+hist(income, col = &quot;green&quot;, main = &quot;&quot;, las = 1, xlab = &quot;Individual Income&quot;)</code></pre>
+<div class="figure"><span id="fig:hist"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/hist-1.png" alt="Income distribution" width="672" />
+<p class="caption">
+Figure 1: Income distribution
+</p>
+</div>
+<pre class="r"><code>#mosaic::plotDist(dist = &quot;norm&quot;, mean = 500, sd = 80)</code></pre>
+<p>We can now breaks the distribution into groups and make a simple plot as shown in figure <a href="#fig:fig21">2</a>, where those with income less than 400 were about 50, followed with a group with income range between 400 and 500 of about 200 and 250 people receive income above 500</p>
+<pre class="r"><code>group = cut(income, breaks = c(300,400,500,800),
+            labels = c(&quot;Below 400&quot;, &quot;400-500&quot;, &quot;Above 500&quot;))
+is.factor(group)</code></pre>
+<pre><code>FALSE [1] TRUE</code></pre>
+<pre class="r"><code>levels(group)</code></pre>
+<pre><code>FALSE [1] &quot;Below 400&quot; &quot;400-500&quot;   &quot;Above 500&quot;</code></pre>
+<pre class="r"><code>barplot(table(group), las = 1, horiz = FALSE, col = c(&quot;blue&quot;, &quot;red&quot;, &quot;blue&quot;), ylab = &quot;Frequency&quot;, xlab = &quot;Group of Income&quot;)</code></pre>
+<div class="figure"><span id="fig:fig21"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/fig21-1.png" alt="Barplot of grouped income" width="672" />
+<p class="caption">
+Figure 2: Barplot of grouped income
+</p>
+</div>
+<pre class="r"><code>data = data.frame(group, income)</code></pre>
+<ol start="5" style="list-style-type: decimal">
+<li><p><code>Logicals</code>: This is a special case of a factor that can only take on the values <code>TRUE</code> and <code>FALSE</code>. R is case-sensitive, therefore you must always capitalize <code>TRUE</code> and <code>FALSE</code> in function in R.</p></li>
+<li><p><code>Date and time</code></p></li>
+</ol>
+<div id="vectors" class="section level3">
+<h3>Vectors</h3>
+<p>Ofen times we want to store a set of numbers in once place. One way to do this is using the vectors in R. Vectors store severl numbers– a set of numbers in one container. let us look on the example below</p>
+<pre class="r"><code>id = c(1,2,3,4,5)
+people = c(158,659,782,659,759)
+street = c(&quot;Dege&quot;, &quot;Mchikichini&quot;, &quot;Mwembe Mdogo&quot;, &quot;Mwongozo&quot;,  &quot;Cheka&quot;)</code></pre>
+<p>Notice that the <code>c()</code> function, which is short for concatenate wraps the list of numbers. The <code>c()</code> function combines all numbers together into one container. Notice also that all the individual numbers are separated with a comma. The comma is reffered to an an item-delimiter. It allows R to hold each of the numbers separately. This is vital as without the item-delimiter, R will treat a vector as one big, unsperated number.</p>
+</div>
+<div id="indexing-the-element" class="section level3">
+<h3>Indexing the element</h3>
+<p>One advantage of vector is that you can extract individual element in the vector object by indexing, which is accomplished using the square bracket as illustrated below.</p>
+<pre class="r"><code>id[5]</code></pre>
+<pre><code>FALSE [1] 5</code></pre>
+<pre class="r"><code>people[5]</code></pre>
+<pre><code>FALSE [1] 759</code></pre>
+<pre class="r"><code>street[5]</code></pre>
+<pre><code>FALSE [1] &quot;Cheka&quot;</code></pre>
+<p>Apart from extracting single element, indexing allows to extract a range of element in a vector. This is extremely important because it allows to subset a portion of data in a vector. A colon operator is used to extract a range of data</p>
+<pre class="r"><code>street[2:4]</code></pre>
+<pre><code>FALSE [1] &quot;Mchikichini&quot;  &quot;Mwembe Mdogo&quot; &quot;Mwongozo&quot;</code></pre>
+</div>
+<div id="adding-and-replacing-an-element-in-a-vector" class="section level3">
+<h3>Adding and Replacing an element in a vector</h3>
+<p>It is possible to add element of an axisting vecor. Here ia an example</p>
+<pre class="r"><code>id[6] = 6
+people[6] = 578
+street[6] = &quot;Mwongozo&quot;</code></pre>
+<p>Sometimes you may need to replace an element from a vector, this can be achieved with indexing</p>
+<pre class="r"><code>people[1] = 750</code></pre>
+</div>
+<div id="number-of-elements-in-a-vector" class="section level3">
+<h3>Number of elements in a vector</h3>
+<p>Sometimes you may have a long vector and want to know the numbers of elements in the object. R has <code>length()</code> function that allows you to query the vector and print the answer</p>
+<pre class="r"><code>length(people)</code></pre>
+<pre><code>FALSE [1] 6</code></pre>
+</div>
+<div id="generating-sequence-of-vectors-numbers" class="section level3">
+<h3>Generating sequence of vectors Numbers</h3>
+<p>There are few R operators that are designed for creating vecor of non-random numbers. These functions provide multiple ways for generating sequences of numbers</p>
+<p>The colon <code>:</code> operator, explicitly generate regular sequence of numbers between the lower and upper boundary numbers specified. For example, generating number beween 0 and 10, we simply write;</p>
+<pre class="r"><code>vector.seq = 0:10
+vector.seq</code></pre>
+<pre><code>FALSE  [1]  0  1  2  3  4  5  6  7  8  9 10</code></pre>
+<p>However, if you want to generate a vector of sequence number with specified interval, let say we want to generate number between 0 and 10 with interval of 2, then the <code>seq()</code> function is used</p>
+<pre class="r"><code>regular.vector = seq(from = 0,to = 10, by = 2)
+regular.vector</code></pre>
+<pre><code>FALSE [1]  0  2  4  6  8 10</code></pre>
+<p>unlike the <code>seq()</code> function and <code>:</code> operator that works with numbers, the <code>rep()</code> function generate sequence of repeated numbers or strings to create a vector</p>
+<pre class="r"><code>id = rep(x = 3, each = 4)
+station = rep(x = &quot;Station1&quot;, each = 4)
+id;station</code></pre>
+<pre><code>FALSE [1] 3 3 3 3</code></pre>
+<pre><code>FALSE [1] &quot;Station1&quot; &quot;Station1&quot; &quot;Station1&quot; &quot;Station1&quot;</code></pre>
+<p>The <code>rep()</code> function allows to parse <code>each</code> and <code>times</code> arguments. The <code>each</code> argument allows creation of vector that that repeat each element in a vector according to specified number.</p>
+<pre class="r"><code>sampled.months = c(&quot;January&quot;, &quot;March&quot;, &quot;May&quot;)
+rep(x = sampled.months, each = 3)</code></pre>
+<pre><code>FALSE [1] &quot;January&quot; &quot;January&quot; &quot;January&quot; &quot;March&quot;   &quot;March&quot;   &quot;March&quot;   &quot;May&quot;    
+FALSE [8] &quot;May&quot;     &quot;May&quot;</code></pre>
+<p>But the <code>times</code> argument repeat the whole vector to specfied times</p>
+<pre class="r"><code>rep(x = sampled.months, times = 3)</code></pre>
+<pre><code>FALSE [1] &quot;January&quot; &quot;March&quot;   &quot;May&quot;     &quot;January&quot; &quot;March&quot;   &quot;May&quot;     &quot;January&quot;
+FALSE [8] &quot;March&quot;   &quot;May&quot;</code></pre>
+</div>
+<div id="generating-vector-of-normal-distribution" class="section level3">
+<h3>Generating vector of normal distribution</h3>
+<p>The central limit theorem that ensure the data is normal distributed is well known to statistician. R has a <code>rnorm()</code> function which makes vector of normal distributed values. For example to generate a vector of 40 sea surface temperature values from a normal distribution with a <code>mean</code> of 25, and <code>standard deviation</code> of 1.58, we simply type this expression in console;</p>
+<pre class="r"><code>sst = rnorm(n = 40, mean = 25,sd = 1.58)
+sst</code></pre>
+<pre><code>FALSE  [1] 24.03922 23.80315 23.47413 26.27077 23.42572 23.75998 23.61258 23.35309
+FALSE  [9] 24.69700 22.76580 24.71677 23.02477 27.00590 23.95165 26.52619 26.29226
+FALSE [17] 25.35510 24.18597 27.37901 24.34999 24.38044 26.92839 21.37074 25.54579
+FALSE [25] 26.55608 26.61256 25.71027 29.16311 25.19961 24.32504 26.28006 25.61089
+FALSE [33] 24.85534 24.80107 25.56271 27.84438 24.39485 27.66808 25.80105 24.16359</code></pre>
+</div>
+<div id="rounding-off-numbers" class="section level3">
+<h3>Rounding off numbers</h3>
+<p>There are many ways of rounding off numerical number to the nearest integers or specify the number of decimal places. the code block below illustrate the common way to round off:</p>
+<pre class="r"><code>require(magrittr)
+chl = rnorm(n = 20, mean = .55, sd = .2)
+chl %&gt;% round(digits = 2)</code></pre>
+<pre><code>FALSE  [1] 0.43 0.58 0.18 0.55 0.85 0.38 0.38 0.40 0.60 0.20 0.74 0.44 0.75 0.37 0.72
+FALSE [16] 0.83 0.54 0.53 0.61 0.51</code></pre>
+</div>
+<div id="data-frame" class="section level2">
+<h2>Data Frame</h2>
+<p><code>data.frame</code> is very much like a simple Excel spreadsheet where each column represents a variable type and each row represent observations. A data frame is the most common way of storing data in R and, generally, is the data structure most often used for data analyses. A data frame is a list of equal–length vectors with rows as records and columns as variables. This makes data frames unique in data storing as it can store different classes of objects in each column (i.e. numeric, character, factor, logic, etc). In this section, we will create data frames and add attributes to data frames.</p>
+<div id="creating-data-frames" class="section level3">
+<h3>Creating data frames</h3>
+<p>Perhaps the easiest way to create a data frame is to parse vectors in a <code>data.frame()</code> function. For instance, in this case we create a simple data frame <code>dt</code> and assess its internal structure</p>
+<pre class="r"><code># create vectors
+Name  = c(&#39;Bob&#39;,&#39;Jeff&#39;,&#39;Mary&#39;)
+Score = c(90, 75, 92)
+Grade = c(&quot;A&quot;, &quot;B&quot;, &quot;A&quot;)
+
+## use the vectors to make a data frame
+dt = data.frame(Name, Score, Grade)
+
+## assess the internal structure
+str(dt)</code></pre>
+<pre><code>FALSE &#39;data.frame&#39;: 3 obs. of  3 variables:
+FALSE  $ Name : chr  &quot;Bob&quot; &quot;Jeff&quot; &quot;Mary&quot;
+FALSE  $ Score: num  90 75 92
+FALSE  $ Grade: chr  &quot;A&quot; &quot;B&quot; &quot;A&quot;</code></pre>
+<p>Note how Variable <code>Name</code> in dt was converted to a column of factors . This is because there is a default setting in <code>data.frame()</code> that converts character columns to factors . We can turn this off by setting the <code>stringsAsFactors = FALSE</code> argument:</p>
+<pre class="r"><code>## use the vectors to make a data frame
+df = data.frame(Name, Score, Grade, stringsAsFactors = FALSE)
+df %&gt;% str()</code></pre>
+<pre><code>FALSE &#39;data.frame&#39;: 3 obs. of  3 variables:
+FALSE  $ Name : chr  &quot;Bob&quot; &quot;Jeff&quot; &quot;Mary&quot;
+FALSE  $ Score: num  90 75 92
+FALSE  $ Grade: chr  &quot;A&quot; &quot;B&quot; &quot;A&quot;</code></pre>
+<p>Now the variable <code>Name</code> is of character class in the data frame. The inherited problem of data frame to convert character columns into a factor is resolved by introduction f advanced data frames called <em>tibble</em>, which provides sticker checking and better formating than the traditional data.frame.</p>
+<pre class="r"><code>## use the vectors to make a tibble
+tb = tibble(Name, Score, Grade) 
+## check the internal structure of the tibble
+tb%&gt;% glimpse()</code></pre>
+<pre><code>FALSE Rows: 3
+FALSE Columns: 3
+FALSE $ Name  &lt;chr&gt; &quot;Bob&quot;, &quot;Jeff&quot;, &quot;Mary&quot;
+FALSE $ Score &lt;dbl&gt; 90, 75, 92
+FALSE $ Grade &lt;chr&gt; &quot;A&quot;, &quot;B&quot;, &quot;A&quot;</code></pre>
+<p>Table <a href="#tab:tab301">1</a> show the the data frame created by fusing the two vectors together.</p>
+<table>
+<caption>
+<span id="tab:tab301">Table 1: </span>Variables in the data frame
+</caption>
+<thead>
+<tr>
+<th style="text-align:center;">
+Name
+</th>
+<th style="text-align:center;">
+Score
+</th>
+<th style="text-align:center;">
+Grade
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;width: 4cm; ">
+Bob
+</td>
+<td style="text-align:center;width: 4cm; ">
+90
+</td>
+<td style="text-align:center;">
+A
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 4cm; ">
+Jeff
+</td>
+<td style="text-align:center;width: 4cm; ">
+75
+</td>
+<td style="text-align:center;">
+B
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 4cm; ">
+Mary
+</td>
+<td style="text-align:center;width: 4cm; ">
+92
+</td>
+<td style="text-align:center;">
+A
+</td>
+</tr>
+</tbody>
+</table>
+<p>Because the columns have meaning and we have given them column names, it is desirable to want to access an element by the name of the column as opposed to the column number.In large Excel spreadsheets I often get annoyed trying to remember which column something was. The <code>$</code>sign and <code>[]</code>are used in R to select variable from the data frame.</p>
+<pre class="r"><code>dt$Name</code></pre>
+<pre><code>FALSE [1] &quot;Bob&quot;  &quot;Jeff&quot; &quot;Mary&quot;</code></pre>
+<pre class="r"><code>dt[,1]</code></pre>
+<pre><code>FALSE [1] &quot;Bob&quot;  &quot;Jeff&quot; &quot;Mary&quot;</code></pre>
+<pre class="r"><code>dt$Score</code></pre>
+<pre><code>FALSE [1] 90 75 92</code></pre>
+<pre class="r"><code>dt[,2]</code></pre>
+<pre><code>FALSE [1] 90 75 92</code></pre>
+<p>R has build in dataset that we can use for illustration. For example, <span class="citation">@longley</span> created a <code>longley</code> dataset, which is data frame with 7 economic variables observed every year from 1947 ti 1962 (Table <a href="#tab:tab22">2</a>). We can add the data in the workspace with <code>data()</code> function</p>
+<pre class="r"><code>data(longley)
+
+longley %&gt;% 
+  kable(caption = &quot;Longleys&#39; Economic dataset&quot;, align = &quot;c&quot;, row.names = F) %&gt;%
+  column_spec(1:7, width = &quot;3cm&quot;)</code></pre>
+<table>
+<caption>
+<span id="tab:tab22">Table 2: </span>Longleys’ Economic dataset
+</caption>
+<thead>
+<tr>
+<th style="text-align:center;">
+GNP.deflator
+</th>
+<th style="text-align:center;">
+GNP
+</th>
+<th style="text-align:center;">
+Unemployed
+</th>
+<th style="text-align:center;">
+Armed.Forces
+</th>
+<th style="text-align:center;">
+Population
+</th>
+<th style="text-align:center;">
+Year
+</th>
+<th style="text-align:center;">
+Employed
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+83.0
+</td>
+<td style="text-align:center;width: 3cm; ">
+234.289
+</td>
+<td style="text-align:center;width: 3cm; ">
+235.6
+</td>
+<td style="text-align:center;width: 3cm; ">
+159.0
+</td>
+<td style="text-align:center;width: 3cm; ">
+107.608
+</td>
+<td style="text-align:center;width: 3cm; ">
+1947
+</td>
+<td style="text-align:center;width: 3cm; ">
+60.323
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+88.5
+</td>
+<td style="text-align:center;width: 3cm; ">
+259.426
+</td>
+<td style="text-align:center;width: 3cm; ">
+232.5
+</td>
+<td style="text-align:center;width: 3cm; ">
+145.6
+</td>
+<td style="text-align:center;width: 3cm; ">
+108.632
+</td>
+<td style="text-align:center;width: 3cm; ">
+1948
+</td>
+<td style="text-align:center;width: 3cm; ">
+61.122
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+88.2
+</td>
+<td style="text-align:center;width: 3cm; ">
+258.054
+</td>
+<td style="text-align:center;width: 3cm; ">
+368.2
+</td>
+<td style="text-align:center;width: 3cm; ">
+161.6
+</td>
+<td style="text-align:center;width: 3cm; ">
+109.773
+</td>
+<td style="text-align:center;width: 3cm; ">
+1949
+</td>
+<td style="text-align:center;width: 3cm; ">
+60.171
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+89.5
+</td>
+<td style="text-align:center;width: 3cm; ">
+284.599
+</td>
+<td style="text-align:center;width: 3cm; ">
+335.1
+</td>
+<td style="text-align:center;width: 3cm; ">
+165.0
+</td>
+<td style="text-align:center;width: 3cm; ">
+110.929
+</td>
+<td style="text-align:center;width: 3cm; ">
+1950
+</td>
+<td style="text-align:center;width: 3cm; ">
+61.187
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+96.2
+</td>
+<td style="text-align:center;width: 3cm; ">
+328.975
+</td>
+<td style="text-align:center;width: 3cm; ">
+209.9
+</td>
+<td style="text-align:center;width: 3cm; ">
+309.9
+</td>
+<td style="text-align:center;width: 3cm; ">
+112.075
+</td>
+<td style="text-align:center;width: 3cm; ">
+1951
+</td>
+<td style="text-align:center;width: 3cm; ">
+63.221
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+98.1
+</td>
+<td style="text-align:center;width: 3cm; ">
+346.999
+</td>
+<td style="text-align:center;width: 3cm; ">
+193.2
+</td>
+<td style="text-align:center;width: 3cm; ">
+359.4
+</td>
+<td style="text-align:center;width: 3cm; ">
+113.270
+</td>
+<td style="text-align:center;width: 3cm; ">
+1952
+</td>
+<td style="text-align:center;width: 3cm; ">
+63.639
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+99.0
+</td>
+<td style="text-align:center;width: 3cm; ">
+365.385
+</td>
+<td style="text-align:center;width: 3cm; ">
+187.0
+</td>
+<td style="text-align:center;width: 3cm; ">
+354.7
+</td>
+<td style="text-align:center;width: 3cm; ">
+115.094
+</td>
+<td style="text-align:center;width: 3cm; ">
+1953
+</td>
+<td style="text-align:center;width: 3cm; ">
+64.989
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+100.0
+</td>
+<td style="text-align:center;width: 3cm; ">
+363.112
+</td>
+<td style="text-align:center;width: 3cm; ">
+357.8
+</td>
+<td style="text-align:center;width: 3cm; ">
+335.0
+</td>
+<td style="text-align:center;width: 3cm; ">
+116.219
+</td>
+<td style="text-align:center;width: 3cm; ">
+1954
+</td>
+<td style="text-align:center;width: 3cm; ">
+63.761
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+101.2
+</td>
+<td style="text-align:center;width: 3cm; ">
+397.469
+</td>
+<td style="text-align:center;width: 3cm; ">
+290.4
+</td>
+<td style="text-align:center;width: 3cm; ">
+304.8
+</td>
+<td style="text-align:center;width: 3cm; ">
+117.388
+</td>
+<td style="text-align:center;width: 3cm; ">
+1955
+</td>
+<td style="text-align:center;width: 3cm; ">
+66.019
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+104.6
+</td>
+<td style="text-align:center;width: 3cm; ">
+419.180
+</td>
+<td style="text-align:center;width: 3cm; ">
+282.2
+</td>
+<td style="text-align:center;width: 3cm; ">
+285.7
+</td>
+<td style="text-align:center;width: 3cm; ">
+118.734
+</td>
+<td style="text-align:center;width: 3cm; ">
+1956
+</td>
+<td style="text-align:center;width: 3cm; ">
+67.857
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+108.4
+</td>
+<td style="text-align:center;width: 3cm; ">
+442.769
+</td>
+<td style="text-align:center;width: 3cm; ">
+293.6
+</td>
+<td style="text-align:center;width: 3cm; ">
+279.8
+</td>
+<td style="text-align:center;width: 3cm; ">
+120.445
+</td>
+<td style="text-align:center;width: 3cm; ">
+1957
+</td>
+<td style="text-align:center;width: 3cm; ">
+68.169
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+110.8
+</td>
+<td style="text-align:center;width: 3cm; ">
+444.546
+</td>
+<td style="text-align:center;width: 3cm; ">
+468.1
+</td>
+<td style="text-align:center;width: 3cm; ">
+263.7
+</td>
+<td style="text-align:center;width: 3cm; ">
+121.950
+</td>
+<td style="text-align:center;width: 3cm; ">
+1958
+</td>
+<td style="text-align:center;width: 3cm; ">
+66.513
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+112.6
+</td>
+<td style="text-align:center;width: 3cm; ">
+482.704
+</td>
+<td style="text-align:center;width: 3cm; ">
+381.3
+</td>
+<td style="text-align:center;width: 3cm; ">
+255.2
+</td>
+<td style="text-align:center;width: 3cm; ">
+123.366
+</td>
+<td style="text-align:center;width: 3cm; ">
+1959
+</td>
+<td style="text-align:center;width: 3cm; ">
+68.655
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+114.2
+</td>
+<td style="text-align:center;width: 3cm; ">
+502.601
+</td>
+<td style="text-align:center;width: 3cm; ">
+393.1
+</td>
+<td style="text-align:center;width: 3cm; ">
+251.4
+</td>
+<td style="text-align:center;width: 3cm; ">
+125.368
+</td>
+<td style="text-align:center;width: 3cm; ">
+1960
+</td>
+<td style="text-align:center;width: 3cm; ">
+69.564
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+115.7
+</td>
+<td style="text-align:center;width: 3cm; ">
+518.173
+</td>
+<td style="text-align:center;width: 3cm; ">
+480.6
+</td>
+<td style="text-align:center;width: 3cm; ">
+257.2
+</td>
+<td style="text-align:center;width: 3cm; ">
+127.852
+</td>
+<td style="text-align:center;width: 3cm; ">
+1961
+</td>
+<td style="text-align:center;width: 3cm; ">
+69.331
+</td>
+</tr>
+<tr>
+<td style="text-align:center;width: 3cm; ">
+116.9
+</td>
+<td style="text-align:center;width: 3cm; ">
+554.894
+</td>
+<td style="text-align:center;width: 3cm; ">
+400.7
+</td>
+<td style="text-align:center;width: 3cm; ">
+282.7
+</td>
+<td style="text-align:center;width: 3cm; ">
+130.081
+</td>
+<td style="text-align:center;width: 3cm; ">
+1962
+</td>
+<td style="text-align:center;width: 3cm; ">
+70.551
+</td>
+</tr>
+</tbody>
+</table>
+<p>Sometimes you may need to create set of values and store them in vectors, then combine the vectors into a data frame. Let us see how this can be done. First create three vectors. One contains id for ten individuals, the second vector hold the time each individual signed in the attendane book and the third vector is the distance of each individual from office. We can concatenate the set of values to make vectors.</p>
+<pre class="r"><code>id  = c(1,2,3,4,5,6,7,8,9,10)
+
+time = ymd_hms(c(&quot;2018-11-20 06:35:25 EAT&quot;, &quot;2018-11-20 06:52:05 EAT&quot;, 
+                 &quot;2018-11-20 07:08:45 EAT&quot;, &quot;2018-11-20 07:25:25 EAT&quot;, 
+                 &quot;2018-11-20 07:42:05 EAT&quot;, &quot;2018-11-20 07:58:45 EAT&quot;, 
+                 &quot;2018-11-20 08:15:25 EAT&quot;, &quot;2018-11-20 08:32:05 EAT&quot;, 
+                 &quot;2018-11-20 08:48:45 EAT&quot;, &quot;2018-11-20 09:05:25 EAT&quot;), tz = &quot;&quot;)
+
+distance = c(20, 85, 45, 69, 42,  52, 6, 45, 36, 7)</code></pre>
+<p>Once we have the vectors that have the same length dimension, we can use the function <code>data.frame()</code> to combine the the three vectors into one data frame shown in table <a href="#tab:tab23">3</a></p>
+<pre class="r"><code>arrival = data.frame(id, time, distance)</code></pre>
+<table>
+<caption>
+<span id="tab:tab23">Table 3: </span>The time employees enter into the office with the distance from their residential areas to the office
+</caption>
+<thead>
+<tr>
+<th style="text-align:right;">
+IDs
+</th>
+<th style="text-align:left;">
+Time
+</th>
+<th style="text-align:right;">
+Distance
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+1
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 06:35:25
+</td>
+<td style="text-align:right;width: 4cm; ">
+20
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+2
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 06:52:05
+</td>
+<td style="text-align:right;width: 4cm; ">
+85
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+3
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 07:08:45
+</td>
+<td style="text-align:right;width: 4cm; ">
+45
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+4
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 07:25:25
+</td>
+<td style="text-align:right;width: 4cm; ">
+69
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+5
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 07:42:05
+</td>
+<td style="text-align:right;width: 4cm; ">
+42
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+6
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 07:58:45
+</td>
+<td style="text-align:right;width: 4cm; ">
+52
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+7
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 08:15:25
+</td>
+<td style="text-align:right;width: 4cm; ">
+6
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+8
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 08:32:05
+</td>
+<td style="text-align:right;width: 4cm; ">
+45
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+9
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 08:48:45
+</td>
+<td style="text-align:right;width: 4cm; ">
+36
+</td>
+</tr>
+<tr>
+<td style="text-align:right;width: 4cm; ">
+10
+</td>
+<td style="text-align:left;width: 4cm; ">
+2018-11-20 09:05:25
+</td>
+<td style="text-align:right;width: 4cm; ">
+7
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="matrix" class="section level2">
+<h2>Matrix</h2>
+<p>A matrix is defined as a collection of data elements arranged in a two–dimensional rectangular layout. R is very strictly when you make up a matrix as it must be with equal dimension—all columns in a matrix must be of the same length. Unlike data frame and list that can store numeric or character.etc in columns, matrix columns must be numeric or characters in a matrix file.</p>
+<div id="creating-matrices" class="section level3">
+<h3>Creating Matrices</h3>
+<p>The base R has a <code>matrix()</code> function that construct matrices column–wise. In other language, element in matrix are entered starting from the <code>upper left</code> corner and running down the columns. Therefore, one should take serious note of specifying the value to fill in a matrix and the number of rows and columns when using the <code>matrix()</code> function.For example in the code block below, we create an imaginary month sst value for five years and obtain an atomic vector of 60 observation.</p>
+<pre class="r"><code>sst = rnorm(n = 60, mean = 25, 3)</code></pre>
+<p>Once we have the atomic vector of sst value, we can convert it to matrix with the <code>matrix()</code> function. We put the observation as rows—months and the columns as years. Therefore, we have 12 rows and 5 years and the product of number of months and years we get 60—equivalent to our sst atomic vector we just created above.</p>
+<pre class="r"><code>sst.matrix = matrix(data = sst, nrow = 12, ncol = 5)</code></pre>
+<p>We then check whether we got the matrix with <code>is.matrix()</code> function</p>
+<pre class="r"><code>is.matrix(sst);is.matrix(sst.matrix)</code></pre>
+<pre><code>FALSE [1] FALSE</code></pre>
+<pre><code>FALSE [1] TRUE</code></pre>
+<pre class="r"><code>sst</code></pre>
+<pre><code>FALSE  [1] 25.08327 24.09097 26.34485 24.14146 24.64941 26.09739 23.91218 26.91260
+FALSE  [9] 22.69753 24.84250 24.89610 21.91391 30.20031 22.91143 26.33853 24.99629
+FALSE [17] 23.69466 30.10935 25.78983 25.05814 26.59829 26.77820 26.60457 27.57653
+FALSE [25] 24.65990 26.95125 29.67351 20.43879 30.49668 25.97459 24.28109 25.72646
+FALSE [33] 21.91946 21.91512 24.87088 27.31100 28.64027 26.58810 27.33460 21.98717
+FALSE [41] 29.04679 25.85037 22.84274 22.30848 28.18201 25.51643 29.05196 24.12477
+FALSE [49] 19.98520 30.13661 26.37739 25.49994 22.78731 25.80078 23.99339 23.64162
+FALSE [57] 26.40151 29.94575 26.80928 23.84312</code></pre>
+<p>We can check whether the dimension we just defined while creating this matrix is correct. This is done with the <code>dim()</code> function from base R.</p>
+<pre class="r"><code>dim(sst.matrix)</code></pre>
+<pre><code>FALSE [1] 12  5</code></pre>
+<p>If you have large vector and you you want the <code>matrix()</code> function to figure out the number of columns, you simply define the nrow and tell the function that you do not want those element arranged by rows —i.e you want them in column-wise. That is done by parsing the argument <code>byrow = FALSE</code> inside the <code>matrixt()</code> function.</p>
+<pre class="r"><code>sst.matrixby = sst %&gt;% matrix(nrow = 12, byrow = FALSE)</code></pre>
+</div>
+<div id="adding-attributes-to-matrices" class="section level3">
+<h3>Adding attributes to Matrices</h3>
+<p>Often times you may need to add additional attributes to the maxtrix—observation names, variable names and comments in the matrix.</p>
+<p>We can add columns, which are years from 2014 to 2018</p>
+<pre class="r"><code>years = 2014:2018
+colnames(sst.matrix) = years
+sst.matrix</code></pre>
+<pre><code>FALSE           2014     2015     2016     2017     2018
+FALSE  [1,] 25.08327 30.20031 24.65990 28.64027 19.98520
+FALSE  [2,] 24.09097 22.91143 26.95125 26.58810 30.13661
+FALSE  [3,] 26.34485 26.33853 29.67351 27.33460 26.37739
+FALSE  [4,] 24.14146 24.99629 20.43879 21.98717 25.49994
+FALSE  [5,] 24.64941 23.69466 30.49668 29.04679 22.78731
+FALSE  [6,] 26.09739 30.10935 25.97459 25.85037 25.80078
+FALSE  [7,] 23.91218 25.78983 24.28109 22.84274 23.99339
+FALSE  [8,] 26.91260 25.05814 25.72646 22.30848 23.64162
+FALSE  [9,] 22.69753 26.59829 21.91946 28.18201 26.40151
+FALSE [10,] 24.84250 26.77820 21.91512 25.51643 29.94575
+FALSE [11,] 24.89610 26.60457 24.87088 29.05196 26.80928
+FALSE [12,] 21.91391 27.57653 27.31100 24.12477 23.84312</code></pre>
+<p>and add the month for rows, which is January to December. Now the matrix has names for the rows—records and for columns—variables</p>
+<pre class="r"><code>months = seq(from = dmy(010115), to = dmy(311215), 
+             by = &quot;month&quot;) %&gt;% month(abbr = TRUE, 
+                                     label = TRUE)
+rownames(sst.matrix) = months
+sst.matrix</code></pre>
+<pre><code>FALSE         2014     2015     2016     2017     2018
+FALSE Jan 25.08327 30.20031 24.65990 28.64027 19.98520
+FALSE Feb 24.09097 22.91143 26.95125 26.58810 30.13661
+FALSE Mar 26.34485 26.33853 29.67351 27.33460 26.37739
+FALSE Apr 24.14146 24.99629 20.43879 21.98717 25.49994
+FALSE May 24.64941 23.69466 30.49668 29.04679 22.78731
+FALSE Jun 26.09739 30.10935 25.97459 25.85037 25.80078
+FALSE Jul 23.91218 25.78983 24.28109 22.84274 23.99339
+FALSE Aug 26.91260 25.05814 25.72646 22.30848 23.64162
+FALSE Sep 22.69753 26.59829 21.91946 28.18201 26.40151
+FALSE Oct 24.84250 26.77820 21.91512 25.51643 29.94575
+FALSE Nov 24.89610 26.60457 24.87088 29.05196 26.80928
+FALSE Dec 21.91391 27.57653 27.31100 24.12477 23.84312</code></pre>
+</div>
+</div>
+<div id="arrays" class="section level2">
+<h2>Arrays</h2>
+<pre class="r"><code>array(data = sst, dim = c(3,5,4))</code></pre>
+<pre><code>FALSE , , 1
+FALSE 
+FALSE          [,1]     [,2]     [,3]     [,4]     [,5]
+FALSE [1,] 25.08327 24.14146 23.91218 24.84250 30.20031
+FALSE [2,] 24.09097 24.64941 26.91260 24.89610 22.91143
+FALSE [3,] 26.34485 26.09739 22.69753 21.91391 26.33853
+FALSE 
+FALSE , , 2
+FALSE 
+FALSE          [,1]     [,2]     [,3]     [,4]     [,5]
+FALSE [1,] 24.99629 25.78983 26.77820 24.65990 20.43879
+FALSE [2,] 23.69466 25.05814 26.60457 26.95125 30.49668
+FALSE [3,] 30.10935 26.59829 27.57653 29.67351 25.97459
+FALSE 
+FALSE , , 3
+FALSE 
+FALSE          [,1]     [,2]     [,3]     [,4]     [,5]
+FALSE [1,] 24.28109 21.91512 28.64027 21.98717 22.84274
+FALSE [2,] 25.72646 24.87088 26.58810 29.04679 22.30848
+FALSE [3,] 21.91946 27.31100 27.33460 25.85037 28.18201
+FALSE 
+FALSE , , 4
+FALSE 
+FALSE          [,1]     [,2]     [,3]     [,4]     [,5]
+FALSE [1,] 25.51643 19.98520 25.49994 23.99339 29.94575
+FALSE [2,] 29.05196 30.13661 22.78731 23.64162 26.80928
+FALSE [3,] 24.12477 26.37739 25.80078 26.40151 23.84312</code></pre>
+<p>This can be done with the indexing. For example, in the <code>sst.matrix</code> we just create, it has twelve rows representing monthly average and five columns representing years. We then obtain data for the six year and we want to add it into the matrix. Simply done with indexing</p>
+<pre class="r"><code>sst.matrix[1:12,5]</code></pre>
+<pre><code>FALSE      Jan      Feb      Mar      Apr      May      Jun      Jul      Aug 
+FALSE 19.98520 30.13661 26.37739 25.49994 22.78731 25.80078 23.99339 23.64162 
+FALSE      Sep      Oct      Nov      Dec 
+FALSE 26.40151 29.94575 26.80928 23.84312</code></pre>
+</div>
+<div id="dealing-with-misiing-values" class="section level2">
+<h2>Dealing with Misiing Values</h2>
+<p>Just as we can assign numbers, strings, list to a variable, we can also assign nothing to an object, or an empty value to a variable. IN R, an empty object is defined with <code>NULL</code>. Assigning a value oof NULL to an object is one way to reset it to its original, empty state. You might do this when you wanto to pre–allocate an object without any value, especially when you iterate the process and you want the outputs to be stored in the empty object.</p>
+<pre class="r"><code>sst.container = NULL</code></pre>
+<p>You can check whether the object is an empty with the <code>is.null()</code> function, which return a logical ouputs indicating whther is <code>TRUE</code> or <code>FALSE</code></p>
+<pre class="r"><code>is.null(sst.container)</code></pre>
+<pre><code>FALSE [1] TRUE</code></pre>
+<p>You can also check for <code>NULL</code> in an <code>if</code> satement as well, as highlighted in the following example;</p>
+<pre class="r"><code>if (is.null(sst.container)){
+  print(&quot;The object is empty and hence you can use to store looped outputs!!!&quot;)
+}</code></pre>
+<pre><code>FALSE [1] &quot;The object is empty and hence you can use to store looped outputs!!!&quot;</code></pre>
+<p>And empty element (value) in object is represented with <code>NA</code> in R, and it is the absence of value in an object or variable.</p>
+<pre class="r"><code>sst.sample = c(26.78, 25.98,NA, 24.58, NA)
+sst.sample</code></pre>
+<pre><code>FALSE [1] 26.78 25.98    NA 24.58    NA</code></pre>
+<p>To identify missing values in a vector in R, use the <code>is.na()</code> function, which returns a logical vector with <code>TRUE</code> of the corresponding element(s) with missing value</p>
+<pre class="r"><code>is.na(sst.sample)</code></pre>
+<pre><code>FALSE [1] FALSE FALSE  TRUE FALSE  TRUE</code></pre>
+<p>and computing statistics of the variable with NA always will give out the NA ouputs</p>
+<pre class="r"><code>mean(sst.sample); sd(sst.sample);range(sst.sample)</code></pre>
+<pre><code>FALSE [1] NA</code></pre>
+<pre><code>FALSE [1] NA</code></pre>
+<pre><code>FALSE [1] NA NA</code></pre>
+<p>However, we can exclude missing value in these mathematical operations by parsing <code>, na.rm = TRUE</code> argument</p>
+<pre class="r"><code>mean(sst.sample, na.rm = TRUE);sd(sst.sample, na.rm = TRUE);range(sst.sample, na.rm = TRUE)</code></pre>
+<pre><code>FALSE [1] 25.78</code></pre>
+<pre><code>FALSE [1] 1.113553</code></pre>
+<pre><code>FALSE [1] 24.58 26.78</code></pre>
+<p>you can also exclude the element with NA value using the `na.omit()</p>
+<pre class="r"><code>sst.sample %&gt;% na.omit()</code></pre>
+<pre><code>FALSE [1] 26.78 25.98 24.58
+FALSE attr(,&quot;na.action&quot;)
+FALSE [1] 3 5
+FALSE attr(,&quot;class&quot;)
+FALSE [1] &quot;omit&quot;</code></pre>
+<p>Finally is a <code>NaN</code>, which is closely related to <code>NA</code>, which is used to assign non-floating numbers. For example when we have the anomaly of sea surface temperature and we are interested to use <code>sqrt()</code> function to reduce the variability of the dataset.</p>
+<pre class="r"><code>sst.anomaly = c(2.3,1.25,.8,.31,0,-.21)
+sqrt(sst.anomaly)</code></pre>
+<pre><code>FALSE [1] 1.5165751 1.1180340 0.8944272 0.5567764 0.0000000       NaN</code></pre>
+<p>We notice that the sqrt of -0.21 gives us a <code>NaN</code> elements.</p>
+</div>

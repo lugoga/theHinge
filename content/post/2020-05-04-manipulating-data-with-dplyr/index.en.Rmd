@@ -1,0 +1,257 @@
+---
+title: Manipulating Data with dplyr
+author: Masumbuko Semba
+date: '2020-05-04'
+slug: []
+categories:
+  - ''
+tags:
+  - code
+  - programming
+  - R
+  - semba
+  - tidyverse
+description: ''
+thumbnail: ''
+---
+
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+
+
+```
+
+
+Before a dataset can be analysed in R, its often manipulated or transformed in various ways. For years manipulating data in R required more programming than actually analyzing data. That has improved dramatically with the **dplyr** package. It provides programmers with an intuitive vocabulary for executing data management and analysis tasks. Hadley Wickham [-@dplyr], the original creator of the **dplyr** package, refers to it as a *Grammar of Data Manipulation*. Because the package provides a set of functions (verbs) that let you modify data and perform common data preparation tasks. The key challenge in programming is mapping from questions about a data set to specific programming operations. With dplyr's verbs,  makes this process smoother, as it enables you to use the same vocabulary to both ask questions and write your code. In other words, the dplyr verbs lets you easily talk with data and transform a dataset in various ways with easy. 
+
+##  Why use dplyr?
+
+Using this package’s functions will allow you to  code expressively---code that are easy to write and read, which make you effective and efficient data scientists. 
+
+1. Great for data exploration and manipulation
+2. Intuitive to write and easy to read, especially when using the chaining syntax
+3. Fast on data frame---tabular dataset
+
+
+## Core dplyr Functions
+
+I will not go through all of the **dplyr** functions in this chapter. I will demonstrate the core functions that are used regularly for manipulating data.  The five core functions also called verbs include: 
+
+  + `select()` to select columns based on their names
+  + `filter()` to rows in data frame
+  + `arrange()` to re-order or arrange the rows in ascending or descending order
+  + `mutate()`  to create new columns---add new variable
+  + `summarise()` to make a summary of variable(s)
+  + `group_by()` to group observation
+  + `sample_n()` and `rename()`to make random sample from the data set
+
+The `group_by()` function perform other common task which are related to the *split-apply-combine* concept. You can use these verbs when you describe the algorithm or process for interrogating data, and then use **dplyr** verbs to write code that will closely follow your “plain language” description because it uses functions and procedures that share the same language. 
+
+For most of us who are familiar with the R base function, you will find that most **dplyr** functions on data frames can be expressed succinctly because you don’t need to repeat the name of the data frame. This becomes handy in operation, because `dplyr` package comes with the pipe operateor `%>%` from the `magrittr` package [@magrittr], which allows to combine several functions in a chain to manipulate data. 
+
+To use dplyr functions to manipulate your data, it must be already installed in your machine so that you can load with a `require ()` function. Once the package is loaded, its functions are available for use.
+dplyr is a key package  of the tidyverse ecosystem---a collection of R packages, which also includes other packages like, **readr**, **purr**,**tibble**, **stringr**, **forcats**, **tidyr** and **ggplot2**.
+
+```{r, message=FALSE, warning=FALSE}
+
+require(tidyverse)
+```
+
+## Data
+Data frames are ideal for representing data where each row is an observations and each column is a variable. Nearly all packages in a tidyverse work on data frames new version called *tibble*. A tibble provides  stricter checking and better formatting than the traditional data frame.
+
+To demonstrate the usefulness of the **dplyr** package for manipulating data, we will use the CTD data of 22 stations casted along the coastal water of Tanzania. I have prepared the data, cleaned and align the profile into 5 meter standard depth for each cast and merged them into a single `.csv` file. You need to load the file into your R session. We can import the file with `read_csv()` function from the **readr** package [@readr]. The `read_csv()` function gives out a *tibble*. 
+
+```{r}
+ctd = read_csv("../data/algoa_ctd.csv")
+
+```
+
+
+## Choosing rows: Filtering observations 
+The first dplyr verb we'll explore is `filter()`. This function is primarily used to create a subset of observations that meet a specified conditions. The `filter()` function  lets you pick out rows based on logical expressions. You give the function a predicate, specifying what a row should satisfy to be included. For instance, take a look at the chunk below:
+
+```{r}
+surface = ctd %>% 
+  filter(pressure < 150)
+surface
+```
+The expression calls the ctd dataset and feed into the `filter()`and pick all observations with pressure below 150meters and create a new datase called surface. This is an expression where a single conditional statement is used.
+
+We can also limit the of the variable of interest by combining multiple conditional expressions as part of the `filter()`. Each expression (argument) is combined with an “AND” clause by default. This means that all expressions must be matched for a recorded to be returned. For instance we want to pick observations that were measured between 5 and 10 meters water only. We combine theses expressions with `&` operator; 
+
+```{r}
+ctd %>% 
+  filter(pressure >= 0 & pressure <= 10)
+```
+
+We can also use the `between()` function, which is equivalent to `pressure >= 0 & pressure <= 10` in above chunk to achive the same result. 
+
+```{r}
+ctd %>% 
+  filter(between(pressure, 5,10))
+```
+
+ In the next example, two conditional expressions are passed. The first is used to filter surface water below 200 m, and the second statement filter records that above latitude `r metR::LatLabel(-6)`
+
+```{r}
+ctd %>% 
+  filter(pressure < 200 & lat > -6)
+
+```
+In this case, the surface.transect dataset has records where both conditions are met---the pressure is blow 200 meter and latitude above -6. Note that when two or more conditions are paased, the & operator is used. 
+
+You may sometimes want to know stations and at what depth a particular variable has missing values. You can pick all variable in the data frame using `is.na()` function. 
+
+```{r}
+ctd %>% 
+  filter(is.na(fluorescence))
+```
+
+You can also drop the observation with missing values in the data frame using the `!is.na()` operator
+```{r}
+
+ctd %>% 
+  filter(!is.na(fluorescence))
+```
+
+When you have string variable in the data frame with character or factor format, you can filter the certain observation with `%in%` statement. For example, to obtain profiles from three stations: st1, st8, and st13, we can write the code as;
+
+```{r}
+ctd %>% 
+  filter(station %in% c("st1", "st8", "st13"))
+```
+
+
+## select
+The second verb we are going to demonstrate is the `select()` function. Often you work with large datasets with many columns but only a few are actually of interest to you. The `select()` function  selects columns of the data frame. `select()` function allows you to choose variables that are of interest. You can use it to pick out a some  columns from the dataset. For instance, fi we want pressure, temprature, salinity, fluorescence and ovygen variables from the data frame, we can simply write a code as;
+
+```{r}
+ctd %>% 
+  select (pressure, temperature, salinity, fluorescence, oxygen)
+
+```
+
+Besides just selecting columns, you can use a minus sign to remove variables you do not need from the data frame. 
+```{r}
+ctd %>% 
+  select(-spar, -par, -density, -time) 
+
+## or you can bind the variable you want to remove
+ctd %>% 
+  select(-c(spar, par, density, time))
+```
+
+
+You can drop a range of variables in the data frame with `select()` function. For instance, the code below drop all variables beween temperature to fluorescence. You can also select those variables in range by removing the negative sign
+```{r }
+# hide a range of columns
+ctd %>% 
+  select(-(temperature:fluorescence))
+
+```
+
+Just like you can pick columns with the matching name, you can also drop any column with a matching name
+```{r}
+ctd %>% 
+  select(-contains("t"))
+```
+
+Because of the naming conventions, many of the column names that you import dont make sense. You will often need to change the name of the variable. `select()` function allows you to accomplish that. For example, we want to select station, pressure and fluoresence, but we need also change the name of station to be Cast, pressure to Depth and fluorescence to Chlorophyll. You can achieve that with code  written as;
+```{r}
+
+ctd %>% 
+  select(Cast = station, Depth = pressure, Chlorophyll = fluorescence)
+
+```
+
+
+> There are also a number of handy helper functions that you can use with the `select()` function to filter the returned columns. These include `starts_with()`, `ends_with()`, `contains()`, `matches()`, and `num_range()`. I wont illustrate them here, however, you can consult the help document for more information. 
+
+### Adding new variables: mutate, transmute, add_rownames
+Besides selecting sets of existing columns, it's often useful to add new columns that are functions of existing columns. This is the job of `mutate()`:  Any new variable created with the mutate() function will be added to the end of the data frame. For example, raw fluorescence values are often skewed (Figure \@ref(fig:fl-trans)a) and we often transform them to have normal distribution (figure \@ref(fig:fl-trans)b). 
+
+```{r fl-trans, warning=FALSE, message=FALSE, echo=FALSE, fig.cap="Histogram showing the distribution of a) raw fluorence and b) log-transformed fluorescence values"}
+
+fl = ggplot(ctd, aes(fluorescence)) + geom_histogram(bins = 20, col = "ivory")+
+  labs(x = expression(Fluorescence~(mgm^{-3})))
+log.fl = ggplot(ctd, aes(fluorescence %>% log())) + geom_histogram(bins = 20, col = "ivory")+
+  labs(x = expression(Log-Fluorescence~(mgm^{-3})))
+
+cowplot::plot_grid(fl,log.fl, nrow = 1, labels = c("a)", "b)"), label_x = .85, label_y = .98, 
+                   label_fontface = "plain" )
+
+```
+
+At this situation, its handy to add a new column with transformed values in the data frame as shown in the code;
+```{r, warning=FALSE}
+ctd %>% 
+  select(pressure, fluorescence) %>%
+  mutate(log.fluorescence = fluorescence %>% log10())
+
+
+```
+The code tells important two steps: the first steps involved selecting the pressure and fluorescence variables, once these variables were selected fromt he ctd data frame were fed into a `mutate()` function, which computed the logarithmic of fluorescence and assign a new `log.fluorescence` variable into the data frame. 
+
+In a similar way above, we can create a new variable of anomaly as the code below shows;
+```{r}
+ctd %>% 
+  select(pressure, fluorescence) %>%
+  mutate(anomaly = fluorescence - mean(fluorescence, na.rm = TRUE))
+```
+
+### Arranging rows
+The `arrange()` function in the **dplyr** package can be used to order the rows in a data frame. This function accepts a set of columns to order by with the default row ordering being in ascending order. 
+
+```{r}
+ctd %>% 
+  arrange(pressure)
+```
+
+By default, it orders numerical values in increasing order, but you can ask for decreasing order using the `desc()` function:
+
+```{r}
+ctd %>% 
+  arrange(pressure %>% desc())
+```
+
+
+## Summarizing and Grouping
+
+```{r, echo=FALSE}
+ctd = ctd %>% 
+  filter(station %in% c("st1", "st4", "st8", "st13", "st18"))
+```
+
+Summary statistics for a data frame can be produced with the `summarise()` function. The summarise() function produces a single row of data containing summary statistics from a data frame. For example, you can compute for the mean of fluorescence values:
+
+```{r}
+ctd %>% 
+  summarise(fl.mean = mean(fluorescence, na.rm = TRUE))
+```
+
+By itself, it's not that useful until chained with the `group_by()` verb to compute summary statistics. There you can split the data into different groups and compute the summaries for each group.For example, you can ask for the mean of and standard deviation values of fluorescence for each station in the data frame: 
+
+```{r}
+ctd %>% group_by(station) %>%
+  summarise(Mean = mean(fluorescence, na.rm = TRUE),
+           STD = sd(fluorescence, na.rm = TRUE))
+```
+
+You can group by one or more variables; you just specify the columns you want to separate into different subsets to the function. It works best when grouping by factors or discrete numbers; there isn’t much fun in grouping by real numbers. 
+```{r}
+ctd %>% group_by(station, lon)%>%
+  summarise(Mean = mean(fluorescence, na.rm = TRUE),
+           STD = sd(fluorescence, na.rm = TRUE))
+```
+
+summarise() can be used to count the number of rows in each group with `nc()`---which just counts how many observations you have in a subset of your data: You only need to parse the argument `n()` in the summarise()` function as;
+```{r}
+ctd %>% 
+  group_by(station) %>% 
+  summarise(frequency = n())
+```
+

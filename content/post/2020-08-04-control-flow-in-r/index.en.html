@@ -1,0 +1,404 @@
+---
+title: Control flow in R
+author: Masumbuko Semba
+date: '2020-08-04'
+slug: []
+categories:
+  - R
+tags:
+  - code
+  - programming
+  - R
+  - tidyverse
+description: ''
+thumbnail: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<!-- ```{r, echo=FALSE} -->
+<!-- conflicted::conflict_prefer("filter", "dplyr") -->
+<!-- conflicted::conflict_prefer("select", "dplyr") -->
+<!-- ``` -->
+<p>One of the prime purposes of using a computer is to automate a task that would be very tedious to perform by hand. The usual implication is that some task is to be performed over and over again in some systematic way. This chapter will be concerned with the programming concept of a control flow, a feature that is at the heart of nearly every computer algorithm. The two important control flows statements are* count-controlled* loops like <code>for</code> loops and <em>conditional</em> statements such as <code>if-else</code> construct. In this chapter, you’ll learn how to use <code>if</code> statements and <code>for</code> loop to automate programming processes.</p>
+<pre class="r"><code>require(magrittr)
+require(tidyverse)</code></pre>
+<div id="for-loop" class="section level2">
+<h2>for loop</h2>
+<p>There are often operations where you know ahead of time exactly how many times an operation must be performed before stopping the loop. For example, if we have an array with 365 matrix representing a daily sea surface temperature and we want to convert it to data frame. Doing it one after the other is tedious. Fortunately, computers have some way to move from point 1 (convert the matrix to data frame) to point 2 (convert the second matrix to data frame the analysis) and so on. In R, and nearly all other programming languages, this type of operation is performed by a <code>for()</code> loop. The <code>for</code> loop, tell the computer to iterate—repeat a set of instructions times the defined number.</p>
+<p>In R, the basic style of <code>for</code> loop is in this form;</p>
+<pre class="r"><code>for (i in 1:20){
+  DO THE DO
+  
+}</code></pre>
+<p>Every <code>for</code> loop in R has four parts. The first is a <code>variable</code> (in this case, <code>i</code>) that will be used to keep track of the number of times through the loop. The second is the <code>index</code> the variable <code>i</code> will take on as it repeats. In our example, <code>i</code> will start by taking the value 1, then 2, then 3 and so on until reaching 20. Third is to place a bound on what will be looped over, denoted in R by the braces <code>{}</code>. Fourth are the commands that will be executed (there can be as many as needed) within the <code>{}</code> lines. Note that this is a good example of using indentation to make clear where the loop starts and ends, as well as the commands to be executed.</p>
+<p>To better understand how loops work, let’s iterate the sentense <code>R for data analysis</code> five times.</p>
+<pre class="r"><code>for (i in 1:5)
+  
+  print(&quot;R for data analysis&quot;)</code></pre>
+<pre><code>[1] &quot;R for data analysis&quot;
+[1] &quot;R for data analysis&quot;
+[1] &quot;R for data analysis&quot;
+[1] &quot;R for data analysis&quot;
+[1] &quot;R for data analysis&quot;</code></pre>
+<p>We can create vector of monthly temperature numeric values and and month labels. We then display the temperature value for each months with its corresponding month name. THe code can be written as:</p>
+<pre class="r"><code>temperature = c(28.6,28.8,29,28,27.8,27.2,26.8,25,26.2,27.2,27.5,27.8)
+months = c(&quot;Jan&quot;, &quot;Feb&quot;, &quot;Mar&quot;, &quot;Apr&quot;, &quot;May&quot;, &quot;Jun&quot;,
+           &quot;Jul&quot;, &quot;Aug&quot;, &quot;Sep&quot;, &quot;Oct&quot;, &quot;Nov&quot;, &quot;Dec&quot;)
+
+for (j in 1:length(temperature)){
+  print(temperature[j])
+  print(months[j])
+}</code></pre>
+<pre><code>[1] 28.6
+[1] &quot;Jan&quot;
+[1] 28.8
+[1] &quot;Feb&quot;
+[1] 29
+[1] &quot;Mar&quot;
+[1] 28
+[1] &quot;Apr&quot;
+[1] 27.8
+[1] &quot;May&quot;
+[1] 27.2
+[1] &quot;Jun&quot;
+[1] 26.8
+[1] &quot;Jul&quot;
+[1] 25
+[1] &quot;Aug&quot;
+[1] 26.2
+[1] &quot;Sep&quot;
+[1] 27.2
+[1] &quot;Oct&quot;
+[1] 27.5
+[1] &quot;Nov&quot;
+[1] 27.8
+[1] &quot;Dec&quot;</code></pre>
+<p>In this code, the variable <code>temperature</code> and <code>months</code> will start at a value of 1. Then the loop will begin with i = 1. On the first pass through the loop, will be increased by 1 (e.g., x = 2). On the second pass through the
+loop, (i = 2) x will be increased again by 1, e.g., x = 3, and so on until i = 5.</p>
+<pre class="r"><code>temperature.anomaly = NULL
+
+for (j in 1:length(temperature)){
+  temperature.anomaly[j] =  temperature[j]-mean(temperature)
+}
+temperature.anomaly</code></pre>
+<pre><code> [1]  1.108333333  1.308333333  1.508333333  0.508333333  0.308333333
+ [6] -0.291666667 -0.691666667 -2.491666667 -1.291666667 -0.291666667
+[11]  0.008333333  0.308333333</code></pre>
+<p>Note that like conditional statements, loops comprising two or more lines or statements requires braces.</p>
+<pre class="r"><code>for (j in seq(1,12,2)){
+  print(temperature[j])
+  print(months[j])
+}</code></pre>
+<pre><code>[1] 28.6
+[1] &quot;Jan&quot;
+[1] 29
+[1] &quot;Mar&quot;
+[1] 27.8
+[1] &quot;May&quot;
+[1] 26.8
+[1] &quot;Jul&quot;
+[1] 26.2
+[1] &quot;Sep&quot;
+[1] 27.5
+[1] &quot;Nov&quot;</code></pre>
+<p>Often times you may encounter a situation where you need to allocate an empty object that will store the output of growing data. An empty object will provide space to store the output from each <code>for</code> loop. A more efficient practise is to initiate a list object that is empty then fill it with the output from each iteration. For example in the chunk below we create an empty list object called <code>my.data</code> and then initiate a for loop with and index <code>for (i in 1:length(temperature)</code>, which count the month. Then within the for loop the body <code>my.data[[i]]= data.frame(month = months[i], temperature = temperature[i],temperature.anomaly = temperature[i] - mean(temperature))</code>. The body create a data frame of three columns—month, temperature and temperature anomaly for each month and store them in the list object <code>my.data</code>. Once the list is filled, we unlist <code>dplyr::bind_rows(my.data)</code>using the <code>bind_rows()</code> function from <strong>dplyr</strong> package <span class="citation">[@dplyr;@tidyverse]</span>.</p>
+<pre class="r"><code>my.data = list()
+
+for (i in 1:length(temperature)){
+  
+  my.data[[i]]= data.frame(month = months[i], 
+                     temperature = temperature[i],
+                     temperature.anomaly = temperature[i] - mean(temperature))
+  
+  }
+dplyr::bind_rows(my.data)</code></pre>
+<pre><code>   month temperature temperature.anomaly
+1    Jan        28.6         1.108333333
+2    Feb        28.8         1.308333333
+3    Mar        29.0         1.508333333
+4    Apr        28.0         0.508333333
+5    May        27.8         0.308333333
+6    Jun        27.2        -0.291666667
+7    Jul        26.8        -0.691666667
+8    Aug        25.0        -2.491666667
+9    Sep        26.2        -1.291666667
+10   Oct        27.2        -0.291666667
+11   Nov        27.5         0.008333333
+12   Dec        27.8         0.308333333</code></pre>
+<div id="for-loop-on-array" class="section level3">
+<h3>For loop on array</h3>
+<p>Often times we receive array data with several matrix embbeded and you may be reguired to convert the array into other format—prefarably data frame so that you can have full control of data processing and visualization. Let’s load an array of sea surface temperature from the working directory with <code>load()</code> function.</p>
+<pre class="r"><code>load(&quot;../data/modis_pemba.RData&quot;)</code></pre>
+<p>Exploring further the dataset, we notice that its an array with 35 longitude spacing and 7 latitude spacing and 54 matrix collected every month from 2014-11-16 to NA. Being an array, this dataset is not in the right format, since <strong>ggplot2</strong> only accept the data frame format.</p>
+<pre class="r"><code>sst$data %&gt;% class();sst$data %&gt;% dim()</code></pre>
+<pre><code>[1] &quot;array&quot;</code></pre>
+<pre><code>[1] 35  7 54</code></pre>
+<p>We can inspect the longitude of the array</p>
+<pre class="r"><code>sst$longitude</code></pre>
+<pre><code> [1] 38.81250 38.85418 38.89583 38.93750 38.97918 39.02083 39.06250 39.10418
+ [9] 39.14583 39.18750 39.22918 39.27083 39.31250 39.35418 39.39583 39.43750
+[17] 39.47918 39.52083 39.56250 39.60418 39.64583 39.68750 39.72918 39.77083
+[25] 39.81250 39.85418 39.89583 39.93750 39.97918 40.02083 40.06250 40.10418
+[33] 40.14583 40.18750 40.22918</code></pre>
+<p>We can also inspect the latitude of the array</p>
+<pre class="r"><code>sst$latitude</code></pre>
+<pre><code>[1] -5.687505 -5.645833 -5.604169 -5.562505 -5.520833 -5.479169 -5.437505</code></pre>
+<p>We can also check the first matrix of the array</p>
+<pre class="r"><code> sst$data[,,1]</code></pre>
+<pre><code>          [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
+ [1,]       NA       NA       NA       NA       NA       NA       NA
+ [2,]       NA       NA       NA       NA       NA       NA       NA
+ [3,] 29.74117       NA 29.47223       NA       NA       NA       NA
+ [4,] 29.69169 29.83082 29.60132 29.65081       NA       NA       NA
+ [5,] 29.45143 29.52171 29.34098 29.53175 29.59917 30.00438 29.98000
+ [6,] 29.29006 29.23627 29.26496 29.22910 29.73974 29.58698 29.60491
+ [7,] 29.61782 29.30799 29.30656 29.26711 29.35246 29.24416 29.23269
+ [8,] 29.36106 29.38975 29.29365 29.18966 29.38975 29.10288 29.19253
+ [9,] 28.90063 29.21548 29.23412 29.08997 29.36393 29.15165 29.15667
+[10,] 28.77656 29.08423 28.97379 29.11866 29.27070 29.09427 29.14519
+[11,] 28.66253 29.04263 28.85832 29.09858 29.05913 29.02614 29.07778
+[12,] 28.72134 28.92645 28.85832 29.08423 28.95083 29.09786 29.16814
+[13,] 28.70341 28.65822 28.87696 29.13443 29.44426 29.41557 29.06702
+[14,] 28.74715 28.77441 28.98239 29.42920 29.48586 29.33525 29.30871
+[15,] 29.18894 28.93577 29.35318 29.59343 29.50522 29.31301 29.19970
+[16,] 29.21404 29.31445 29.53678 29.31445 29.42131 28.91498 28.95442
+[17,] 29.01251 29.53175 29.32736 29.28146 29.37182 29.02614 29.01610
+[18,] 29.16599 29.16097 29.33453 29.24273 29.08280 28.80023 28.91426
+[19,] 29.20902 29.35174 29.34672 29.32592 29.03044 28.60228       NA
+[20,] 29.27572 29.49303 29.34098 29.07347 28.80166 28.63527       NA
+[21,] 29.60563 29.44497 29.22050 29.16814 28.60300 27.77393       NA
+[22,] 29.21261 28.95872 28.95370 28.98024 28.32330 28.05651       NA
+[23,] 29.24273 28.92717 28.97952 28.76365 28.55208 28.29676 28.39860
+[24,] 29.24775 29.09355 28.96948 28.86692 28.51048 28.45669 28.40936
+[25,] 29.01466 28.88987 28.75719 28.69552 28.60946 28.61376 28.50905
+[26,] 28.82891 28.78086 28.87912 28.69552 28.69910 28.72134 28.86190
+[27,] 28.85832 28.84613 28.92573 28.72492 28.86190 28.90709 28.95944
+[28,] 28.99387 28.88270 29.00893 28.66898 28.69193 28.70341 28.88844
+[29,] 29.09140 28.99387 28.99602 28.75002 28.76795 28.84971 28.98885
+[30,] 28.89274 28.87410 29.20902 29.03259 28.81385 29.13228 28.82676
+[31,] 29.02829 28.82461 29.03618 29.20185 29.04909 29.04192 29.29078
+[32,] 29.21763 29.01180 29.08280 28.99028 29.14089 28.97737 29.00247
+[33,] 29.17388 28.99889 29.10216 29.11005 28.98454 29.14161 29.11794
+[34,] 29.24560 29.10790 29.17101 29.23986 29.27142 29.24488 29.10431
+[35,] 29.38186 29.22480 29.14734 29.18033 29.33883 29.05913 29.23125</code></pre>
+<p>Therefore, we need to tidy this dataset from the array into the data frame. We can iterate the conversion with a <code>for</code> loop in the chunk below. Note that the <code>matrix_tb()</code> function used in this loop to convert matrix along with longitude and latitude to data frame I created to help process the data. You can found this code for this function <a href="www.www.ww">here</a></p>
+<pre class="r"><code>## preallocate object as a list()
+sst.tb = list()
+
+## loop sst
+for (i in 1:length(sst$time)){
+  
+  sst.tb[[i]] = matrix_tb(x = sst$longitude, 
+                          y = sst$latitude, 
+                          data = sst$data[,,i]) %&gt;% 
+    mutate(time = sst$time[i] %&gt;%as.Date()) %&gt;%  
+    dplyr::select(date = time,lon = x, lat = y, sst = value) 
+}
+
+## unlist the listed sst and chl files
+sst.tb = sst.tb %&gt;% bind_rows(sst.tb)
+
+sst.tb %&gt;% sample_n(size = 8)</code></pre>
+<pre><code># A tibble: 8 x 4
+  date         lon   lat   sst
+  &lt;date&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+1 2015-08-16  39.0 -5.65  26.4
+2 2015-06-16  39.4 -5.44  27.5
+3 2017-04-16  40.2 -5.56  29.8
+4 2018-12-16  39.1 -5.65  29.1
+5 2019-01-16  39.4 -5.65  29.0
+6 2015-05-16  39.1 -5.52  28.0
+7 2015-12-16  39.8 -5.48  29.0
+8 2015-03-16  39.0 -5.56  28.8</code></pre>
+<p>Here a list object is created before the loop that will store data frame converted from matrix embedded in an array. Note that, in this case, the variable <code>i</code> is playing two roles. It is the loop variable, but it is also the index to the list object. This is one of the most powerful aspects of having a loop variable.</p>
+<p>NESTED LOOPS
+Loops are assigned a variable for two purposes.The first is so that the variable can be used to perform some useful function, e.g., as an index to an array or matrix. The second is because loops may exist within other loops, and we need variables to make it clear where in the iteration sequence we are.</p>
+<pre class="r"><code>for (i in 1:N){
+  for (j in 1:M){
+    COMMANDS HERE
+    }
+}</code></pre>
+<p>The nested loop can be illustrated with the chunk below. In my working directory I have three Excel spreadsheet files containing the monthly average of chlorophyll-a, primary productivity and sea surface temperature.</p>
+<pre class="r"><code>tafiri = dir(pattern = &quot;../tafiri_&quot;)
+tafiri</code></pre>
+<pre><code>character(0)</code></pre>
+<p>Each file has four sheets containing values from four different sites: Pemba, Zanzibar and Mafia Channels and Exclusive Economic Zone.</p>
+<pre class="r"><code>knitr::include_graphics(&quot;../images/tafiriData.png&quot;)</code></pre>
+<p><img src="../images/tafiriData.png" width="549" /></p>
+<p>Our task is to automate the process and instruct computer to do two task. First is to read each file from the working directory. The second task is to process the the data from each sheet in the file and tidy the variable in the right order. The later processs involves three steps. First is to assign the variables with appropriate names. The second is to mutate the new variables: month, day site, variables for each sheet and arrange them appropriate. The third process stitch the processed data frame below the former one.</p>
+<p>In simple language I can explain this code as. The <code>var</code> and <code>sites</code> were created to correspond the order of files in the directory and sites in each file sheet, respectively. Because once each sheet is procesed is stitched, I created and <code>tafiri.data</code> as an empty object to store the files. Once these three files are created, it is ready to iterate the process. The loop goes like this: the <code>i</code> is set to 1 (which is chl) to read the first file, then <code>j</code> set to sheet in each site, which is looped from 1 (Pemba channel) to 4 (EEZ). Then <code>i</code> is set to 2 (pp) and <code>j</code> is again looped from 1 (Pemba) to 4 (EEZ) and so on until <code>i</code> = 3 (SST). A sample of the dataset is shown in table <a href="#tab:tab99"><strong>??</strong></a></p>
+<pre class="r"><code>## make a vector of variables. The order must be consistency with the files order in 
+var = c(&quot;chl&quot;, &quot;pp&quot;, &quot;sst&quot;)
+## make a vector of site. The order must be consistency with the sheets in files
+sites = c(&quot;Pemba&quot;, &quot;Zanzibar&quot;, &quot;Mafia&quot;, &quot;EEZ&quot;)
+
+## preallocate an empty object
+
+tafiri.data = list()
+
+for (i in 1:length(var)){
+  for (j in 1:length(sites)){
+    
+  tafiri.data[[i]] = readxl::read_excel(path = tafiri[i], sheet = j)%&gt;% 
+  rename(date = 1, year = 2, value = 3) %&gt;% 
+  mutate(month = lubridate::month(date), 
+         day = 15,
+         site = sites[j], 
+         variable = var[i],
+         date = lubridate::make_date(year = year, month = month, day = day)) %&gt;%
+  arrange(date)
+    
+## stitch processed data frame from each sheet    
+tafiri.data = tafiri.data %&gt;% 
+  bind_rows(data)
+ 
+  }
+}</code></pre>
+<p>Note that when use <code>i</code> and <code>j</code> variable in a for loop, it’s better to create an empty object with <code>NULL</code> instead of list files with a`list() function</p>
+</div>
+</div>
+<div id="if-and-else-statement" class="section level2">
+<h2>if and else statement</h2>
+<p>The second important staments to control the flow of script are <code>if-else</code> constructs, which evaluate an expression and then execute a group of instructions if the expression is true. Conditions can be more complicated than a single question, and <code>if</code> statements can also be combined with multiple questions and different responses based on the answer to each questions. As an example, we might ask, "Is the surface temperature higher than 26 degreee celcius? and if the answer is <code>yes</code>, respond with <em>that is ideal</em>. An <code>if-else</code> statement like this might be writen in R like this:</p>
+<pre class="r"><code>optimal = 25
+measured = 21
+
+if (measured &lt; optimal){
+  print(&quot;temperature is ideal&quot;)
+  }else{
+    print(&quot;Temperature is not ideal&quot;)
+  }</code></pre>
+<pre><code>[1] &quot;temperature is ideal&quot;</code></pre>
+<p>An <code>if-else</code> stamement in the chunk above first evaluates whether the measured temperature is less than optimaland. If the evaluation is <strong>YES</strong> or <strong>TRUE</strong>, the <code>temperature is ideal</code> is displayed. If the answer is <strong>NO</strong>, the <code>else</code> command, which provides an alternative statement precede and display <code>Temperatue is not ideal</code>.</p>
+<p>We can also nest as many <code>if-else</code> statements in a one block of code</p>
+<pre class="r"><code>optimal = 25
+measured = 30.2
+
+if (measured &lt; optimal){
+  print(&quot;temperature is ideal&quot;)
+  }else if( measured &gt; 25 &amp; measured &lt;= 26.5){
+    print(&quot;Temperature is ideal but a bit higher&quot;)
+  }else if(measured &gt;26.5 &amp; measured &lt; 30){
+    print(&quot;Temperature is not ideal&quot;)
+  }else{
+    print(&quot;Avoid it at all cost&quot;)
+  }</code></pre>
+<pre><code>[1] &quot;Avoid it at all cost&quot;</code></pre>
+<p>Once we know the basic principal of <code>for</code> loop and <code>if-else</code> statment, we can combine them to answer a identify months with ideal temperature versus those with unsuitbale temperature.The combined statement can be written as:</p>
+<pre class="r"><code>temperature = c(28.6,28.8,29,28,27.8,27.2,26.8,25,26.2,27.2,27.5,27.8)
+months = c(&quot;Jan&quot;, &quot;Feb&quot;, &quot;Mar&quot;, &quot;Apr&quot;, &quot;May&quot;, &quot;Jun&quot;,
+           &quot;Jul&quot;, &quot;Aug&quot;, &quot;Sep&quot;, &quot;Oct&quot;, &quot;Nov&quot;, &quot;Dec&quot;)
+ideal = 27
+
+for (i in 1:length(temperature)){
+  if (temperature[i] &lt; 27){
+    print(paste(&quot;Temperature for &quot;,months[i], &quot;is ideal&quot;))
+  } else{
+    print(paste(&quot;Temperature for &quot;,months[i], &quot;is not ideal&quot;))
+  }
+}</code></pre>
+<pre><code>[1] &quot;Temperature for  Jan is not ideal&quot;
+[1] &quot;Temperature for  Feb is not ideal&quot;
+[1] &quot;Temperature for  Mar is not ideal&quot;
+[1] &quot;Temperature for  Apr is not ideal&quot;
+[1] &quot;Temperature for  May is not ideal&quot;
+[1] &quot;Temperature for  Jun is not ideal&quot;
+[1] &quot;Temperature for  Jul is ideal&quot;
+[1] &quot;Temperature for  Aug is ideal&quot;
+[1] &quot;Temperature for  Sep is ideal&quot;
+[1] &quot;Temperature for  Oct is not ideal&quot;
+[1] &quot;Temperature for  Nov is not ideal&quot;
+[1] &quot;Temperature for  Dec is not ideal&quot;</code></pre>
+<pre class="r"><code>for (i in 1:length(temperature)){
+if (temperature[i] &lt; ideal){
+  print(paste(&quot;Temperature for&quot;,months[i],&quot; is ideal&quot;))
+  }else if( temperature[i] &gt; 25 &amp; temperature[i] &lt;= 26.5){
+    print(paste(&quot;Temperature for&quot;,months[i],&quot;is ideal but a bit higher&quot;))
+  }else if(temperature[i] &gt;26.5 &amp; temperature[i] &lt; 30){
+    print(paste(&quot;Temperature for&quot;,months[i],&quot;is not ideal&quot;))
+  }else{
+    print(paste(&quot;Temperature for&quot;,months[i],&quot;avoid it at all cost&quot;))
+  }
+}</code></pre>
+<pre><code>[1] &quot;Temperature for Jan is not ideal&quot;
+[1] &quot;Temperature for Feb is not ideal&quot;
+[1] &quot;Temperature for Mar is not ideal&quot;
+[1] &quot;Temperature for Apr is not ideal&quot;
+[1] &quot;Temperature for May is not ideal&quot;
+[1] &quot;Temperature for Jun is not ideal&quot;
+[1] &quot;Temperature for Jul  is ideal&quot;
+[1] &quot;Temperature for Aug  is ideal&quot;
+[1] &quot;Temperature for Sep  is ideal&quot;
+[1] &quot;Temperature for Oct is not ideal&quot;
+[1] &quot;Temperature for Nov is not ideal&quot;
+[1] &quot;Temperature for Dec is not ideal&quot;</code></pre>
+</div>
+<div id="functions" class="section level2">
+<h2>Functions</h2>
+<p>In R, functions are treaed as first–class objects similar to other data types like numeric, character or vector. This is the fundamental property of <em>functional programming</em> languages.</p>
+<div id="core-functions" class="section level3">
+<h3>core functions</h3>
+<p>R provides functions for common tasks like plotting, statistics and numerical analysis. In practice, most of the interactions we have with R is through functions—either provided by the base system or in packages.</p>
+<p>The syntax for calling a function in R is similar to most other programming languages. FOr instance, we use the function <code>mean()</code> to compute the average of a vector of numbers. This function is provided by the base package</p>
+<pre class="r"><code>temperature = c(28.6,28.8,29,28,27.8,27.2,26.8,25,26.2,27.2,27.5,27.8)
+mean(temperature)</code></pre>
+<pre><code>[1] 27.49167</code></pre>
+<p>Sometimes you might need to extend some function that are neither offered by base nor by other packages. Then you need to define your own function to perform a particular task. For instance, we need to log–transform climatological monthly sea surface height anomaly. Let’s first create ana imaginary ssh anomaly</p>
+<pre class="r"><code>ssh.anomaly = c(1.2,1.1,0.8,0.2,0,-0.1,-0.52,-0.4,0.12,0.58,0.89, 1.02)
+log(ssh.anomaly)</code></pre>
+<pre><code> [1]  0.18232156  0.09531018 -0.22314355 -1.60943791        -Inf         NaN
+ [7]         NaN         NaN -2.12026354 -0.54472718 -0.11653382  0.01980263</code></pre>
+<p>We notice that <code>log()</code> function returns <code>NaN</code> for negative elements and <code>Inf</code> for zeros. only positive elements returned with numeric values. From the results above, it is clear that <code>log()</code> function never works with negative and zeros. Therefore, for this kind of data like the ssh anomaly where numeric values ranges from negative to positive with some instance of zeros, another function for transofrmation is needed. Unfortunately there is none at present from R. That’s when creating your own functions matters.</p>
+</div>
+<div id="user-defined-functions" class="section level3">
+<h3>user defined functions</h3>
+<p>R has a special syntax for defining functions. Like other programming languages, R offers a <code>function()</code> sysntax that allows to speficy the function name, parameters along with body of statements that executes and produce results and a <code>return()</code> funtion to output the result. The syntax for defining function is similar to that of creating objects, using the assignment operator either <code>&lt;-</code> or <code>=</code> depending on your preference. For instance, We create a function and assign it a name <code>inverse_hyperbolic</code>, which transform data close to logged but allows for zeros and negative, which log() function returns infinity and NaN, respectively.</p>
+<pre class="r"><code>inverse_hyperbolic = function(x = &quot;a numeric, a data frame or matrix&quot;){
+    output = log(x + sqrt(x^2 + 1))
+  return(output)
+  
+}</code></pre>
+<p>It’s not necessary to specify the return value in function. The principal is that the last item evaluated in the function is automatically considered as the return value. However, we defined the <code>return()</code> for <code>inverse_hyperbolic</code> functionw to print out the result.</p>
+<p>Using the function we created is very simple, for instance we can tranform the ssh anaomaly with the function we just created as highlighted in the chunk below;</p>
+<pre class="r"><code>ssh.anomaly.transofrm = inverse_hyperbolic(ssh.anomaly)
+ssh.anomaly.transofrm</code></pre>
+<pre><code> [1]  1.01597313  0.95034693  0.73266826  0.19869011  0.00000000 -0.09983408
+ [7] -0.49902844 -0.39003532  0.11971385  0.55159956  0.80141549  0.89544525</code></pre>
+<p>The literal name of our function <code>inverse-hyperbolic</code>, corresponds to the function object, while the <code>ssh.anomaly.transofrm</code> is the result of the call returned by the input <code>ssh.anomaly</code> after evaluated with <code>inverse_hypperbolic()</code> function.</p>
+<p>We can also create a function that repeate common task</p>
+<pre class="r"><code>## This function convert matrix into a data frame that is suibtable for tidyverse ecosystem.
+##
+matrix_tb &lt;- function(x=&quot;supply the vector containing the the x value of the array&quot;,
+                      y = &quot; supply the vector containing the y value of the array&quot;,
+                      data = &quot;supply the the matrix from the array&quot;){
+
+  if(!is.matrix(data)){
+    stop(&quot;you supplied unsupported file, only matrix format file is acceptable&quot;)
+  }else{
+
+
+  require(magrittr)
+  require(tidyverse)  
+
+  dimension &lt;- data.frame(x, data) %&gt;% dim()
+
+  output &lt;- data.frame(x, data) %&gt;%
+    tidyr::gather(key = &quot;lati&quot;, value = &quot;value&quot;,2:dimension[2]) %&gt;%
+    dplyr::mutate(y = rep(y, each = dimension[1])) %&gt;%
+    dplyr::select(x,y, value) %&gt;%
+    tibble::as_tibble()
+
+  return(output)
+  }
+}</code></pre>
+</div>
+</div>
+<div id="packages" class="section level2">
+<h2>packages</h2>
+<p>In R packages refers to a collection of functions bundled together. In addition to functions, an R package can also contain datasets along with the dependincies. When you start R, the base packages is loaded also by default. The base packages contain basic functions for arithmetic, importing and exporting of dataset, plotting and numerous other simple tasks.</p>
+<p>In additon to base packages, there are thousands of packages avaialble in the CRAN covering. We can install these packages from R using the <code>install.packages()</code> function—which downloads the sources files for the packages from CRAN mirror websites and store the package in a local repository.</p>
+<p>We neeed to call <code>install.packages()</code> once to install the package(s). Once the package is installed, we use either <code>library()</code> or <code>require()</code> to load the functions into the workspace. We use several packages in this book and load them with the <code>require()</code> function.</p>
+<pre class="r"><code>require(EnvStats)</code></pre>
+</div>

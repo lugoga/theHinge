@@ -1,0 +1,387 @@
+---
+title: Introduction to time series
+author: Masumbuko Semba
+date: '2021-09-04'
+slug: []
+categories:
+  - ''
+tags:
+  - ''
+description: ''
+thumbnail: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<p>In this post we demonstrate advanced two-dimensional visualization techniques in the form of graphical displays of the types of data typically encountered in oceanography, using R programming. The first example displays graphically a temperature and chlorophyll-a concentration time series for the last 20 years from acquired with MODIS satellite sensors.</p>
+<p>We need some packages for this task loaded in the session. These packages can be loaded either using <code>library</code> or <code>require</code> functions. The chunk below highlight the list of packages that are loaded in this session.</p>
+<pre class="r"><code>require(tidyverse)
+require(magrittr)
+library(fable)
+library(tsibble)
+library(tsibbledata)
+library(lubridate)
+library(dplyr)
+require(heatwaveR)</code></pre>
+<div id="specify-geographical-and-time-extend-of-our-areas-of-interest" class="section level2">
+<h2>Specify geographical and time extend of our areas of interest</h2>
+<pre class="r"><code>zones = tibble(
+zone = c(&quot;eez&quot;, &quot;pemba&quot;, &quot;zanzibar&quot;, &quot;mafia&quot;, &quot;mtwara&quot;),
+lon.min = c(42, 38.98,38.67,39.06,39.64),
+lon.max = c(42.8,39.5,39.4,39.84,40.6),
+lat.min = c(-6.2, -5.35,-6.7,-7.98,-10.5),
+lat.max = c(-4.7,-44.8,-5.8,-7.2,-9.7),
+t1 = c(&quot;2003-01-01&quot;, &quot;2003-01-01&quot;,&quot;2003-01-01&quot;,&quot;2003-01-01&quot;,&quot;2003-01-01&quot;),
+t2 = c(&quot;2019-12-31&quot;, &quot;2019-12-31&quot;, &quot;2019-12-31&quot;, &quot;2019-12-31&quot;, &quot;2019-12-31&quot;))</code></pre>
+</div>
+<div id="download-satellite-data" class="section level2">
+<h2>Download satellite data</h2>
+<div id="chl-modis" class="section level3">
+<h3>Chl-modis</h3>
+<pre class="r"><code>data = list()
+
+for (i in 1:nrow(zones)){
+  sites = zones %&gt;% slice(i)
+  
+  data[[i]] = sites %$% 
+  wior::get_chlModis(lon.min = lon.min, lon.max = lon.max, 
+                     lat.min = lat.min, lat.max = lat.max, 
+                     t1 = t1, t2 = t2, level = 3) %&gt;% 
+    mutate(site = sites$zone) 
+}</code></pre>
+</div>
+<div id="chl-seawifs" class="section level3">
+<h3>Chl-seawifs</h3>
+<pre class="r"><code>seawifs.data = list()
+
+for (i in 1:nrow(zones)){
+  sites = zones %&gt;% slice(i)
+  
+  seawifs.data[[i]] = sites %$% 
+  wior::get_chlSeawif(lon.min = lon.min, lon.max = lon.max, 
+                     lat.min = lat.min, lat.max = lat.max, 
+                     t1 = &quot;1997-09-16&quot;, t2 = &quot;2010-12-16&quot;, level = 3) %&gt;% 
+    mutate(site = sites$zone) 
+}</code></pre>
+</div>
+<div id="sst.modis" class="section level3">
+<h3>sst.modis</h3>
+<pre class="r"><code>sst.data = list()
+
+for (i in 1:nrow(zones)){
+  sites = zones %&gt;% slice(i)
+  
+  sst.data[[i]] = sites %$% 
+  wior::get_sstMODIS(lon.min = lon.min, lon.max = lon.max, 
+                     lat.min = lat.min, lat.max = lat.max, 
+                     t1 = &quot;2003-01-01&quot;, t2 = &quot;2019-10-16&quot;, type = 3) %&gt;% 
+    mutate(site = sites$zone) 
+}</code></pre>
+<pre class="r"><code>data %&gt;% 
+  bind_rows() %&gt;%
+  mutate(source = &quot;MODIS&quot;) %&gt;%
+  write_csv(&quot;data/chl_modis.csv&quot;)</code></pre>
+</div>
+<div id="monthly-average-the-data-by-site" class="section level3">
+<h3>Monthly average the data by site</h3>
+<pre class="r"><code>chl.modis = vroom::vroom(&quot;data/chl_modis.csv&quot;)
+chl.seawif = vroom::vroom(&quot;data/chl_seawifs.csv&quot;)
+sst.modis = vroom::vroom(&quot;data/sst_modis.csv&quot;)</code></pre>
+<pre class="r"><code>sst.series = sst.modis %&gt;% 
+  group_by(time, site) %&gt;%
+  summarise(sst = median(sst, na.rm = TRUE))
+
+chl.series = chl.modis %&gt;% 
+  group_by(time, site) %&gt;%
+  summarise(chl = median(chlorophyll, na.rm = TRUE))
+
+
+chl.series.seawif = chl.seawif %&gt;% 
+  group_by(time, site) %&gt;%
+  summarise(chl = median(chlorophyll, na.rm = TRUE))</code></pre>
+</div>
+</div>
+<div id="time-series-plots" class="section level2">
+<h2>Time series plots</h2>
+<p>Time series plotas are an excellent way to begin the process of understanding what sort of processed might have generated the data of interest. Traditionally, time series have beeen plotted with the observed data on the <code>y-axis</code>. Sequentially time points are usually connected with some form of line, but sometimes other plot forms can be a useful way of conveying important information in the time series (e.g., bAR_p_coeflots of sea-surface temperature anomolies show nicely the contrasting El Niño and La Niña phenomena).</p>
+</div>
+<div id="ts-objects-and-plot.ts" class="section level2">
+<h2>ts objects and <code>plot.ts()</code></h2>
+<p>The sst and chl-a are stored as data.frme objects, but we would like to transform the class to a more user-friendly format for dealingwith time series. Fortunately, the <code>ts()</code> functionwill do just that, and return an object of flass <strong>ts</strong> as well. In addition to the data themselves, we need to provide <code>ts()</code> function with three parameters.</p>
+<ul>
+<li><code>data</code>—a variable</li>
+<li><code>start</code>— specify the first sample in terms of (day, hour, year, month) etc. For example, our sst data are average on monthly since january 2003, then the start is written <code>start = c(2003,1)</code>.</li>
+<li><code>frequency</code>— refer to the number of observation per cycle. For example if the data were collected each hour of a day, then <code>frequency = 24</code> and when the data are monthly average, then <code>frequency = 12</code>.</li>
+</ul>
+<p>Our sst and chl time series of MODIS data frame are collected monthly and begin in January of 2003 where chl time series from SEAWIF sensor begin in September 1997. We pass these information to <code>ts()</code> function.</p>
+<pre class="r"><code>sst.ts = sst.series %&gt;% 
+  filter(site == &quot;eez&quot;) %&gt;% 
+  select(-site) %$% 
+  stats::ts(data = sst, start = 2003, frequency = 12)</code></pre>
+<pre class="r"><code>chl.ts = chl.series.seawif %&gt;% 
+  filter(site == &quot;eez&quot;) %&gt;% 
+  select(-site) %$% 
+  stats::ts(data = chl, start = c(1997,9), frequency = 12)</code></pre>
+<pre class="r"><code>chl.ts.modis = chl.series %&gt;% 
+  filter(site == &quot;eez&quot;) %&gt;% 
+  select(-site) %$% 
+  stats::ts(data = chl, start = c(2003,1), frequency = 12)</code></pre>
+<p>Once we have created our object, now lets plot the ts object with <code>plot.ts()</code> function, which is designed specifically to handle <strong>ts</strong> objects.</p>
+<pre class="r"><code>chl.ts %&gt;%  
+  plot.ts(las = 1, ylab = expression(Chl-a~(mgm^{-3})))</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<pre class="r"><code>sst.ts %&gt;% 
+  plot(las = 1, ylab = expression(SST~(degree*C)))</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+</div>
+<div id="combining-and-plotting-multiple-objects" class="section level2">
+<h2>Combining and plotting multiple objects</h2>
+<p>Often times we compare variable of interest, for instance, we might be interested to compare sst versus chl concentration from MODIS data. To do that, we need to combine the two ts objects. Unfortunately, if we want to compare chl from seawifs and sst from modis, we have problem, because of time mismatch. Seawif chlorophyll-a start in September 1997 but sst data start in January 2003. We therefore, required to align the time indices of these two ts objects.</p>
+<p>Fortunately, the <code>ts.intersect</code> function makes this really easy if you have the two dataset as ts objects by only include the observation with matching time stamps. Also a <code>ts.union</code> function does in similar fashion, but it pads one or both series with NA.</p>
+<pre class="r"><code>sst.ts %&gt;% 
+  ts.intersect(chl.ts) %&gt;% 
+  plot.ts()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p>As you can see, the intersection of the two data sets only retain overlapping observations. Unlike the <code>ts.intersect</code>, <code>ts.union</code> pads the mismatch data with NA. If you compare them, you will find all mismatch data contains NA in both the sst and chl time series objects.</p>
+<pre class="r"><code>sst.ts %&gt;% 
+  ts.union(chl.ts) %&gt;% 
+  plot()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<p>We also notice that <code>plot</code> function is smart to recognize ts object and use the information contained therein appropriately. The code in the chunk was used to plot the intersection of sst and chl-a time series together with the y-axes on alternate side.</p>
+<pre class="r"><code>sst.ts %&gt;% ts.intersect(chl.ts.modis) %&gt;% plot(las = 1, yax.flip = TRUE)</code></pre>
+<div class="figure"><span id="fig:unnamed-chunk-16"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-16-1.png" alt="Time series of sea surface temperature (top) and the mean chlorophyll a concentration (bottom) in the EEZ of Tanzania measured monthly from January 2003 to December 2019" width="672" />
+<p class="caption">
+Figure 1: Time series of sea surface temperature (top) and the mean chlorophyll a concentration (bottom) in the EEZ of Tanzania measured monthly from January 2003 to December 2019
+</p>
+</div>
+</div>
+<div id="decompose-time-series" class="section level2">
+<h2>Decompose time series</h2>
+<p>Plotting time series data is an important first step in understanding the data. Beyond that, however, we need a more formal means for identifying and removing characteristics such as a trend or seasonal variation. Decomposing a time series means separating it into its constituent components, which are often a trend and a random components and if the data has seasonal influence, the seasonal component.</p>
+<div id="decomposing-trends" class="section level3">
+<h3>Decomposing trends</h3>
+<p>Decomposing time series try to separate the time series into these individual components. One approach to to this is using some <code>smoothing method</code> like simple moving average. The <code>SMA</code> function in <strong>TTR</strong> package can be used to smooth time series data using a moving average. This function takes a span arguments as n order. For instance, to calculate the moving average of order 5, we simply set <code>n = 5</code>. Let’s us start with <code>n = 12</code> to see a clear picture of the sst time series trend component</p>
+<pre class="r"><code>sst.trend = sst.ts %&gt;%
+  TTR::SMA(n = 12) 
+
+sst.trend %&gt;% 
+  plot()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p>The trend is a more-or-less smoothly increasing function over time, the average slope of which does indeed appear to be increasing over time as well. Let us intersect the sst and trend ts object and plot them together</p>
+<pre class="r"><code>sst.ts %&gt;%
+  ts.intersect(sst.trend) %&gt;% 
+  plot(las = 1, yax.flip = TRUE)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<p>We see that the SST trend declined from 28 to 27.6 for a brief period, followed by a gradual increase in the subsequent years to</p>
+</div>
+<div id="decomposing-seasonal-component" class="section level3">
+<h3>Decomposing Seasonal component</h3>
+<p>A time series, in addition to the trend and random component, also has a seasonal component. To obtain the time series components, we use <code>decompose</code> function from <strong>stats</strong> package to estimate trend, seasonal and random components of the time series objects.</p>
+<pre class="r"><code>sst.ts.decomposed = sst.ts %&gt;%
+  decompose() 
+
+sst.ts.decomposed %&gt;% 
+  plot(yax.flip = TRUE)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+</div>
+<div id="seaonally-adjusting" class="section level3">
+<h3>Seaonally adjusting</h3>
+<p>If you have a time time series, you can seasonally adjust the series by estimating the seasonal component, and subtracting estimated seasonal component from the original time series.We can simply do this using the estimate of the seasonal component calculated by the <code>decompose()</code> function.</p>
+<p>For example, to seasonally adjust the time series of the sst per month in the EEZ, we can estimate the seasonal component using <code>decompose()</code>, and then subtract the seasonal component from the original time series:</p>
+<pre class="r"><code>sst.ts.decomposed = sst.ts %&gt;%
+  decompose()</code></pre>
+<pre class="r"><code>sst.ts.season.adjusted = sst.ts - sst.ts.decomposed$seasonal</code></pre>
+<p>We can then plot the seasonally adjusted time series using the <code>plot()</code> function, by typing:</p>
+<pre class="r"><code>sst.ts.season.adjusted %&gt;% 
+  plot(las = 1, ylab = expression(SST~(degree*C)))</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+<p>You can see that the seasonal variation has been removed from the seasonally adjusted time series. The seasonally adjusted time series now just contains the trend component and an irregular component.</p>
+</div>
+<div id="model" class="section level3">
+<h3>Model</h3>
+<pre class="r"><code>sst.ts %&gt;%  tsibble::as_tsibble() %&gt;%  
+  rename(sst = value, Month = index) %&gt;% 
+  model(
+    ets = ETS(box_cox(sst, 0.3)),
+    arima = ARIMA(log(sst)),
+    snaive = SNAIVE(sst)
+  ) %&gt;%
+  forecast::forecast(h = &quot;4 years&quot;) %&gt;%
+  autoplot()</code></pre>
+<pre class="r"><code>aus_retail %&gt;%
+  filter(
+    State %in% c(&quot;New South Wales&quot;, &quot;Victoria&quot;),
+    Industry == &quot;Department stores&quot;
+  ) %&gt;% 
+  model(
+    ets = ETS(box_cox(Turnover, 0.3)),
+    arima = ARIMA(log(Turnover)),
+    snaive = SNAIVE(Turnover)
+  ) %&gt;%
+  forecast(h = &quot;2 years&quot;) %&gt;% 
+  autoplot(filter(aus_retail, year(Month) &gt; 2010), level = NULL)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+</div>
+</div>
+<div id="heatwaves" class="section level2">
+<h2>Heatwaves</h2>
+<pre class="r"><code>pemba.daily.sst = wior::get_sstMUR( 
+  lon.min = 39.3, 
+  lon.max = 39.5, 
+  lat.min = -5.0, 
+  lat.max = -5.2, 
+  t1 = &quot;2015-08-01&quot;,
+  t2 = &quot;2019-12-31&quot;)
+
+
+
+pemba.daily.sst %&gt;% write_csv(&quot;data/pemba_daily_sst.csv&quot;)</code></pre>
+<pre class="r"><code>pemba.daily.sst = read_csv(&quot;data/pemba_daily_sst.csv&quot;)
+
+pemba.sst = pemba.daily.sst %&gt;%
+  group_by(time) %&gt;% 
+  summarise(sst = median(analysed_sst, na.rm = TRUE))
+
+pemba.sst %&gt;% FSA::headtail()</code></pre>
+<pre><code>FALSE            time    sst
+FALSE 1    2015-08-01 26.435
+FALSE 2    2015-08-02 26.596
+FALSE 3    2015-08-03 26.064
+FALSE 1612 2019-12-29 28.548
+FALSE 1613 2019-12-30 28.704
+FALSE 1614 2019-12-31 28.739</code></pre>
+<div id="detect-the-events-in-a-time-series" class="section level3">
+<h3>Detect the events in a time series</h3>
+<pre class="r"><code>ts.clim = pemba.sst %&gt;%
+  rename(t = time, temp = sst) %&gt;% 
+  heatwaveR::ts2clm(climatologyPeriod = c(&quot;2015-08-01&quot;, &quot;2019-12-31&quot;))  
+
+pemba.mhw = ts.clim %&gt;% 
+  heatwaveR::detect_event()</code></pre>
+</div>
+<div id="visualising-marine-heatwaves-mhws" class="section level3">
+<h3>Visualising marine heatwaves (MHWs)</h3>
+<div id="default-mhw-visuals" class="section level4">
+<h4>Default MHW visuals</h4>
+<p>One may use <code>event_line()</code> and <code>lolli_plot()</code> directly on the output of <code>detect_event()</code> in order to visualise MHWs. Here are the functions being used to visualise the massive Western Australian heatwave of 2011:</p>
+<pre class="r"><code>pemba.mhw %&gt;%
+  event_line(metric = &quot;intensity_mean&quot;,
+             spread = 60,
+             start_date = &quot;2019-01-01&quot;, 
+             end_date = &quot;2019-03-31&quot;)+
+  scale_y_continuous(breaks = seq(27,31,.5)) +
+  theme(legend.position = c(.025,.85))</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+<pre class="r"><code>pemba.sst.ts =  pemba.sst %$% 
+  ts(data = sst, start = c(2015,8), frequency = 365.25)
+
+pemba.sst.decompose = pemba.sst.ts %&gt;% 
+  decompose() 
+
+pemba.sst.decompose %&gt;% 
+  plot(yax.flip = TRUE, las = 1)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-29-1.png" width="576" /></p>
+<pre class="r"><code>seasonal.adjusted = pemba.sst.ts -pemba.sst.decompose$seasonal
+
+seasonal.adjusted %&gt;% 
+  plot()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-30-1.png" width="672" /></p>
+<pre class="r"><code>pemba.splits = pemba.daily.sst %&gt;% 
+  filter(time &gt; &quot;2016-08-01&quot;) %&gt;% 
+  mutate(miezi = lubridate::month(time), mwaka = lubridate::year(time)) %&gt;%
+  group_by(miezi, mwaka) %&gt;% 
+  summarise(sst = median(analysed_sst, na.rm = TRUE)) %&gt;%
+  ungroup
+
+pemba.splits %$%
+  EnvStats::kendallTrendTest(sst ~ mwaka) %&gt;% 
+  broom::tidy()%&gt;% 
+  slice(1)</code></pre>
+<pre><code>FALSE # A tibble: 1 x 7
+FALSE   estimate1 estimate2 estimate3 statistic p.value method             alternative
+FALSE       &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;              &lt;chr&gt;      
+FALSE 1     0.156     0.286     -550.      1.49   0.136 &quot;Kendall&#39;s Test f~ two.sided</code></pre>
+<pre class="r"><code>pemba.splits %&gt;%
+  mutate(season = if_else(miezi %in% c(10:12,1:4), &quot;NE&quot;, &quot;SE&quot;)) %&gt;%
+  filter(season == &quot;SE&quot;)%$%
+  EnvStats::kendallTrendTest(sst ~ mwaka)</code></pre>
+<pre><code>FALSE 
+FALSE   Kendall&#39;s Test for Trend (with continuity correction)
+FALSE 
+FALSE data:  sstmwaka
+FALSE z = 1.4654, p-value = 0.1428
+FALSE alternative hypothesis: true tau is not equal to 0
+FALSE sample estimates:
+FALSE          tau        slope    intercept 
+FALSE    0.2573529    0.1980000 -373.4800000</code></pre>
+<pre class="r"><code>pemba.splits %&gt;%
+  mutate(season = if_else(miezi %in% c(10:12,1:4), &quot;NE&quot;, &quot;SE&quot;)) %&gt;%
+  filter(season == &quot;NE&quot;)%$%
+  EnvStats::kendallTrendTest(sst ~ mwaka)</code></pre>
+<pre><code>FALSE 
+FALSE   Kendall&#39;s Test for Trend (with continuity correction)
+FALSE 
+FALSE data:  sstmwaka
+FALSE z = 1.6847, p-value = 0.09205
+FALSE alternative hypothesis: true tau is not equal to 0
+FALSE sample estimates:
+FALSE          tau        slope    intercept 
+FALSE    0.2391304    0.3310000 -639.8370000</code></pre>
+<pre class="r"><code>meteo =wior::get_meteo(coastal_codes = 2,begin_year = 2016, end_year = 2020)
+
+meteo %&gt;% tidyr::drop_na(air_temp)</code></pre>
+<hr />
+<pre class="r"><code>chl.ts.modis %&gt;%
+  tseries::adf.test() %&gt;% 
+  broom::tidy()</code></pre>
+<pre><code>FALSE # A tibble: 1 x 5
+FALSE   statistic p.value parameter method                       alternative
+FALSE       &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;                        &lt;chr&gt;      
+FALSE 1     -7.68    0.01         5 Augmented Dickey-Fuller Test stationary</code></pre>
+<pre class="r"><code>pemba.splits %&gt;%
+  mutate(season = if_else(miezi %in% c(10:12,1:4), &quot;NE&quot;, &quot;SE&quot;)) %&gt;%
+  filter(season == &quot;NE&quot;)%$%
+  EnvStats::kendallTrendTest(sst ~ mwaka)</code></pre>
+<pre><code>FALSE 
+FALSE   Kendall&#39;s Test for Trend (with continuity correction)
+FALSE 
+FALSE data:  sstmwaka
+FALSE z = 1.6847, p-value = 0.09205
+FALSE alternative hypothesis: true tau is not equal to 0
+FALSE sample estimates:
+FALSE          tau        slope    intercept 
+FALSE    0.2391304    0.3310000 -639.8370000</code></pre>
+<pre class="r"><code>chl.series %&gt;% FSA::headtail()</code></pre>
+<pre><code>FALSE            time     site        chl
+FALSE 1    2003-01-16      eez 0.11058200
+FALSE 2    2003-01-16    mafia 0.91594750
+FALSE 3    2003-01-16   mtwara 0.13639300
+FALSE 1018 2019-12-16   mtwara 0.08805725
+FALSE 1019 2019-12-16    pemba 0.28579274
+FALSE 1020 2019-12-16 zanzibar 0.39883378</code></pre>
+<pre class="r"><code># sst.series</code></pre>
+</div>
+</div>
+<div id="multiple-ts" class="section level3">
+<h3>Multiple ts</h3>
+<pre class="r"><code>sst.df.wide = sst.series %&gt;% 
+  ungroup() %&gt;%
+  # rowid_to_column() 
+  pivot_wider(names_from = site, values_from = sst) 
+
+chl.df.wide = chl.series %&gt;% 
+  ungroup() %&gt;%
+  # rowid_to_column() 
+  pivot_wider(names_from = site, values_from = chl) </code></pre>
+<pre class="r"><code>sst.wide.ts = sst.df.wide %&gt;%
+  select(2:6) %&gt;% 
+  as.matrix() %&gt;%
+  ts(start = c(2003,1), frequency = 12)
+
+sst.wide.ts %&gt;% 
+  plot()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-39-1.png" width="672" /></p>
+</div>
+</div>

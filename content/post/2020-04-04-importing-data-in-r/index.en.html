@@ -1,0 +1,538 @@
+---
+title: Importing data in R
+author: Masumbuko Semba
+date: '2020-04-04'
+slug: []
+categories:
+  - ''
+tags:
+  - code
+  - programming
+  - R
+  - semba
+  - tidyverse
+description: ''
+thumbnail: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+<script src="{{< blogdown/postref >}}index.en_files/kePrint/kePrint.js"></script>
+<link href="{{< blogdown/postref >}}index.en_files/lightable/lightable.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index.en_files/htmlwidgets/htmlwidgets.js"></script>
+<script src="{{< blogdown/postref >}}index.en_files/jquery/jquery.min.js"></script>
+<link href="{{< blogdown/postref >}}index.en_files/datatables-css/datatables-crosstalk.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index.en_files/datatables-binding/datatables.js"></script>
+<link href="{{< blogdown/postref >}}index.en_files/dt-core/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="{{< blogdown/postref >}}index.en_files/dt-core/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index.en_files/dt-core/js/jquery.dataTables.min.js"></script>
+<link href="{{< blogdown/postref >}}index.en_files/crosstalk/css/crosstalk.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index.en_files/crosstalk/js/crosstalk.min.js"></script>
+
+
+<p>You can lean R with the dataset it comes with when you install it in your machine. But sometimes you want to use the real data you or someone gathered already. One of critical steps for data processing is to import data with special format into R workspace.Data import refers to read data from the working directory into the workspace. In this chapter you will learn how to import common files into R. We will only focus on two common types of tabular data storage format—The comma-seprated <code>.csv</code> and excell spreadsheet (<code>.xlsx</code>). In later chapter we will explain how to read other types of data into R.</p>
+<div id="comma-separated-.csv" class="section level2">
+<h2><em>Comma-Separated (.csv)</em></h2>
+<p>The most commonly format that R like is the <code>comma-separated</code> files. Although Base R provides various functions like <code>read.table()</code>, <code>read.csv()</code>, <code>read.table()</code> and <code>read.csv2()</code> to import data from the local directories into R workspace, for this book we use an <code>read_csv()</code> function from <code>readr</code>. Before we import the data, we need to load the packages that we will use their functions in this chapeter</p>
+<pre class="r"><code>require(dplyr)
+require(readr)
+require(lubridate)
+require(readxl)
+require(haven)
+require(ggplot2)
+require(kableExtra)
+require(magrittr)</code></pre>
+Consider a tabular data stored in my working directory in the <code>.csv</code> format in figure <a href="#fig:fig31">1</a>.
+<div class="figure" style="text-align: center"><span id="fig:fig31"></span>
+<img src="data_screenshot.png" alt="A screenshot of the sample dataset" width="100%" />
+<p class="caption">
+Figure 1: A screenshot of the sample dataset
+</p>
+</div>
+<p>We can import it with the <code>read_csv()</code> functions as:</p>
+<pre class="r"><code>algoa.ctd = read_csv(&quot;algoa_ctd.csv&quot;) </code></pre>
+<pre><code>
+-- Column specification --------------------------------------------------------
+cols(
+  station = col_character(),
+  time = col_datetime(format = &quot;&quot;),
+  lon = col_double(),
+  lat = col_double(),
+  pressure = col_double(),
+  temperature = col_double(),
+  salinity = col_double(),
+  oxygen = col_double(),
+  fluorescence = col_double(),
+  spar = col_double(),
+  par = col_double(),
+  density = col_double()
+)</code></pre>
+<p>When <code>read_csv()</code> has imported the data into R workspace, it prints out the name and type of of data for each variable.</p>
+<p>By simply glimpse the dataset, we see the format of the data is as expected. It has six variables(columns) and 177 observations (rows) similar to figure <a href="#fig:fig31">1</a>. Table <a href="#tab:tab30">1</a> show sample of imported dataset.</p>
+<table>
+<caption>
+<span id="tab:tab30">Table 1: </span>CTD profiles
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Station
+</th>
+<th style="text-align:left;">
+Time
+</th>
+<th style="text-align:right;">
+Lon
+</th>
+<th style="text-align:right;">
+Lat
+</th>
+<th style="text-align:right;">
+Pressure
+</th>
+<th style="text-align:right;">
+Temperature
+</th>
+<th style="text-align:right;">
+Salinity
+</th>
+<th style="text-align:right;">
+Oxygen
+</th>
+<th style="text-align:right;">
+Fluorescence
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;width: 3cm; color: black !important;">
+st1
+</td>
+<td style="text-align:left;width: 3cm; color: black !important;">
+2004-08-18
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+40.61
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+-10.54
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+5
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+25.17
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+33.92
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+3.93
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+0.56
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 3cm; color: black !important;">
+st1
+</td>
+<td style="text-align:left;width: 3cm; color: black !important;">
+2004-08-18
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+40.61
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+-10.54
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+10
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+25.13
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+34.86
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+4.49
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+0.60
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 3cm; color: black !important;">
+st1
+</td>
+<td style="text-align:left;width: 3cm; color: black !important;">
+2004-08-18
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+40.61
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+-10.54
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+15
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+25.11
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+34.86
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+4.50
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+0.65
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 3cm; color: black !important;">
+st1
+</td>
+<td style="text-align:left;width: 3cm; color: black !important;">
+2004-08-18
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+40.61
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+-10.54
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+20
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+25.04
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+34.86
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+4.51
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+0.68
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 3cm; color: black !important;">
+st1
+</td>
+<td style="text-align:left;width: 3cm; color: black !important;">
+2004-08-18
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+40.61
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+-10.54
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+25
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+24.95
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+34.86
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+4.51
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+0.76
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 3cm; color: black !important;">
+st1
+</td>
+<td style="text-align:left;width: 3cm; color: black !important;">
+2004-08-18
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+40.61
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+-10.54
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+30
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+24.91
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+34.86
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+4.50
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+0.73
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 3cm; color: black !important;">
+st1
+</td>
+<td style="text-align:left;width: 3cm; color: black !important;">
+2004-08-18
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+40.61
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+-10.54
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+35
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+24.88
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+34.87
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+4.49
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+0.74
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 3cm; color: black !important;">
+st1
+</td>
+<td style="text-align:left;width: 3cm; color: black !important;">
+2004-08-18
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+40.61
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+-10.54
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+40
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+24.85
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+34.87
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+4.48
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+0.69
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 3cm; color: black !important;">
+st1
+</td>
+<td style="text-align:left;width: 3cm; color: black !important;">
+2004-08-18
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+40.61
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+-10.54
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+45
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+24.80
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+34.88
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+4.46
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+0.70
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 3cm; color: black !important;">
+st1
+</td>
+<td style="text-align:left;width: 3cm; color: black !important;">
+2004-08-18
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+40.61
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+-10.54
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+50
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+24.61
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+34.89
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+4.44
+</td>
+<td style="text-align:right;width: 3cm; color: black !important;">
+0.75
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="microsoft-excel.xlsx" class="section level2">
+<h2>Microsoft Excel(.xlsx)</h2>
+<p>Commonly our data is stored as a MS Excel file. we can import the file with <code>read_xlsx()</code> function of <code>readxl</code> package. The <code>readxl</code> package provides a function read_exel() that allows us to specify which sheet within the Excel file to read and what character specifies missing data (it assumes a blank cell is missing data if you don’t specifying anything). The function automatically convert the worksheet into a <code>.csv</code> file and read it. Let’s us import the the data in first sheet of the <code>primary_productivity.xlsx</code>. The dataset contain primary productivity value. We will use this file to illustrate how to import the excel file into R workspace with <code>readxl</code> package <span class="citation">[@readxl]</span>.</p>
+<pre class="r"><code>sheet1 = readxl::read_xlsx(&quot;primary_productivity.xlsx&quot;, sheet = 1)
+sheet1 %&gt;% sample_n(5)</code></pre>
+<pre><code>FALSE # A tibble: 5 x 7
+FALSE   date                 year value              month   day site  variable
+FALSE   &lt;dttm&gt;              &lt;dbl&gt; &lt;chr&gt;              &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;   
+FALSE 1 2011-07-15 00:00:00  2011 863.95789473684204     7    15 Pemba pp      
+FALSE 2 2013-01-15 00:00:00  2013 589.247983870967       1    15 Pemba pp      
+FALSE 3 2016-03-15 00:00:00  2016 635.401123046875       3    15 Pemba pp      
+FALSE 4 2010-12-15 00:00:00  2010 575.15543619791595    12    15 Pemba pp      
+FALSE 5 2003-05-15 00:00:00  2003 720.907401315789       5    15 Pemba pp</code></pre>
+<p>By printing the sheet1, we notice that the sheet contains monthly average value of primary productivity from the Pemba channel.</p>
+<pre class="r"><code>sheet2 = readxl::read_xlsx(&quot;primary_productivity.xlsx&quot;, sheet = 2)
+sheet2 %&gt;% sample_n(5)</code></pre>
+<pre><code>FALSE # A tibble: 5 x 7
+FALSE   date                 year value              month   day site     variable
+FALSE   &lt;dttm&gt;              &lt;dbl&gt; &lt;chr&gt;              &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;   
+FALSE 1 2015-06-15 00:00:00  2015 822.32483057228899     6    15 Zanzibar pp      
+FALSE 2 2004-02-15 00:00:00  2004 706.53722734899304     2    15 Zanzibar pp      
+FALSE 3 2006-03-15 00:00:00  2006 681.77963709677397     3    15 Zanzibar pp      
+FALSE 4 2014-02-15 00:00:00  2014 618.70003939075605     2    15 Zanzibar pp      
+FALSE 5 2006-06-15 00:00:00  2006 987.41377314814804     6    15 Zanzibar pp</code></pre>
+<p>sheet2 contains monthly average value of primary productivity from the Zanzibar channel.</p>
+<pre class="r"><code>sheet3 = readxl::read_xlsx(&quot;primary_productivity.xlsx&quot;, sheet = 3)
+sheet3 %&gt;% sample_n(5)</code></pre>
+<pre><code>FALSE # A tibble: 5 x 7
+FALSE   date                 year value              month   day site  variable
+FALSE   &lt;dttm&gt;              &lt;dbl&gt; &lt;chr&gt;              &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;   
+FALSE 1 2013-06-15 00:00:00  2013 1278.17880794701       6    15 Mafia pp      
+FALSE 2 2010-01-15 00:00:00  2010 1129.8221318493099     1    15 Mafia pp      
+FALSE 3 2004-05-15 00:00:00  2004 1216.4666526845599     5    15 Mafia pp      
+FALSE 4 2004-06-15 00:00:00  2004 1307.9894453642301     6    15 Mafia pp      
+FALSE 5 2012-09-15 00:00:00  2012 1254.1508246527701     9    15 Mafia pp</code></pre>
+<p>sheet3 contains monthly average value of primary productivity from the Mafia channel.</p>
+<p>We look on the internal structure of the <code>sheet3</code> file with the <code>glimpse()</code> function. You can interact with the table that show all variables and observations (Table <a href="#tab:tab31"><strong>??</strong></a>)</p>
+<pre class="r"><code>sheet3%&gt;%glimpse()</code></pre>
+<pre><code>FALSE Rows: 192
+FALSE Columns: 7
+FALSE $ date     &lt;dttm&gt; 2003-01-15, 2003-02-15, 2003-03-15, 2003-04-15, 2003-05-15, ~
+FALSE $ year     &lt;dbl&gt; 2003, 2003, 2003, 2003, 2003, 2003, 2003, 2003, 2003, 2003, 2~
+FALSE $ value    &lt;chr&gt; &quot;1311.50104865771&quot;, &quot;1211.3158482142801&quot;, &quot;1302.45291940789&quot;,~
+FALSE $ month    &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8~
+FALSE $ day      &lt;dbl&gt; 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 1~
+FALSE $ site     &lt;chr&gt; &quot;Mafia&quot;, &quot;Mafia&quot;, &quot;Mafia&quot;, &quot;Mafia&quot;, &quot;Mafia&quot;, &quot;Mafia&quot;, &quot;Mafia&quot;~
+FALSE $ variable &lt;chr&gt; &quot;pp&quot;, &quot;pp&quot;, &quot;pp&quot;, &quot;pp&quot;, &quot;pp&quot;, &quot;pp&quot;, &quot;pp&quot;, &quot;pp&quot;, &quot;pp&quot;, &quot;pp&quot;, &quot;~</code></pre>
+<pre class="r"><code>sheet2 %&gt;% DT::datatable(rownames = FALSE, caption = &quot;An Interactive table of primary productivity in the Zanzibar channel&quot;)</code></pre>
+<div id="htmlwidget-1" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"filter":"none","caption":"<caption>An Interactive table of primary productivity in the Zanzibar channel<\/caption>","data":[["2003-01-15T00:00:00Z","2003-02-15T00:00:00Z","2003-03-15T00:00:00Z","2003-04-15T00:00:00Z","2003-05-15T00:00:00Z","2003-06-15T00:00:00Z","2003-07-15T00:00:00Z","2003-08-15T00:00:00Z","2003-09-15T00:00:00Z","2003-10-15T00:00:00Z","2003-11-15T00:00:00Z","2003-12-15T00:00:00Z","2004-01-15T00:00:00Z","2004-02-15T00:00:00Z","2004-03-15T00:00:00Z","2004-04-15T00:00:00Z","2004-05-15T00:00:00Z","2004-06-15T00:00:00Z","2004-07-15T00:00:00Z","2004-08-15T00:00:00Z","2004-09-15T00:00:00Z","2004-10-15T00:00:00Z","2004-11-15T00:00:00Z","2004-12-15T00:00:00Z","2005-01-15T00:00:00Z","2005-02-15T00:00:00Z","2005-03-15T00:00:00Z","2005-04-15T00:00:00Z","2005-05-15T00:00:00Z","2005-06-15T00:00:00Z","2005-07-15T00:00:00Z","2005-08-15T00:00:00Z","2005-09-15T00:00:00Z","2005-10-15T00:00:00Z","2005-11-15T00:00:00Z","2005-12-15T00:00:00Z","2006-01-15T00:00:00Z","2006-02-15T00:00:00Z","2006-03-15T00:00:00Z","2006-04-15T00:00:00Z","2006-05-15T00:00:00Z","2006-06-15T00:00:00Z","2006-07-15T00:00:00Z","2006-08-15T00:00:00Z","2006-09-15T00:00:00Z","2006-10-15T00:00:00Z","2006-11-15T00:00:00Z","2006-12-15T00:00:00Z","2007-01-15T00:00:00Z","2007-02-15T00:00:00Z","2007-03-15T00:00:00Z","2007-04-15T00:00:00Z","2007-05-15T00:00:00Z","2007-06-15T00:00:00Z","2007-07-15T00:00:00Z","2007-08-15T00:00:00Z","2007-09-15T00:00:00Z","2007-10-15T00:00:00Z","2007-11-15T00:00:00Z","2007-12-15T00:00:00Z","2008-01-15T00:00:00Z","2008-02-15T00:00:00Z","2008-03-15T00:00:00Z","2008-04-15T00:00:00Z","2008-05-15T00:00:00Z","2008-06-15T00:00:00Z","2008-07-15T00:00:00Z","2008-08-15T00:00:00Z","2008-09-15T00:00:00Z","2008-10-15T00:00:00Z","2008-11-15T00:00:00Z","2008-12-15T00:00:00Z","2009-01-15T00:00:00Z","2009-02-15T00:00:00Z","2009-03-15T00:00:00Z","2009-04-15T00:00:00Z","2009-05-15T00:00:00Z","2009-06-15T00:00:00Z","2009-07-15T00:00:00Z","2009-08-15T00:00:00Z","2009-09-15T00:00:00Z","2009-10-15T00:00:00Z","2009-11-15T00:00:00Z","2009-12-15T00:00:00Z","2010-01-15T00:00:00Z","2010-02-15T00:00:00Z","2010-03-15T00:00:00Z","2010-04-15T00:00:00Z","2010-05-15T00:00:00Z","2010-06-15T00:00:00Z","2010-07-15T00:00:00Z","2010-08-15T00:00:00Z","2010-09-15T00:00:00Z","2010-10-15T00:00:00Z","2010-11-15T00:00:00Z","2010-12-15T00:00:00Z","2011-01-15T00:00:00Z","2011-02-15T00:00:00Z","2011-03-15T00:00:00Z","2011-04-15T00:00:00Z","2011-05-15T00:00:00Z","2011-06-15T00:00:00Z","2011-07-15T00:00:00Z","2011-08-15T00:00:00Z","2011-09-15T00:00:00Z","2011-10-15T00:00:00Z","2011-11-15T00:00:00Z","2011-12-15T00:00:00Z","2012-01-15T00:00:00Z","2012-02-15T00:00:00Z","2012-03-15T00:00:00Z","2012-04-15T00:00:00Z","2012-05-15T00:00:00Z","2012-06-15T00:00:00Z","2012-07-15T00:00:00Z","2012-08-15T00:00:00Z","2012-09-15T00:00:00Z","2012-10-15T00:00:00Z","2012-11-15T00:00:00Z","2012-12-15T00:00:00Z","2013-01-15T00:00:00Z","2013-02-15T00:00:00Z","2013-03-15T00:00:00Z","2013-04-15T00:00:00Z","2013-05-15T00:00:00Z","2013-06-15T00:00:00Z","2013-07-15T00:00:00Z","2013-08-15T00:00:00Z","2013-09-15T00:00:00Z","2013-10-15T00:00:00Z","2013-11-15T00:00:00Z","2013-12-15T00:00:00Z","2014-01-15T00:00:00Z","2014-02-15T00:00:00Z","2014-03-15T00:00:00Z","2014-04-15T00:00:00Z","2014-05-15T00:00:00Z","2014-06-15T00:00:00Z","2014-07-15T00:00:00Z","2014-08-15T00:00:00Z","2014-09-15T00:00:00Z","2014-10-15T00:00:00Z","2014-11-15T00:00:00Z","2014-12-15T00:00:00Z","2015-01-15T00:00:00Z","2015-02-15T00:00:00Z","2015-03-15T00:00:00Z","2015-04-15T00:00:00Z","2015-05-15T00:00:00Z","2015-06-15T00:00:00Z","2015-07-15T00:00:00Z","2015-08-15T00:00:00Z","2015-09-15T00:00:00Z","2015-10-15T00:00:00Z","2015-11-15T00:00:00Z","2015-12-15T00:00:00Z","2016-01-15T00:00:00Z","2016-02-15T00:00:00Z","2016-03-15T00:00:00Z","2016-04-15T00:00:00Z","2016-05-15T00:00:00Z","2016-06-15T00:00:00Z","2016-07-15T00:00:00Z","2016-08-15T00:00:00Z","2016-09-15T00:00:00Z","2016-10-15T00:00:00Z","2016-11-15T00:00:00Z","2016-12-15T00:00:00Z","2017-01-15T00:00:00Z","2017-02-15T00:00:00Z","2017-03-15T00:00:00Z","2017-04-15T00:00:00Z","2017-05-15T00:00:00Z","2017-06-15T00:00:00Z","2017-07-15T00:00:00Z","2017-08-15T00:00:00Z","2017-09-15T00:00:00Z","2017-10-15T00:00:00Z","2017-11-15T00:00:00Z","2017-12-15T00:00:00Z","2018-01-15T00:00:00Z","2018-02-15T00:00:00Z","2018-03-15T00:00:00Z","2018-04-15T00:00:00Z","2018-05-15T00:00:00Z","2018-06-15T00:00:00Z","2018-07-15T00:00:00Z","2018-08-15T00:00:00Z","2018-09-15T00:00:00Z","2018-10-15T00:00:00Z","2018-11-15T00:00:00Z","2018-12-15T00:00:00Z"],[2003,2003,2003,2003,2003,2003,2003,2003,2003,2003,2003,2003,2004,2004,2004,2004,2004,2004,2004,2004,2004,2004,2004,2004,2005,2005,2005,2005,2005,2005,2005,2005,2005,2005,2005,2005,2006,2006,2006,2006,2006,2006,2006,2006,2006,2006,2006,2006,2007,2007,2007,2007,2007,2007,2007,2007,2007,2007,2007,2007,2008,2008,2008,2008,2008,2008,2008,2008,2008,2008,2008,2008,2009,2009,2009,2009,2009,2009,2009,2009,2009,2009,2009,2009,2010,2010,2010,2010,2010,2010,2010,2010,2010,2010,2010,2010,2011,2011,2011,2011,2011,2011,2011,2011,2011,2011,2011,2011,2012,2012,2012,2012,2012,2012,2012,2012,2012,2012,2012,2012,2013,2013,2013,2013,2013,2013,2013,2013,2013,2013,2013,2013,2014,2014,2014,2014,2014,2014,2014,2014,2014,2014,2014,2014,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2016,2016,2016,2016,2016,2016,2016,2016,2016,2016,2016,2016,2017,2017,2017,2017,2017,2017,2017,2017,2017,2017,2017,2017,2018,2018,2018,2018,2018,2018,2018,2018,2018,2018,2018,2018],["1085.69466560509","772.58056640625","887.09799494219601","938.74180640243901","942.90266719745205","1008.3602221385499","1165.25306919642","1299.3226943597499","1153.3556170886","1021.1027097902","748.43854166666597","746.27599597953201","708.12015086206895","706.53722734899304","718.16731366459601","737.44974512411295","856.54830545774598","1012.28618421052","1136.0395710059099","1289.1514274691301","1163.21856398809","997.49597679640704","787.59718351910794","735.74891493055497","806.10526842948696","694.73935231854796","766.46158030063202","882.538726993865","815.65686274509801","910.61595911949598","1006.22567114093","1034.2730654761899","1139.8058320063601","918.38245033112503","766.42148437499998","740.93514683734895","769.17177483974297","766.80372299382702","681.77963709677397","692.04565746753201","848.62257543103397","987.41377314814804","1016.19997970779","947.38417968750002","1023.47791666666","916.77368630573199","800.90885416666595","781.67482311320703","1104.83502155172","717.719396551724","758.45996732026094","756.83522727272702","770.62869822485197","890.35863095238096","981.481231508875","945.06011146496803","896.07228915662597","804.75667425496601","679.67556288819799","654.07702323717899","724.64460784313701","740.87162162162099","689.03733766233699","925.95358187134502","893.93318014705801","922.66156045751598","979.72072784810098","949.84641768292602","913.82903225806399","791.67430449695098","637.64215686274497","686.79636101973597","783.99421672077904","707.77996439873402","765.31602822580601","768.50592830882294","794.06226325757495","877.44613970588205","1036.08229813664","940.29125816993405","841.89158950617195","804.29480698529403","674.27241443452294","706.21984011627899","784.39684078467099","662.11144301470495","758.47065304487103","794.85214710884304","854.41591401734104","905.64215874233105","1051.3528645833301","1086.2358141447301","1019.95008389261","930.57793328220805","719.96626838235295","683.23304115853603","856.25496651785704","826.57663445723597","688.24702380952294","763.51282051281999","805.34853316326496","825.8515625","955.08098323170702","934.15604838709601","875.22487745097999","732.57456961077798","582.73487463662696","770.80625982704396","1045.7999799679401","714.65321969696902","690.91738281250002","784.80443548387098","805.32998991935403","942.99589843750005","1046.6980932203301","957.15362903225798","943.569972826087","803.19362207602296","660.80995973926304","789.46257267441797","952.18709935897402","826.32307841614897","719.924779647435","837.84525602409599","956.03920284431103","982.348295454545","1125.9228766025601","1018.37219827586","997.83249999999998","759.43255046583795","669.50753837719299","648.828725961538","771.77933902877703","618.70003939075605","554.41333705357101","757.56878810975604","830.74354383680497","833.07986111111097","1063.5653409090901","955.84980867346906","950.20773381294896","809.00847630718897","639.20238095238096","643.02426242236004","916.56731592465701","694.65173192770999","574.64216549295702","648.14237132352901","672.55675899621201","822.32483057228899","999.49498456790104","963.35219594594503","934.31077516233699","780.45285744862997","754.57488567073096","734.86603180473298","788.56097898229996","838.31770833333303","700.65467825443704","751.77677149681494","847.79886363636297","1018.54975076687","1091.6653196839","1018.63382711038","961.46830357142801","995.677734375","749.48032407407402","717.17890188547403","944.82786016949103","773.59691011235896","796.52548462566801","819.64769553072597","1098.4197168508199","993.04940878378295","1016.0394425675599","1008.42455357142","990.71856725146199","955.95772058823502","800.32691062176104","771.85974482248503","984.95870535714198","714.40359042553098","824.67072368420997","735.89568014705799","883.10287921348299","950.661326142132","1012.078125","NA","NA","NA","NA","NA"],[1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8,9,10,11,12],[15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15],["Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar","Zanzibar"],["pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp","pp"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>date<\/th>\n      <th>year<\/th>\n      <th>value<\/th>\n      <th>month<\/th>\n      <th>day<\/th>\n      <th>site<\/th>\n      <th>variable<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,3,4]}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="writing-t-a-file" class="section level2">
+<h2>Writing t a File</h2>
+<p>Sometimes you work in the document and you want to export to a file. <strong>readr</strong> has
+<code>write_csv()</code> and <code>write_tsv()</code> functions that allows to export data frames from workspace to working directory</p>
+<pre class="r"><code>write_csv(x = sheet1, path = &quot;./data/Primary_productivity_Pemba.csv&quot;)</code></pre>
+<p><span class="citation">@r4d</span> recomment the use of <code>write_excel_csv()</code> function when you want to export a data frame to Excel. <strong>readr</strong> has other tools that export files to other software like SAS, SPSS and more …</p>
+<pre class="r"><code>write_excel_csv(x = sheet1, path = &quot;./data/Primary_productivity_Pemba.csv&quot;)</code></pre>
+</div>
+<div id="basic-data-manipulation" class="section level2">
+<h2>Basic Data Manipulation</h2>
+<p>In this section, we brifely introduce some basic data handling and manipulation techniques, which are mostly associated with data frame. A data frame is a a tabular shaped contains columns and rows of equal length. In general a data frame structure with rows representing observations or measurements and with columns containing variables.</p>
+<div id="explore-the-data-frame" class="section level3">
+<h3>Explore the Data Frame</h3>
+<p>We can visualize the table by simply run the name of the data <code>flights</code></p>
+<pre class="r"><code>octopus = read_csv(&quot;octopus_data.csv&quot;)</code></pre>
+<p>we can use <code>class()</code> to check if the data is data frame</p>
+<pre class="r"><code>octopus %&gt;% class()</code></pre>
+<pre><code>FALSE [1] &quot;spec_tbl_df&quot; &quot;tbl_df&quot;      &quot;tbl&quot;         &quot;data.frame&quot;</code></pre>
+<p>We can use <code>names()</code> to extract the variable names</p>
+<pre class="r"><code>octopus %&gt;% names()</code></pre>
+<pre><code>FALSE  [1] &quot;date&quot;    &quot;village&quot; &quot;port&quot;    &quot;ground&quot;  &quot;sex&quot;     &quot;dml&quot;     &quot;tl&quot;     
+FALSE  [8] &quot;weight&quot;  &quot;lat&quot;     &quot;lon&quot;</code></pre>
+<p>We can explore the internal structure of <code>flights</code> object with a <code>dplyr()</code>’s function <code>glimpse()</code></p>
+<pre class="r"><code>octopus %&gt;% glimpse()</code></pre>
+<pre><code>FALSE Rows: 1,079
+FALSE Columns: 10
+FALSE $ date    &lt;date&gt; 2018-02-12, 2018-01-30, 2018-02-01, 2018-01-21, 2018-03-03, 2~
+FALSE $ village &lt;chr&gt; &quot;Somanga&quot;, &quot;Bwejuu&quot;, &quot;Somanga&quot;, &quot;Somanga&quot;, &quot;Somanga&quot;, &quot;Somanga~
+FALSE $ port    &lt;chr&gt; &quot;Mbuyuni&quot;, &quot;Kusini&quot;, &quot;Mbuyuni&quot;, &quot;Mbuyuni&quot;, &quot;Mbuyuni&quot;, &quot;Mbuyuni~
+FALSE $ ground  &lt;chr&gt; &quot;CHAMBA CHA MACHANGE&quot;, &quot;NYAMALILE&quot;, &quot;BANIANI&quot;, &quot;CHAMBA CHA SEL~
+FALSE $ sex     &lt;chr&gt; &quot;F&quot;, &quot;M&quot;, &quot;M&quot;, &quot;M&quot;, &quot;M&quot;, &quot;F&quot;, &quot;M&quot;, &quot;M&quot;, &quot;M&quot;, &quot;F&quot;, &quot;F&quot;, &quot;F&quot;, &quot;M~
+FALSE $ dml     &lt;dbl&gt; 14.0, 14.5, 17.0, 20.0, 12.0, 16.0, 15.0, 17.0, 12.0, 12.0, 9.~
+FALSE $ tl      &lt;dbl&gt; 110.0, 115.0, 115.0, 130.0, 68.0, 90.0, 96.0, 110.0, 79.0, 84.~
+FALSE $ weight  &lt;dbl&gt; 1.385, 1.750, 1.000, 2.601, 0.670, 0.870, 1.020, 1.990, 0.730,~
+FALSE $ lat     &lt;dbl&gt; -8.397838, -7.915809, -8.392644, -8.391614, -8.391146, -8.3881~
+FALSE $ lon     &lt;dbl&gt; 39.28079, 39.65424, 39.28153, 39.28089, 39.28251, 39.28196, 39~</code></pre>
+<p>We can check how rows (observations/measurements) and columns (variables/fields) are in the data</p>
+<pre class="r"><code>octopus %&gt;% dim()</code></pre>
+<pre><code>FALSE [1] 1079   10</code></pre>
+<p>The number of rows (observation) can be obtained using <code>nrow()</code> function</p>
+<pre class="r"><code>octopus %&gt;% nrow()</code></pre>
+<pre><code>FALSE [1] 1079</code></pre>
+<p>The number of columns (variables) can be obtained using <code>ncol()</code> function</p>
+<pre class="r"><code>octopus %&gt;% ncol()</code></pre>
+<pre><code>FALSE [1] 10</code></pre>
+<p>The length of the data frame is given by</p>
+<pre class="r"><code>octopus %&gt;% length()</code></pre>
+<pre><code>FALSE [1] 10</code></pre>
+<p>Count the number of sample at each sex of octopus</p>
+<pre class="r"><code>octopus %$% table(sex) </code></pre>
+<pre><code>FALSE sex
+FALSE   F   M 
+FALSE 581 498</code></pre>
+<p>Count the number and compute the proportion of sample at each sex of octopus</p>
+<pre class="r"><code>octopus %$% table(sex) %&gt;% prop.table() %&gt;% round(digits = 2)</code></pre>
+<pre><code>FALSE sex
+FALSE    F    M 
+FALSE 0.54 0.46</code></pre>
+</div>
+<div id="simmple-summary-statistics" class="section level3">
+<h3>simmple summary statistics</h3>
+<p>The most helpful function for for summarizing rows and columns is <code>summary()</code>, which gives a collection of basim cummary statistics. The first method is to calculate some basic summary statistics (minimum, 25th, 50th, 75th percentiles, maximum and mean) of each column. If a column is categorical, the summary function will return the number of observations in each category.</p>
+<pre class="r"><code>octopus %&gt;% 
+  summary()</code></pre>
+<pre><code>FALSE       date              village              port              ground         
+FALSE  Min.   :2017-12-18   Length:1079        Length:1079        Length:1079       
+FALSE  1st Qu.:2018-01-14   Class :character   Class :character   Class :character  
+FALSE  Median :2018-01-20   Mode  :character   Mode  :character   Mode  :character  
+FALSE  Mean   :2018-01-26                                                           
+FALSE  3rd Qu.:2018-02-15                                                           
+FALSE  Max.   :2018-03-12                                                           
+FALSE      sex                 dml             tl             weight     
+FALSE  Length:1079        Min.   : 6.0   Min.   : 11.00   Min.   :0.055  
+FALSE  Class :character   1st Qu.:10.0   1st Qu.: 68.00   1st Qu.:0.600  
+FALSE  Mode  :character   Median :12.0   Median : 82.00   Median :0.915  
+FALSE                     Mean   :12.8   Mean   : 86.01   Mean   :1.232  
+FALSE                     3rd Qu.:15.0   3rd Qu.:100.00   3rd Qu.:1.577  
+FALSE                     Max.   :24.0   Max.   :180.00   Max.   :5.210  
+FALSE       lat              lon       
+FALSE  Min.   :-8.904   Min.   : 0.00  
+FALSE  1st Qu.:-8.523   1st Qu.:39.28  
+FALSE  Median :-8.392   Median :39.50  
+FALSE  Mean   :-8.069   Mean   :38.69  
+FALSE  3rd Qu.:-7.973   3rd Qu.:39.67  
+FALSE  Max.   : 0.000   Max.   :39.75</code></pre>
+<p>You noticed that the <code>summary()</code> function provide the common metric for <code>central tendency</code> and <code>measure of dispersion</code>. We will look at them later. The next post takes us to our favorite package <strong>dplyr</strong>.</p>
+</div>
+</div>

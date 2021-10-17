@@ -1,0 +1,182 @@
+---
+title: Working with Raster Dataset in R
+author: Masumbuko Semba
+date: '2020-09-04'
+slug: []
+categories:
+  - ''
+tags:
+  - code
+  - lubridate
+  - programming
+  - R
+  - raster
+  - tidyverse
+description: ''
+thumbnail: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<p>We begin with answering the questions. And the possible reason to reach the goal is to define questions like;</p>
+<ul>
+<li>what is a raster dataset?</li>
+<li>What tools/functions are used to import raster in R?</li>
+<li>How to I work with and plot raster data in R</li>
+<li>How missing or bad data in R are handled with R</li>
+</ul>
+<p><strong>Objectives</strong></p>
+<ul>
+<li>Describe the fundamental attributes of a raster dataset</li>
+<li>Explore raster attributtes and metadata</li>
+<li>Import raster dataset into R workspace</li>
+<li>visualize raster object</li>
+<li>Distinguish single versus multi-bands rasters</li>
+</ul>
+<div id="introduction-to-raster-data" class="section level2">
+<h2>Introduction to Raster data</h2>
+<p>This this section introduce you to the fundamental principles, packages and metadata/raster attributes that are needed to work with raster data in R. The section discuss some of the core metadata elements that you need to understand to work with rasters in R, including CRS and resolution. Furthermore, missing and bad data values stored in raster will be explored and techniques to handles these elements will be illustrated.</p>
+<p>The book use several packages including the <strong>tidyverse</strong> ecosystem <span class="citation">[@tidyverse]</span>—with popular packages like the <strong>ggplot2</strong><span class="citation">[@ggplot]</span> and <strong>dplyr</strong> <span class="citation">[@dplyr]</span>. The widely used packages for handling raster and vector data like <strong>raster</strong> <span class="citation">[@raster]</span>, <strong>sp</strong><span class="citation">[@sp]</span>, <strong>sf</strong> <span class="citation">[@sf]</span> and <strong>rgdal</strong> <span class="citation">[@rgdal]</span> make core tools in this book. R needs these packages imported into the environment to use their functions, which can easily done with the <code>require()</code> function.</p>
+<pre class="r"><code>require(sf)
+require(sp)
+require(raster)
+require(tidyverse)
+require(metR)</code></pre>
+<div id="geotiff" class="section level3">
+<h3>GeoTiff</h3>
+<p>A popular public domain raster data format is the <code>GeoTIFF</code> format. If maximum portability and platform independence is important, this file format may be a good choice.</p>
+</div>
+<div id="explore-the-raster-attribute" class="section level3">
+<h3>Explore the raster attribute</h3>
+<p>One of the common raster file is the *GeoTiff** that embed tags of metadata information bout the raster file. This metadata provide the information of the file and hence help us understand the internal structure of the file. This information can be accessed with the <code>GDALinfo()</code> function <span class="citation">[@rgdal]</span>. Looking at the metadata help us have a glimpse of the file before even the file is imported into the workspace.</p>
+<pre class="r"><code>rgdal::GDALinfo(&quot;e:/GIS/Tanzania spatial data Bank/Lake_Tanganyika_Bathymetry/Lake_Tanganyika_Bathymetry/grid/tanganyika_dbm (2013_10_23 20_44_28 UTC).tif&quot;)</code></pre>
+</div>
+<div id="read-a-geotiff-raster-data" class="section level3">
+<h3>Read a GeoTIFF raster data</h3>
+<p>Once you have a glimpse of the information of the raster—for example the above information show that the tiff contain elevation values and provide the summary statistics of the elevation with minimum value of 0 and maximum value of 1500 with average of 607. It also show the geographical extent with minimum longitude o 29.05769 and maximul latitude of -8.811174. Furthermore, the metadata tell us that the file is projected with World Geodetic System (WGS84) and the cell has a horizontal resolution of 0.000833 degree. Once we know this information, we can read the file with the <code>raster</code> function of <strong>raster</strong> package <span class="citation">[@raster]</span></p>
+<p>For this example, we use the bathmetry information of Lake Tanganyika found in Africa. It the world’s longest freshwater lake, the second largest largest by volume, and the second deepest lake in the world after lake Baikal in Siberia <span class="citation">[@wiki2]</span>.</p>
+<pre class="r"><code>lt.bath = raster(&quot;e:/GIS/Tanzania spatial data Bank/Lake_Tanganyika_Bathymetry/Lake_Tanganyika_Bathymetry/grid/tanganyika_dbm (2013_10_23 20_44_28 UTC).tif&quot;)</code></pre>
+<p>We can <code>summary</code> function to look at the statistics of the bathmetry of this lake. Looking at the descriptive statistics, we notice that the lake has the depth range from 0 to 1500 m and there is no cell without a value.</p>
+<pre class="r"><code>lt.bath %&gt;% summary()</code></pre>
+<p>There are times when a raster file does not show the summary statistics. When this occurs you can manually calculate the cell values using the <code>setMinMax()</code> function.</p>
+<pre class="r"><code>lt.bath %&gt;% 
+  setMinMax() </code></pre>
+</div>
+<div id="view-raster-coordinate-reference-system" class="section level3">
+<h3>View Raster Coordinate Reference System</h3>
+<p>A spatial reference system (SRS) or coordinate referene system (CRS) is a coordinate-based local, regional or global system used to locate geographical entities <span class="citation">[@wiki1]</span>. A spatial reference system defines a specific map projection and transofrmation betweeen diffferent spatial reference systems. We can look the embedded CRS in the raster file with teh <code>crs()</code> function from <strong>raster</strong> package.</p>
+<pre class="r"><code>lt.bath %&gt;% crs()</code></pre>
+<p>We notice that the raster file is projected in Word Geodetic System of 1984 (WGS84). In summary the projection <code>+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0</code> tell us as follows:</p>
+<ul>
+<li><code>proj=longlat</code>: the projectionis in longitude and latitude decimal degrees</li>
+<li><code>datum=WGS84</code>: the datum is WGS84 and it referes to the 0,0 refereence for the coordinate system used in the projection</li>
+<li><code>ellps=WGS84</code>: the ellipsoidd—how the earth’s roundness is calculated for the data is WGS84</li>
+</ul>
+</div>
+<div id="dealing-with-missing-data-in-raster" class="section level3">
+<h3>Dealing with missing data in raster</h3>
+<p>Raster data often has <code>NoData</code> value to represent the absence of data. This is a value assigned to pixels where data is missing or absent. The raster comes with a ract1 contain both the elevation and bathmetry information. But if you want to plot area contour from the coastline offshore, you will need to remove elevation information and this is when you assign the elevation pixel with the <code>NoData</code> value.</p>
+<p>The values that is conventionally used to represent missing data varies by ther raster data type. For example, for floating points rasters, the figure <code>-3.4e+38</code> is commonly used while for integers a figure <code>-9999</code> is common. However, when raster are imported,
+R assigns these missing cell with <code>NA</code>.</p>
+<pre class="r"><code>tz.bath = raster::raster(&quot;d:/semba/thesisTypeset/etopo1/wioregio-7753.asc&quot;)
+tz.bath %&gt;% summary()</code></pre>
+<pre><code>        wioregio.7753
+Min.            -6668
+1st Qu.         -4383
+Median          -3347
+3rd Qu.           310
+Max.             4506
+NA&#39;s                0</code></pre>
+</div>
+</div>
+<div id="assign-projection-and-reproject-raster-data-in-r" class="section level2">
+<h2>Assign projection and Reproject Raster Data in R</h2>
+<p>Sometimes we encounter raster datasets that do not “line up” when plotted or analyzed. Rasters that don’t line up are most often in different Coordinate Reference Systems (CRS). This section explains how to deal with rasters in different, known CRSs. It will walk though reprojecting rasters in R using the <code>projectRaster()</code> function in the <strong>raster</strong> package. We can assess the projection of the two raster data we loaded earlier with the <code>crs()</code> function from <strong>raster</strong> package. Let’s begin with the bathmetry raster of Lake Tanganyika</p>
+<pre class="r"><code>crs(tz.bath)</code></pre>
+<pre><code>CRS arguments: NA </code></pre>
+<p>We notice that the bathmetry raster of Lake Tanganyika has defined coordinate reference system—WGS84. let us also check the bathmetry data from the coastal water of Tanzania using the same <code>crs()</code> function.</p>
+<pre class="r"><code>crs(tz.bath)</code></pre>
+<pre><code>CRS arguments: NA </code></pre>
+<p>Unfortunately, the bathmetry raster of coastal water of Tanzania lack the coordinate reference systm—this idicate that the projection is not defined yet. fortunate, raster package has <code>projectRaster()</code> function that allows to reproject raster without defined CRS or reproject a raster from one CRS into another. Since the <code>lt.bath</code> has the projection, we can use its projection to define the missing coordinate system in <code>tz.bath</code> raster file. Because we need to define a projection of the missing raster, we simply use the <code>crs()</code> function to copy the projection of <code>lt.bath</code> into the <code>tz.bath</code> as the code block illustrate</p>
+<pre class="r"><code>crs(tz.bath) = &quot;+proj=lcc +lat_1=48 +lat_2=33 +lon_0=-100 +datum=WGS84&quot;</code></pre>
+<p>We can check the coordinate of the two files if they are correct</p>
+<pre class="r"><code>crs(tz.bath)</code></pre>
+<p>Since we know that the coastal water of Tanzania lies at zone 37 south, we can simply assign the appropriate projection and then transform the bathmetry from WGS84 to UTM zone 37 south. Since we know the text of the zone, let us define it</p>
+<pre class="r"><code>    tzutm = &quot;+proj=utm +zone=37 +south +datum=WGS84 +units=m +no_defs&quot;</code></pre>
+<p>We then use the <code>projection()</code> function to transform the CRS from WGS84 to UTM Zone 37 south</p>
+<pre class="r"><code>tz.bath.utm =  tz.bath
+
+projection(tz.bath.utm) = tzutm</code></pre>
+<p>Then check the files projections. Instead of using the <code>crs()</code> to assess the type of projection, we use the <code>projection()</code> function instead.</p>
+<pre class="r"><code>tz.bath %&gt;% 
+  projection(asText = F)</code></pre>
+<pre><code>CRS arguments: NA </code></pre>
+<pre class="r"><code>tz.bath.utm %&gt;% 
+  projection(asText = F)</code></pre>
+<pre><code>CRS arguments:
+ +proj=utm +zone=37 +south +datum=WGS84 +units=m +no_defs </code></pre>
+</div>
+<div id="raster-resolution" class="section level2">
+<h2>Raster resolution</h2>
+<p>Let’s next have a look at the resolution of reprojected <code>tz.bath.utm</code> and the <code>tz.bath</code> files.</p>
+<pre class="r"><code>tz.bath.utm %&gt;% res();tz.bath %&gt;% res()</code></pre>
+<pre><code>[1] 0.01666667 0.01666667</code></pre>
+<pre><code>[1] 0.01666667 0.01666667</code></pre>
+<p>We notice that the horizontal resolution of projected utm <code>tz.bath.utm</code> file is given in meters of 1859.258 by 1860.036. But the the wgs84 <code>tz.bath</code> is given in degree of 0.01666667 by 0.01666667. Therefore, depending on how you intend to use the raster in analysis and mapping, you will find yourself resonate between geographical coordianate system (WGS) and Universal Transeverse Mercator (UTM). The former is in degree while the later is in meters.</p>
+</div>
+<div id="raster-calculation" class="section level2">
+<h2>Raster Calculation</h2>
+<p>Often times we want to perform calculations on two or more rasters to create a new output raster. For example, if we are interested in mapping the heights of trees across an entire field site, we might want to calculate the difference between the Digital Surface Model (DSM, tops of trees) and the Digital Terrain Model (DTM, ground level). The resulting dataset is referred to as a Canopy Height Model (CHM) and represents the actual height of trees, buildings, etc. with the influence of ground elevation removed.</p>
+<!-- ## Multi-bands satellite imagery -->
+<!-- High resolution digital globe multispectral image. Let us explore the image first -->
+<!-- ```{r} -->
+<!-- rgdal::GDALinfo("e:/GIS/trevor/053575070010_01/053575070010_01_P001_MUL/14AUG19082006-M2AS-053575070010_01_P001.TIF") -->
+<!-- ``` -->
+<!-- ```{r} -->
+<!-- dg = raster("e:/GIS/trevor/053575070010_01/053575070010_01_P001_MUL/14AUG19082006-M2AS-053575070010_01_P001.TIF") -->
+<!-- ``` -->
+<!-- When we explore the raster file, it tell that the class is raster layer and it has eight bands with spatial resolution of 2 meters.  -->
+<!-- ```{r} -->
+<!-- dg -->
+<!-- ``` -->
+<!-- Check for geographical coordinate system -->
+<!-- ```{r} -->
+<!-- dg %>% projection() -->
+<!-- ``` -->
+<!-- check for the resolution -->
+<!-- ```{r} -->
+<!-- res(dg) -->
+<!-- ``` -->
+<!-- ### Rater Stacks  -->
+<!-- The multi-bands raster in R are handled easily with the `stack()` function, which bling all bands of multi-band raster  -->
+<!-- ```{r} -->
+<!-- dg.bands = stack("e:/GIS/trevor/053575070010_01/053575070010_01_P001_MUL/14AUG19082006-M2AS-053575070010_01_P001.TIF") -->
+<!-- ``` -->
+<!-- We then preview the attributes embedded in the stacked raster object -->
+<!-- ```{r} -->
+<!-- dg.bands -->
+<!-- ``` -->
+<!-- We can view the attributes of each band in the stack with a single output using the `$` operator and call the layer -->
+<!-- ```{r} -->
+<!-- dg.bands@layers -->
+<!-- ``` -->
+<!-- ```{r} -->
+<!-- plotRGB(dg.bands, r = 3, g = 2, b = 1, scale = 800, stretch = "hist") -->
+<!-- ``` -->
+<!-- ```{r, eval=FALSE} -->
+<!-- b1 = raster("e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B1.tif") -->
+<!-- b2 = raster("e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B2.tif") -->
+<!-- b3 = raster("e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B3.tif") -->
+<!-- b4 = raster("e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B4.tif") -->
+<!-- b5 = raster("e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B5.tif") -->
+<!-- b6 = raster("e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B6.tif") -->
+<!-- b7 = raster("e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B7.tif") -->
+<!-- ``` -->
+<!-- ```{r eval=FALSE} -->
+<!-- stack(b1, b2, b3) %>% plotRGB(r = 3, g = 2, b = 1, scale = TRUE) -->
+<!-- ``` -->
+<!-- ## Manipulate raster -->
+<!-- ## Raster time series data -->
+<!-- ## comparing NDVI from Two different sites  -->
+</div>

@@ -1,0 +1,124 @@
+---
+title: The Lake Victoria bathymetry
+author: Masumbuko Semba
+date: '2021-03-15'
+slug: []
+categories:
+  - ggplot2
+  - R
+tags:
+  - bathymetry
+  - code
+  - programming
+  - semba
+description: ''
+thumbnail: ''
+bibliography: [../blog.bib]
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<p>I was looking for bathymetry dataset for Lake Victoria online and I came across this <a href="https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/SOEKNR#">link</a>. It stores several products of the bathymetry data of the Lake Victoria. Among them products is the gridded TIFF file. This dataset was created by a team from Harvard University in 2017 <span class="citation">(<a href="#ref-hamilton" role="doc-biblioref">Hamilton et al. 2016</a>)</span>. They used over 4.2 million points collected over 100-years of surveys. The point data was obtained from an Admiral Bathymetry map and points collected in the field. Roughly, 3.8 million points come from the survey conducted by Lake Victoria Regional Hydro-acoustics Working Group.</p>
+<p>In this post I illustrate step by step processing the bathymetric of Lake Victoria, which is stored in n TIFF format using R language <span class="citation">(<a href="#ref-r" role="doc-biblioref">R Core Team 2018</a>)</span>. You first need to download the dataset from <a href="https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/SOEKNR#">here</a> as TIFF. It has about 48 MB, so your patient is needed if you internet speed is slow for this file to download. I load some of the packages to manipulate, analyze and even visualize the bathymetry data of Lake Victoria. These packages include;</p>
+<pre class="r"><code>require(tidyverse)
+require(sf)
+require(leaflet)</code></pre>
+<p><strong>raster</strong> package contains nifty function to handle raster file like the bathymetry dataset of Lake Victoria <span class="citation">(<a href="#ref-raster" role="doc-biblioref">Hijmans 2017</a>)</span>. But, often there conflict between <strong>raster</strong> and <strong>tidyverse</strong> packages, I will only call specific function of raster package when needed using the <code>raster::</code> arguments throughtout this post. Once the dataset is download, you can simply load or import in R session using <code>raster</code> function from <strong>raster</strong> package <span class="citation">(<a href="#ref-raster" role="doc-biblioref">Hijmans 2017</a>)</span>.</p>
+<pre class="r"><code>## read the ascii file
+lake.victoria = raster::raster(&quot;d:/semba2//Lake_victoria/LV_Bathy_V7.tif&quot;)
+
+lake.victoria.shp = st_read(&quot;d:/semba2/Lake_victoria/wb_lv_tzn.shp&quot;, quiet = TRUE)</code></pre>
+<p>When we plot the bathymetry of Lake Victoria as shown in figure <a href="#fig:fig1">1</a>, we notice that depth vary across the lake range between 0 to about 80 meters deep. Unfortunately, the longitude and latitude values are unfamiliar to me and I the datum used to present this dataset are unclear to me.</p>
+<pre class="r"><code>lake.victoria %&gt;% raster::plot()</code></pre>
+<div class="figure"><span id="fig:fig1"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/fig1-1.png" alt="Lake Victoria batymetry map" width="672" />
+<p class="caption">
+Figure 1: Lake Victoria batymetry map
+</p>
+</div>
+<p>To have a glimpse of the <code>Coordinate Reference System</code> (CRS) in the dataset, I used <code>raster::crs()</code> function to check the datum used;</p>
+<pre class="r"><code>lake.victoria %&gt;% 
+  raster::crs()</code></pre>
+<pre><code>FALSE CRS arguments:
+FALSE  +proj=lcc +lat_0=0 +lon_0=25 +lat_1=20 +lat_2=-23 +x_0=0 +y_0=0
+FALSE +datum=WGS84 +units=m +no_defs</code></pre>
+<div id="reproject-rasters" class="section level2">
+<h2>Reproject Rasters</h2>
+<p>We can use the <code>projectRaster</code> function to reproject a raster into a new CRS. I have used <code>+proj=longlat +ellps=WGS84 +datum=WGS84</code> to transform the projection into WGS84 geographical coordinate system of longitude and latitude measured in degree. Keep in mind that reprojection only works when you first have a defined CRS for the raster object that you want to reproject.</p>
+<pre class="r"><code># reproject to UTM
+lake.victoria.wgs = lake.victoria %&gt;% 
+  raster::projectRaster(crs=&quot;+proj=longlat +ellps=WGS84 +datum=WGS84&quot;)</code></pre>
+<p>When we replot the projected bathymetry as shown in figure <a href="#fig:fig2">2</a>, we notice that the longitude and latitude are in degree.</p>
+<pre class="r"><code>lake.victoria.wgs %&gt;% raster::plot()</code></pre>
+<div class="figure"><span id="fig:fig2"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/fig2-1.png" alt="Transformed projection of Lake Victoria bathymetry to datum WGS84" width="672" />
+<p class="caption">
+Figure 2: Transformed projection of Lake Victoria bathymetry to datum WGS84
+</p>
+</div>
+<p>If we are fine with the projection, but the plotting isn’t pleasing. We might want to use the grammar of graphic <strong>ggplot2</strong> and its extended package like the <strong>metR</strong> to improve the plot. However, these package use data organized in data frame instead of raster. We use the <code>raster::as.data.frame(xy = TRUE)</code> to convert raster to data frame and tidy the data into lon, lat, and depth with <code>rename(lon = x, lat = y, depth = 3)</code> from dplyr package <span class="citation">(<a href="#ref-dplyr" role="doc-biblioref">Wickham et al. 2019</a>)</span>.</p>
+<pre class="r"><code>## convert raster to data frame
+lake.victoria.df = lake.victoria.wgs %&gt;% 
+  raster::as.data.frame(xy = TRUE) %&gt;%
+  dplyr::as_tibble() %&gt;% 
+## rename the variable
+  dplyr::rename(lon = x, lat = y, depth = 3)%&gt;% 
+  dplyr::mutate(depth = as.numeric(depth))</code></pre>
+<p>Once we have organized the data frame from raster, we can use the information now to plot the spatial variation of water depth in the lake. Figure <a href="#fig:fig3">3</a> show filled contour of depth in Lake Victoria. This figure <a href="#fig:fig3">3</a> was plotted using the code in the chunk below;</p>
+<pre class="r"><code>lake.victoria.df %&gt;%
+  ggplot(aes(x = lon, y = lat))+
+  geom_contour_filled(aes(z = depth))+
+  metR::scale_x_longitude(ticks = 0.5)+
+  metR::scale_y_latitude(ticks = 0.5)+
+  coord_cartesian(expand = FALSE)+
+  theme(panel.background = element_blank(), panel.grid = element_line(linetype = 3))</code></pre>
+<div class="figure"><span id="fig:fig3"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/fig3-1.png" alt="Bathymetry of Lake Victoria" width="672" />
+<p class="caption">
+Figure 3: Bathymetry of Lake Victoria
+</p>
+</div>
+<p>We may also wish to plot only the section of the lake and use contour lines instead of filled contour. we need then to have base maps. the chunk below show how to import the base maps into our session. The lake boundary is in projected in UTM zone 36 south and the regions layer is in WGS84. Therefore, I will import and project on the fly the lake baseman, but for the region baseman simply import into the session with the <code>st_read</code> function <span class="citation">(<a href="#ref-sf" role="doc-biblioref">Pebesma 2018</a>)</span>. To reduce processing time while drawing contour, the lake baseman data frame was filter to accommodate only value that fall within the specified area of interest using <code>filter</code> function from dplyr <span class="citation">(<a href="#ref-dplyr" role="doc-biblioref">Wickham et al. 2019</a>)</span></p>
+<pre class="r"><code>lake.victoria.df %&gt;%
+  mutate(depth = depth*-1) %&gt;% 
+  ggplot(aes(x = lon, y = lat))+
+  metR::geom_contour_fill(aes(z = depth))+
+  metR::scale_x_longitude(ticks = 0.5)+
+  metR::scale_y_latitude(ticks = 0.5)+
+  coord_cartesian(expand = FALSE)+
+  theme(panel.background = element_blank(), panel.grid = element_line(linetype = 3))+
+  scale_fill_gradientn(colors = oce::oce.colorsGebco(120))</code></pre>
+<div class="figure"><span id="fig:fig4"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/fig4-1.png" alt="Bathymetry of Lake Victoria" width="672" />
+<p class="caption">
+Figure 4: Bathymetry of Lake Victoria
+</p>
+</div>
+</div>
+<div id="cited-references" class="section level2 unnumbered">
+<h2>Cited references</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-hamilton" class="csl-entry">
+Hamilton, Stuart, Anthony Taabu Munyaho, Noah Krach, and Sarah Glaser. 2016. <span>“<span class="nocase">Bathymetry TIFF, Lake Victoria Bathymetry, raster, 2017, V7</span>.”</span> Harvard Dataverse. <a href="https://doi.org/10.7910/DVN/SOEKNR">https://doi.org/10.7910/DVN/SOEKNR</a>.
+</div>
+<div id="ref-raster" class="csl-entry">
+Hijmans, Robert J. 2017. <em>Raster: Geographic Data Analysis and Modeling</em>. <a href="https://CRAN.R-project.org/package=raster">https://CRAN.R-project.org/package=raster</a>.
+</div>
+<div id="ref-sf" class="csl-entry">
+Pebesma, Edzer. 2018. <span>“<span class="nocase">Simple Features for R: Standardized Support for Spatial Vector Data</span>.”</span> <em><span>The R Journal</span></em> 10 (1): 439–46. <a href="https://doi.org/10.32614/RJ-2018-009">https://doi.org/10.32614/RJ-2018-009</a>.
+</div>
+<div id="ref-sf" class="csl-entry">
+———. 2018. <span>“<span class="nocase">Simple Features for R: Standardized Support for Spatial Vector Data</span>.”</span> <em><span>The R Journal</span></em> 10 (1): 439–46. <a href="https://doi.org/10.32614/RJ-2018-009">https://doi.org/10.32614/RJ-2018-009</a>.
+</div>
+<div id="ref-r" class="csl-entry">
+R Core Team. 2018. <em>R: A Language and Environment for Statistical Computing</em>. Vienna, Austria: R Foundation for Statistical Computing. <a href="https://www.R-project.org/">https://www.R-project.org/</a>.
+</div>
+<div id="ref-dplyr" class="csl-entry">
+Wickham, Hadley, Romain François, Lionel Henry, and Kirill Müller. 2019. <em>Dplyr: A Grammar of Data Manipulation</em>. <a href="https://CRAN.R-project.org/package=dplyr">https://CRAN.R-project.org/package=dplyr</a>.
+</div>
+<div id="ref-dplyr" class="csl-entry">
+———. 2019. <em>Dplyr: A Grammar of Data Manipulation</em>. <a href="https://CRAN.R-project.org/package=dplyr">https://CRAN.R-project.org/package=dplyr</a>.
+</div>
+</div>
+</div>

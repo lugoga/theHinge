@@ -1,0 +1,132 @@
+---
+title: Compute trends of temperature in R with EnvStats package
+author: Masumbuko Semba
+date: '2021-01-01'
+slug: []
+categories:
+  - R
+tags:
+  - trend
+  - code
+  - programming
+  - satellite
+description: ''
+thumbnail: ''
+bibliography: [../blog.bib]
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<div id="introduction" class="section level3">
+<h3>Introduction</h3>
+<p>Often in environmental studies we are interested in assessing the presence or absence of a long term trend. A widely applied is a parametric test for trend, which involves fitting a linear model that includes some measure of time as one of the predictor variables, and possibly allowing for serially correlated errors in the model. Instead of fitting the data to time series parametric test, Stephen Millard bundles several functions in <strong>EnvStats</strong> package that are non–parametric and agnostic in dealing with trend <span class="citation">(<a href="#ref-envstats" role="doc-biblioref">Millard 2013</a>)</span>.</p>
+<p>These functions include <code>kendallTrendTest()</code>for computing annual trend and <code>kendallSeasonalTrendTest()</code> for computing the seasonal trends. One advantage of these tools is that are non-parametric test—trend test that does not assume normally distributed errors. In this post I will illustrate how to use these tools to assess the annual rate of change in temperature and precipitation for selected stations within the Zambezi river catchment.</p>
+<p>Before we proceed, we need to load some packages that we are going to use in this post.</p>
+<pre class="r"><code>library(EnvStats) 
+require(tidyverse)
+require(magrittr)</code></pre>
+</div>
+<div id="data" class="section level3">
+<h3>Data</h3>
+<p>We use download sea surface temperature data for Mafia Channel between January 2003 and July 2021. <span class="citation"><a href="#ref-wior" role="doc-biblioref">Semba and Peter</a> (<a href="#ref-wior" role="doc-biblioref">2020</a>)</span> developed a <strong>wior</strong> package, which interactively allow the user to dowload satellite data, process and organize them in long form to make it easy to manipulate and plotting in R. We can simply download the seas surface temperature for Mafia Channel by simply specifying the geographical extent of the channel and the period we are interested inside the <code>et_sstMUR</code> function. This chunk highlight the arguments required for this download.</p>
+<pre class="r"><code>sst = wior::get_sstMUR(lon.min = 38.7, lon.max = 39.2, 
+                       lat.min = -7.0, lat.max = -6.5, 
+                       t1 = &quot;2003-01-01&quot;, t2 = &quot;2021-07-30&quot;,
+                       level = 2)</code></pre>
+<pre class="r"><code>sst = sst %&gt;% 
+  group_by(time) %&gt;% 
+  summarise(sst = mean(sst, na.rm = TRUE)) %&gt;% 
+  write_csv(&quot;sst_mafia.csv&quot;)</code></pre>
+<pre class="r"><code>sst %&gt;% 
+  # sample_n(10) %&gt;% 
+  glimpse()</code></pre>
+<pre><code>Rows: 223
+Columns: 2
+$ time &lt;date&gt; 2003-01-16, 2003-02-16, 2003-03-16, 2003-04-16, 2003-05-16, 2003~
+$ sst  &lt;dbl&gt; 28.30728, 29.32974, 29.98218, 29.34222, 27.94531, 26.89597, 25.76~</code></pre>
+<p>We notice that the dataset contains two columns and 223 observations. The columns include the time and sst values. The time is in perfect date format, we can visualize the temperature</p>
+<pre class="r"><code>sst %&gt;% 
+  ggplot(aes(x = time, y = sst))+
+  geom_path()+
+  geom_smooth()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+</div>
+<div id="annual-trend" class="section level3">
+<h3>Annual Trend</h3>
+<p>We then need to understand the annual rate of change in temperature (trend) for the channel. We use the <code>kendallTrendTest</code> function from <strong>EnvStats</strong> package <span class="citation">(<a href="#ref-envstats" role="doc-biblioref">Millard 2013</a>)</span> to assess whether temperature in Mafia channel experience positive or negative monotonic trends.</p>
+<pre class="r"><code>sst %&gt;% 
+  mutate(year = lubridate::year(time))%$% 
+  EnvStats::kendallTrendTest(sst ~ year) %&gt;% 
+  broom::tidy()%&gt;%
+  dplyr::select(tau = 1, slope = 2, statistic, p_value = 5) </code></pre>
+<pre><code># A tibble: 1 x 4
+     tau  slope statistic p_value
+   &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;
+1 0.0555 0.0194      1.23   0.217</code></pre>
+<p>We notice that Mafia has a monotonic increase of temperature at a rate of 0.019<sup>o</sup>C, which is insignificant (p = 0.23)</p>
+</div>
+<div id="seasonal-trend" class="section level3">
+<h3>Seasonal trend</h3>
+<p>The mafia channel being located in the western indian ocean region is affected with the monsoon seasons. We may be interested to know also between southeast (SE) and northeast (NE) monsoon season, which one is warming faster than the other. The first thing is to decompose our dataset into the two monsoon seasons. We know from literature that the southeast monsoon season begin in may and run through September and northeast season begin in early October and end toward April. We can use this clues to separate the sst data into the two categories as the chunk highlight</p>
+<pre class="r"><code>sst.season = sst %&gt;% 
+  mutate(year = lubridate::year(time),
+         month = lubridate::month(time, label = FALSE),
+         season = if_else(month &gt;4 &amp; month &lt;10, &quot;SE&quot;, &quot;NE&quot;))</code></pre>
+<p>Figure <a href="#fig:sst-season">1</a> highlight the key characteristic of the monsoon season, which is warmer during the NE and cooler during the SE monsoon season, the mean temperature of 28.54<sup>o</sup>C during the NE is significant higher than the mean temperature of 26.50<sup>o</sup>C during the SE monsoon season (p &lt; 0.05).</p>
+<pre class="r"><code>sst.season %&gt;% 
+  ggstatsplot::ggbetweenstats(x = season, y = sst, type = &quot;p&quot;, 
+                              ylab = expression(SST~(degree*C)))+
+  ggsci::scale_color_igv()</code></pre>
+<div class="figure"><span id="fig:sst-season"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/sst-season-1.png" alt="Sea surface temperature by season in the Mafia Channel" width="672" />
+<p class="caption">
+Figure 1: Sea surface temperature by season in the Mafia Channel
+</p>
+</div>
+<p>Once we are familiar with the seasonal characteristics of the sea surface temperature in the channel, we then go ahead and run the seasonal trend over the study period for the southeast monsoon</p>
+<pre class="r"><code>sst.season %&gt;% 
+  filter(season == &quot;SE&quot;)%$% 
+  EnvStats::kendallSeasonalTrendTest(sst ~ month+year) %&gt;% 
+  broom::tidy()%&gt;%
+  dplyr::select(tau = 1, slope = 2, statistic, p_value = 5) %&gt;% 
+  slice(1)</code></pre>
+<pre><code># A tibble: 1 x 4
+    tau  slope statistic p_value
+  &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;
+1 0.254 0.0225      7.82  0.0982</code></pre>
+<p>We found that sst trend in mafia increase at a rate of about 0.02<sup>o</sup>C per year during the SE monsoon season. Alghouth the rate of increase in temperature during the SE is higher than the annual trend, it’s insignificant.</p>
+<pre class="r"><code>sst.season %&gt;% 
+  filter(season == &quot;NE&quot;)%$% 
+  EnvStats::kendallSeasonalTrendTest(sst ~ month+year) %&gt;% 
+  broom::tidy()%&gt;%
+  dplyr::select(tau = 1, slope = 2, statistic, p_value = 5) %&gt;% 
+  slice(1)</code></pre>
+<pre><code># A tibble: 1 x 4
+    tau  slope statistic p_value
+  &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;
+1 0.152 0.0162      6.33   0.387</code></pre>
+<p>The NE experience the lowest rate of increase in temperature of 0.16<sup>o</sup>C per year expecting the temperature to rise by about 1.6<sup>o</sup>C in 100 years. We can further notice that the year 2008 was the coldest during the NE and SE monsoon season and the warmest year during the NE was 2019 and for SE was 2018 (Figure <a href="#fig:sst-coldhot">2</a>). The mean temperature difference between the cool and warm year in both NE and SE monsoon season were significant (p &lt; 0.05).</p>
+<pre class="r"><code>sst.season %&gt;% 
+  ggstatsplot::grouped_ggdotplotstats(x = sst, y = year, 
+                                      grouping.var = season,
+                                      xlab = expression(SST~(degree*C)))</code></pre>
+<div class="figure"><span id="fig:sst-coldhot"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/sst-coldhot-1.png" alt="Dotplot of sea surface temperature in mafia channel by monsoon seasons" width="672" />
+<p class="caption">
+Figure 2: Dotplot of sea surface temperature in mafia channel by monsoon seasons
+</p>
+</div>
+<p>In summary, we have seen how to compute annual and seasonal trends of temperature. We have also seen how to present the result in both tabular form and plots, in form that is easy for the eye. That’s it for today and next post I will show how to compute seasonal trend using almost similar approach used in this post.</p>
+</div>
+<div id="reference" class="section level3 unnumbered">
+<h3>Reference</h3>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-envstats" class="csl-entry">
+Millard, Steven P. 2013. <em>EnvStats: An r Package for Environmental Statistics</em>. New York: Springer. <a href="http://www.springer.com">http://www.springer.com</a>.
+</div>
+<div id="ref-wior" class="csl-entry">
+Semba, Masumbuko, and Nyamisi Peter. 2020. <em>Wior: Easy Tidy and Process Oceanographic Data</em>.
+</div>
+</div>
+</div>

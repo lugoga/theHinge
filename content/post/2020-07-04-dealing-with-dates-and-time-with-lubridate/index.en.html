@@ -1,0 +1,370 @@
+---
+title: Dealing with dates and time with lubridate
+author: Masumbuko Semba
+date: '2020-07-04'
+slug: []
+categories:
+  - ''
+tags:
+  - lubridate
+description: ''
+thumbnail: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+<script src="{{< blogdown/postref >}}index.en_files/kePrint/kePrint.js"></script>
+<link href="{{< blogdown/postref >}}index.en_files/lightable/lightable.css" rel="stylesheet" />
+
+
+<p>Most data we collect has a time stamp. The time stamp indicate the date and time the data was collected. Dealing with dates is a complicated task becuase of different formats and the time zones. R has built in functions that make your life working with dates and times a bit easier. In addition, <span class="citation">@lubridate</span> developed a <strong>lubridate</strong> package that allows to work smoothly with dates and times. Therefore, this chapter deals specifically with dates and times. We deal with both gregorian calender that sound familiar to us as we see this structure in our wall calender. We will also deals with julian format, commonly used by oceanographers and meteorologist that counts days from specific reference.</p>
+<div id="getting-the-date-and-time-with-localtime" class="section level2">
+<h2>Getting the Date and Time with localtime</h2>
+<p>To get current date and time information that is pulled from your computer internal clock, simply use the <code>Sys.Date()</code></p>
+<pre class="r"><code>Sys.Date()</code></pre>
+<pre><code>[1] &quot;2021-09-04&quot;</code></pre>
+<p>For for dates and times simply use <code>Sys.time</code></p>
+<pre class="r"><code>Sys.time()</code></pre>
+<pre><code>[1] &quot;2021-09-04 17:54:15 EAT&quot;</code></pre>
+<p>use <code>Sys.timezone()</code> function to locate the timezone of your machine</p>
+<pre class="r"><code>Sys.timezone()</code></pre>
+<pre><code>[1] &quot;Africa/Nairobi&quot;</code></pre>
+<p>Note that the default date format in R is <code>YYY-MM-DD</code>.</p>
+</div>
+<div id="converting-strings-to-dates" class="section level2">
+<h2>Converting strings to Dates</h2>
+<p>When date and times variables are imported into R’s worksapce, the functions that reads the file tend to convert the date into character. Hence, we ought to convert these strings back to date format.</p>
+<div id="convert-strings-to-dates" class="section level3">
+<h3>convert strings to dates</h3>
+<p>The function <code>as.Date()</code> is used to convert character into <code>YYY-MM-DD</code> date format.</p>
+<pre class="r"><code>sampling.date = c(&quot;2019-02-19&quot;)
+
+as.Date(sampling.date)</code></pre>
+<pre><code>[1] &quot;2019-02-19&quot;</code></pre>
+<p>There are times the date comes in a format that is weird and R can not figure out how to put in the right order. To obtain the list of all available dates and times conversion format, just write <code>?strftime()</code> in console. A help window with the specific information will pop-up.</p>
+<pre class="r"><code>sampling.date = c(&quot;05/06/2019&quot;)
+as.Date(sampling.date, format = &quot;%d/%m/%Y&quot;)</code></pre>
+<pre><code>[1] &quot;2019-06-05&quot;</code></pre>
+</div>
+</div>
+<div id="converting-date-with-lubridate-package" class="section level2">
+<h2>Converting date with <strong>lubridate</strong> package</h2>
+<p>The lubridate package has dozens of functions that convert dates and times from different characters format. The advantage of using the <strong>lubridate</strong> package is the fact that it automatically recognizes the common separators used when recording dates. Whether the date were separated with <code>"-"</code>,<code>"/"</code>,<code>"."</code>,<code>"and"</code>, or without separators, lubridate will recognize it. The only trick thing you have to bother is to specify the right order of date elements to determine the appropriate function applied. The table <a href="#tab:tab3001">1</a> indicates the date variables and the corresponding function</p>
+<pre class="r"><code>data.frame(order = c(&quot;year,month,day&quot;, &quot;year,day,month&quot;, &quot;month,day,year&quot;,&quot;day,month,year&quot;, &quot;hour,minute&quot;, &quot;hour,minute,second&quot;, &quot;year,month,day,hour,minute,second&quot;),
+           fun = c(&quot;ymd()&quot;, &quot;ydm()&quot;, &quot;mdy&quot;,&quot;dmy&quot;, &quot;hm&quot;, &quot;hms&quot;, &quot;ymd_hms&quot;)) %&gt;%
+  kableExtra::kable(format = &quot;html&quot;, caption = &quot;Lubridate&#39;s function for dealing with dates and times&quot;, col.names = c(&quot;Date and Time variables&quot;, &quot;lubridate&#39;s function&quot;)) %&gt;%
+  kableExtra::column_spec(column = 1, width = &quot;8cm&quot;)</code></pre>
+<table>
+<caption>
+<span id="tab:tab3001">Table 1: </span>Lubridate’s function for dealing with dates and times
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Date and Time variables
+</th>
+<th style="text-align:left;">
+lubridate’s function
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+year,month,day
+</td>
+<td style="text-align:left;">
+ymd()
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+year,day,month
+</td>
+<td style="text-align:left;">
+ydm()
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+month,day,year
+</td>
+<td style="text-align:left;">
+mdy
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+day,month,year
+</td>
+<td style="text-align:left;">
+dmy
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+hour,minute
+</td>
+<td style="text-align:left;">
+hm
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+hour,minute,second
+</td>
+<td style="text-align:left;">
+hms
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+year,month,day,hour,minute,second
+</td>
+<td style="text-align:left;">
+ymd_hms
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>require(lubridate)
+require(tidyverse)
+require(magrittr)
+require(oce)</code></pre>
+</div>
+<div id="create-dates-by-merging-data" class="section level2">
+<h2>Create Dates by Merging Data</h2>
+<p>Sometimes your date data are collected in separate elements. To convert these separate data into one date object incorporate the ISOdate() function:</p>
+<pre class="r"><code>yr &lt;- c (&quot;2012&quot;, &quot;2013&quot;, &quot;2014&quot;, &quot;2015&quot;) 
+mo &lt;- c (&quot;1&quot;, &quot;5&quot;, &quot;7&quot;, &quot;2&quot;) 
+day &lt;- c (&quot;02&quot;, &quot;22&quot;, &quot;15&quot;, &quot;28&quot;) </code></pre>
+</div>
+<div id="isodate-converts-to-a-posixct-object" class="section level2">
+<h2>ISOdate converts to a POSIXct object</h2>
+<pre class="r"><code>ISOdate (year = yr, month = mo, day = day) </code></pre>
+<pre><code>[1] &quot;2012-01-02 12:00:00 GMT&quot; &quot;2013-05-22 12:00:00 GMT&quot;
+[3] &quot;2014-07-15 12:00:00 GMT&quot; &quot;2015-02-28 12:00:00 GMT&quot;</code></pre>
+<pre class="r"><code>as.Date ( ISOdate (year = yr, month = mo, day = day)) </code></pre>
+<pre><code>[1] &quot;2012-01-02&quot; &quot;2013-05-22&quot; &quot;2014-07-15&quot; &quot;2015-02-28&quot;</code></pre>
+<p>Note that ISODate() also has arguments to accept data for hours, minutes, seconds, and time-zone if you need to merge all these separate components.</p>
+</div>
+<div id="extract-and-manipulate-parts-of-dates" class="section level2">
+<h2>Extract and Manipulate Parts of Dates</h2>
+<p>To extract and manipulate individual elements of a date I typically use the <strong>lubridate</strong> package due to its simplistic function syntax . The functions provided by <strong>lubridate</strong> to perform extraction and manipulation of dates are shown in table <a href="#tab:tab3002">2</a></p>
+<pre class="r"><code>data.frame(date = c(&quot;Year&quot;, &quot;Month&quot;, &quot;Week&quot;, &quot;Day of year&quot;,&quot;Day of month&quot;, &quot;Day of week&quot;, &quot;Hour&quot;, &quot;Minute&quot;, &quot;Second&quot;, &quot;Time zone&quot;), accessor = c(&quot;year()&quot;,&quot;month()&quot;,&quot;week()&quot;,&quot;yday()&quot;,&quot;mday()&quot;,&quot;wday()&quot;,&quot;hour()&quot;,&quot;minute()&quot;,&quot;second()&quot;,&quot;tz()&quot;)) %&gt;%
+  kableExtra::kable(format = &quot;html&quot;, caption = &quot;Accessor functions for lubridate&quot;, col.names = c(&quot;Date component&quot;, &quot;Accessor&quot;)) %&gt;%
+  kableExtra::column_spec(column = 1, width = &quot;5cm&quot;)</code></pre>
+<table>
+<caption>
+<span id="tab:tab3002">Table 2: </span>Accessor functions for lubridate
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Date component
+</th>
+<th style="text-align:left;">
+Accessor
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;width: 5cm; ">
+Year
+</td>
+<td style="text-align:left;">
+year()
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 5cm; ">
+Month
+</td>
+<td style="text-align:left;">
+month()
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 5cm; ">
+Week
+</td>
+<td style="text-align:left;">
+week()
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 5cm; ">
+Day of year
+</td>
+<td style="text-align:left;">
+yday()
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 5cm; ">
+Day of month
+</td>
+<td style="text-align:left;">
+mday()
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 5cm; ">
+Day of week
+</td>
+<td style="text-align:left;">
+wday()
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 5cm; ">
+Hour
+</td>
+<td style="text-align:left;">
+hour()
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 5cm; ">
+Minute
+</td>
+<td style="text-align:left;">
+minute()
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 5cm; ">
+Second
+</td>
+<td style="text-align:left;">
+second()
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 5cm; ">
+Time zone
+</td>
+<td style="text-align:left;">
+tz()
+</td>
+</tr>
+</tbody>
+</table>
+<p>To extract an individual element of the date variable you simply use the accessor
+function desired. Note that the accessor variables have additional arguments that
+can be used to show the name of the date element in full or abbreviated form</p>
+<pre class="r"><code>x &lt;- c (&quot;2015-07-01&quot;, &quot;2015-08-01&quot;, &quot;2015-09-01&quot;) 
+lubridate::year (x) </code></pre>
+<pre><code>[1] 2015 2015 2015</code></pre>
+<pre class="r"><code>lubridate::month(x)</code></pre>
+<pre><code>[1] 7 8 9</code></pre>
+<pre class="r"><code># show abbreviated name 
+lubridate::month (x, label = TRUE)</code></pre>
+<pre><code>[1] Jul Aug Sep
+12 Levels: Jan &lt; Feb &lt; Mar &lt; Apr &lt; May &lt; Jun &lt; Jul &lt; Aug &lt; Sep &lt; ... &lt; Dec</code></pre>
+<pre class="r"><code># show unabbreviated name 
+lubridate::month (x, label = TRUE, abbr = FALSE) </code></pre>
+<pre><code>[1] July      August    September
+12 Levels: January &lt; February &lt; March &lt; April &lt; May &lt; June &lt; ... &lt; December</code></pre>
+<pre class="r"><code>lubridate::wday (x, label = TRUE, abbr = FALSE) </code></pre>
+<pre><code>[1] Wednesday Saturday  Tuesday  
+7 Levels: Sunday &lt; Monday &lt; Tuesday &lt; Wednesday &lt; Thursday &lt; ... &lt; Saturday</code></pre>
+<p>To manipulate or change the values of date elements we simply use the accessor
+function to extract the element of choice and then use the assignment function to
+assign a new value</p>
+<pre class="r"><code># convert to date format 
+x = lubridate::ymd(x) 
+x</code></pre>
+<pre><code>[1] &quot;2015-07-01&quot; &quot;2015-08-01&quot; &quot;2015-09-01&quot;</code></pre>
+<pre class="r"><code># change the days for the dates 
+lubridate::mday (x) </code></pre>
+<pre><code>[1] 1 1 1</code></pre>
+</div>
+<div id="creating-date-sequences" class="section level2">
+<h2>Creating Date Sequences</h2>
+<p>o create a sequence of dates we can leverage the seq () function. As with numeric
+vectors , you have to specify at least three of the four arguments ( from , to , by , and length.out ).</p>
+<pre class="r"><code>## by years
+seq(lubridate::ymd(&quot;2010-1-1&quot;), lubridate::ymd(&quot;2018-1-1&quot;), by = &quot;years&quot;) </code></pre>
+<pre><code>[1] &quot;2010-01-01&quot; &quot;2011-01-01&quot; &quot;2012-01-01&quot; &quot;2013-01-01&quot; &quot;2014-01-01&quot;
+[6] &quot;2015-01-01&quot; &quot;2016-01-01&quot; &quot;2017-01-01&quot; &quot;2018-01-01&quot;</code></pre>
+<pre class="r"><code>## by quuarters
+seq(lubridate::ymd(&quot;2016-1-1&quot;), lubridate::ymd(&quot;2018-12-31&quot;), by = &quot;quarters&quot;) </code></pre>
+<pre><code> [1] &quot;2016-01-01&quot; &quot;2016-04-01&quot; &quot;2016-07-01&quot; &quot;2016-10-01&quot; &quot;2017-01-01&quot;
+ [6] &quot;2017-04-01&quot; &quot;2017-07-01&quot; &quot;2017-10-01&quot; &quot;2018-01-01&quot; &quot;2018-04-01&quot;
+[11] &quot;2018-07-01&quot; &quot;2018-10-01&quot;</code></pre>
+<pre class="r"><code>## by month
+seq(lubridate::ymd(&quot;2017-10-1&quot;), lubridate::ymd(&quot;2018-09-1&quot;), by = &quot;month&quot;) </code></pre>
+<pre><code> [1] &quot;2017-10-01&quot; &quot;2017-11-01&quot; &quot;2017-12-01&quot; &quot;2018-01-01&quot; &quot;2018-02-01&quot;
+ [6] &quot;2018-03-01&quot; &quot;2018-04-01&quot; &quot;2018-05-01&quot; &quot;2018-06-01&quot; &quot;2018-07-01&quot;
+[11] &quot;2018-08-01&quot; &quot;2018-09-01&quot;</code></pre>
+<pre class="r"><code>## by week
+seq(lubridate::ymd(&quot;2018-10-1&quot;), lubridate::ymd(&quot;2018-12-1&quot;), by = &quot;week&quot;) </code></pre>
+<pre><code>[1] &quot;2018-10-01&quot; &quot;2018-10-08&quot; &quot;2018-10-15&quot; &quot;2018-10-22&quot; &quot;2018-10-29&quot;
+[6] &quot;2018-11-05&quot; &quot;2018-11-12&quot; &quot;2018-11-19&quot; &quot;2018-11-26&quot;</code></pre>
+<pre class="r"><code>## by days
+seq(lubridate::ymd(&quot;2018-1-1&quot;), lubridate::ymd(&quot;2018-1-31&quot;), by = &quot;3.5 days&quot;) </code></pre>
+<pre><code> [1] &quot;2018-01-01&quot; &quot;2018-01-04&quot; &quot;2018-01-07&quot; &quot;2018-01-10&quot; &quot;2018-01-13&quot;
+ [6] &quot;2018-01-16&quot; &quot;2018-01-19&quot; &quot;2018-01-22&quot; &quot;2018-01-25&quot; &quot;2018-01-28&quot;
+[11] &quot;2018-01-31&quot;</code></pre>
+<pre class="r"><code>## by days
+seq(lubridate::ymd(&quot;2018-1-1&quot;), lubridate::ymd(&quot;2018-1-10&quot;), by = &quot;day&quot;) </code></pre>
+<pre><code> [1] &quot;2018-01-01&quot; &quot;2018-01-02&quot; &quot;2018-01-03&quot; &quot;2018-01-04&quot; &quot;2018-01-05&quot;
+ [6] &quot;2018-01-06&quot; &quot;2018-01-07&quot; &quot;2018-01-08&quot; &quot;2018-01-09&quot; &quot;2018-01-10&quot;</code></pre>
+</div>
+<div id="calculations-with-dates" class="section level2">
+<h2>Calculations with Dates</h2>
+<p>Since R stores date and time objects as numbers, this allows you to perform various
+calculations such as logical comparisons, addition, subtraction, and working with
+durations .</p>
+<pre class="r"><code>x &lt;- Sys.Date() 
+x </code></pre>
+<pre><code>[1] &quot;2021-09-04&quot;</code></pre>
+<pre class="r"><code>y = lubridate::ymd(&quot;2015-09-11&quot;) 
+x &gt; y </code></pre>
+<pre><code>[1] TRUE</code></pre>
+<pre class="r"><code>x - y</code></pre>
+<pre><code>Time difference of 2185 days</code></pre>
+</div>
+<div id="time-difference-of-15-days" class="section level2">
+<h2>Time difference of 15 days</h2>
+<p>The nice thing about the date/time classes is that they keep track of leap years,
+leap seconds, daylight savings , and time zones. Use <code>OlsonNames()</code> for a full list
+of acceptable time zone specifications.</p>
+<pre class="r"><code>## create sequence and identify leap years
+seq(lubridate::dmy(&quot;290212&quot;), lubridate::ymd(&quot;170228&quot;), by = &quot;year&quot;)</code></pre>
+<pre><code>[1] &quot;2012-02-29&quot; &quot;2013-03-01&quot; &quot;2014-03-01&quot; &quot;2015-03-01&quot; &quot;2016-02-29&quot;</code></pre>
+<pre class="r"><code># last leap year 
+x &lt;- lubridate::ymd(&quot;2016-03-1&quot;) 
+y &lt;- lubridate::ymd(&quot;2016-02-28&quot;) 
+x - y </code></pre>
+<pre><code>Time difference of 2 days</code></pre>
+</div>
+<div id="example-with-time-zones" class="section level2">
+<h2>example with time zones</h2>
+<pre class="r"><code>x &lt;- lubridate::now(tzone =&quot;US/Eastern&quot;) 
+y &lt;- lubridate::now(tzone =&quot;Africa/Nairobi&quot;)
+
+x;y;y == x;y-x</code></pre>
+<pre><code>[1] &quot;2021-09-04 10:54:17 EDT&quot;</code></pre>
+<pre><code>[1] &quot;2021-09-04 17:54:17 EAT&quot;</code></pre>
+<pre><code>[1] FALSE</code></pre>
+<pre><code>Time difference of 0.0019629 secs</code></pre>
+<p>We can also deal with time spans by using the duration functions in lubridate. Durations simply measure the time span between start and end dates. Using base R date functions for duration calculations is tedious and often results in wrong measurements. lubridate provides simplistic syntax to calculate durations with the desired measurement (seconds, minutes, hours, etc.).</p>
+<pre class="r"><code> # create new duration (represented in seconds) 
+lubridate::duration (60) </code></pre>
+<pre><code>[1] &quot;60s (~1 minutes)&quot;</code></pre>
+<pre class="r"><code># create durations for minutes, hours, years 
+lubridate::dminutes (1)</code></pre>
+<pre><code>[1] &quot;60s (~1 minutes)&quot;</code></pre>
+<pre class="r"><code>lubridate::dhours(1)</code></pre>
+<pre><code>[1] &quot;3600s (~1 hours)&quot;</code></pre>
+<pre class="r"><code>lubridate::dyears(1)</code></pre>
+<pre><code>[1] &quot;31557600s (~1 years)&quot;</code></pre>
+<pre class="r"><code># add/subtract durations from date/time object 
+x &lt;- lubridate::ymd_hms (&quot;2015-09-22 12:00:00&quot;) 
+x + lubridate::dhours (10) </code></pre>
+<pre><code>[1] &quot;2015-09-22 22:00:00 UTC&quot;</code></pre>
+<pre class="r"><code>x + lubridate::dhours (10) + lubridate::dminutes (33) + lubridate::dseconds (54) </code></pre>
+<pre><code>[1] &quot;2015-09-22 22:33:54 UTC&quot;</code></pre>
+</div>

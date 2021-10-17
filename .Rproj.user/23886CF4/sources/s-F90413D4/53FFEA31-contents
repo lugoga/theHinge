@@ -1,0 +1,126 @@
+---
+title: The Lake Victoria bathymetry
+author: Masumbuko Semba
+date: '2021-03-15'
+slug: []
+categories:
+  - ggplot2
+  - R
+tags:
+  - bathymetry
+  - code
+  - programming
+  - semba
+description: ''
+thumbnail: ''
+bibliography: [../blog.bib]
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE, comment=FALSE, quit = TRUE)
+```
+
+
+I was looking for bathymetry dataset for Lake Victoria online and I came across this [link](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/SOEKNR#). It stores several products of the bathymetry data of the Lake Victoria. Among them products is the gridded TIFF file. This dataset was created by a team from Harvard University in 2017 [@hamilton]. They used over 4.2 million points collected over 100-years of surveys. The point data was obtained from an Admiral Bathymetry map and points collected in the field. Roughly, 3.8 million points come from the survey conducted by Lake Victoria Regional Hydro-acoustics Working Group. 
+
+In this post I illustrate step by step processing the bathymetric of Lake Victoria, which is stored in n TIFF format using R language [@r]. You first need to download the dataset from [here](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/SOEKNR#) as TIFF. It has about 48 MB, so your patient is needed if you internet speed is slow for this file to download. I load some of the packages to manipulate, analyze and even visualize the bathymetry data of Lake Victoria. These packages include;
+
+```{r}
+require(tidyverse)
+require(sf)
+require(leaflet)
+```
+
+**raster** package contains nifty function to handle raster file like the bathymetry dataset of Lake Victoria [@raster]. But, often there conflict between **raster** and **tidyverse** packages, I will only call specific function of raster package when needed using the `raster::` arguments throughtout this post. Once the dataset is download, you can simply load or import in R session using `raster` function from **raster** package [@raster].
+ 
+
+```{r}
+
+## read the ascii file
+lake.victoria = raster::raster("d:/semba2//Lake_victoria/LV_Bathy_V7.tif")
+
+lake.victoria.shp = st_read("d:/semba2/Lake_victoria/wb_lv_tzn.shp", quiet = TRUE)
+
+```
+
+When we plot the bathymetry of Lake Victoria as shown in figure \@ref(fig:fig1), we notice that depth vary across the lake range between 0 to about 80 meters deep. Unfortunately, the longitude and latitude values are unfamiliar to me and I the datum used to present this dataset are unclear to me.
+```{r fig1, fig.cap="Lake Victoria batymetry map"}
+lake.victoria %>% raster::plot()
+```
+
+To have a glimpse of the `Coordinate Reference System` (CRS) in the dataset, I used `raster::crs()` function to check the datum used;
+
+```{r}
+
+lake.victoria %>% 
+  raster::crs()
+
+```
+
+## Reproject Rasters
+We can use the `projectRaster` function to reproject a raster into a new CRS. I have used `+proj=longlat +ellps=WGS84 +datum=WGS84` to transform the projection into WGS84 geographical coordinate system of longitude and latitude measured in degree. Keep in mind that reprojection only works when you first have a defined CRS for the raster object that you want to reproject. 
+
+```{r}
+
+# reproject to UTM
+lake.victoria.wgs = lake.victoria %>% 
+  raster::projectRaster(crs="+proj=longlat +ellps=WGS84 +datum=WGS84")
+
+```
+
+When we replot the projected bathymetry as shown in figure \@ref(fig:fig2), we notice that the longitude and latitude are in degree.
+
+```{r fig2, fig.cap="Transformed projection of Lake Victoria bathymetry to datum WGS84"}
+
+lake.victoria.wgs %>% raster::plot()
+```
+
+If we are fine with the projection, but the plotting isn't pleasing. We might want to use the grammar of graphic **ggplot2** and its extended package like the **metR** to improve the plot. However, these package use data organized in data frame instead of raster. We use the `raster::as.data.frame(xy = TRUE) ` to convert raster to data frame and tidy the data into lon, lat, and depth with `rename(lon = x, lat = y, depth = 3)` from dplyr package [@dplyr].
+
+```{r}
+## convert raster to data frame
+lake.victoria.df = lake.victoria.wgs %>% 
+  raster::as.data.frame(xy = TRUE) %>%
+  dplyr::as_tibble() %>% 
+## rename the variable
+  dplyr::rename(lon = x, lat = y, depth = 3)%>% 
+  dplyr::mutate(depth = as.numeric(depth))
+```
+
+Once we have organized the data frame from raster, we can use the information now to plot the spatial variation of water depth in the lake. Figure \@ref(fig:fig3) show filled contour of depth in Lake Victoria. This figure \@ref(fig:fig3) was plotted using the code in the chunk below;
+
+```{r fig3, fig.cap="Bathymetry of Lake Victoria"}
+
+lake.victoria.df %>%
+  ggplot(aes(x = lon, y = lat))+
+  geom_contour_filled(aes(z = depth))+
+  metR::scale_x_longitude(ticks = 0.5)+
+  metR::scale_y_latitude(ticks = 0.5)+
+  coord_cartesian(expand = FALSE)+
+  theme(panel.background = element_blank(), panel.grid = element_line(linetype = 3))
+  
+```
+
+We may also wish to plot only the section of the lake and use contour lines instead of filled contour. we need then to have base maps. the chunk below show how to import the base maps into our session. The lake boundary is in projected in UTM zone 36 south and the regions layer is in WGS84. Therefore, I will import and project on the fly the lake baseman, but for the region baseman simply import into the session with the `st_read` function [@sf]. To reduce processing time while drawing contour, the lake baseman data frame was filter to accommodate only value that fall within the specified area of interest using `filter` function from dplyr [@dplyr]
+
+
+```{r fig4, fig.cap="Bathymetry of Lake Victoria"}
+
+lake.victoria.df %>%
+  mutate(depth = depth*-1) %>% 
+  ggplot(aes(x = lon, y = lat))+
+  metR::geom_contour_fill(aes(z = depth))+
+  metR::scale_x_longitude(ticks = 0.5)+
+  metR::scale_y_latitude(ticks = 0.5)+
+  coord_cartesian(expand = FALSE)+
+  theme(panel.background = element_blank(), panel.grid = element_line(linetype = 3))+
+  scale_fill_gradientn(colors = oce::oce.colorsGebco(120))
+  
+```
+
+
+
+## Cited references
+
