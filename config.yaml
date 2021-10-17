@@ -6,7 +6,7 @@ paginate: '5'
 theme: hugo-dpsg
 Author:
   avatar: img/semba_cover.png
-  bio: A data scientist by passion. Sourced the skills from Prof Google and Dr. Youtube
+  bio: is data scientist and spatial analyst at the Nelson Mandela African Institution of Sciene and Technoloygy. He earned a degree in fisheries and Aquaculture and later Master in Marine Sciencs and PhD in Physical Oceanography both from the University of Dar es Salaam. He sourced skills in data science from informal education like Prof Google and Dr. Youtube
   name: Masumbuko Semba
 Params:
   authorbox: yes
