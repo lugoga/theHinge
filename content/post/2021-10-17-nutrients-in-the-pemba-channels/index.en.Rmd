@@ -1,0 +1,26 @@
+---
+title: Nutrients in the Pemba Channels
+author: Masumbuko Semba
+date: '2021-10-17'
+slug: []
+categories:
+  - ''
+tags:
+  - ''
+description: ''
+thumbnail: ''
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+
+```
+
+Monthly surface distributions of nutrients in the coastal waters of the Pemba Channel are affected by two seasonal phenomena, northeast monsoon season, southeast monsoon season and the timing of long rainfall. The Pangani River influence is particularly apparent throughout the year but its more apparent during the long rain season that occurs in the late season of NE and early SE monsoon season in figure \@ref(fig:fig1).
+
+```{r fig1, fig.cap="Phospate distribution in the Pemba Channel during a) southeast and b) northeast monsoon seasons", echo=FALSE}
+knitr::include_graphics("phosphate_season-01.png")
+```
+
