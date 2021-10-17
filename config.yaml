@@ -5,7 +5,7 @@ DefaultContentLanguage: en
 paginate: '5'
 theme: hugo-dpsg
 Author:
-  avatar: img/avatar.png
+  avatar: img/semba_cover.png
   bio: A data scientist by passion. Sourced the skills from Prof Google and Dr. Youtube
   name: Masumbuko Semba
 Params:
