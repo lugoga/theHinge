@@ -74,9 +74,9 @@ Kimirei, I., Igulu, M., Semba, M., & Lugendo, B. R. (2016). Small estuarine and 
 
 # Online books
 
-Semba M. (2021). Dealing with spatial data for Coastal and Marine Environment in R. Retrieve from "https://lugoga.github.io/geomarine/"
+Semba M. (2021). Dealing with spatial data for Coastal and Marine Environment in R. Retrieve from https://lugoga.github.io/geomarine/
 
-Semba M, Peter N. & I. Kimirei (2020). Developing packages in R. Retrieve from "https://lugoga.github.io/r-package/"
+Semba M, Peter N. & I. Kimirei (2020). Developing packages in R. Retrieve from https://lugoga.github.io/r-package/
 
 Semba M. (2018). A gentle Introduction of Coding with R. https://lugoga.github.io/learning_r/
 
