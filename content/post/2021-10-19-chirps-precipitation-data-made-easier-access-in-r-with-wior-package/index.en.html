@@ -1,0 +1,91 @@
+---
+title: CHIRPS precipitation data made easier access in R with wior package
+author: Masumbuko Semba
+date: '2021-10-19'
+slug: []
+categories:
+  - ggplot2
+  - R
+tags:
+  - Masumbuko Semba
+description: ''
+thumbnail: ''
+bibliography: [../blog.bib]
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<p>The Climate Hazards Group InfraRed Precipitation with Station data (CHIRPS) is a quasi-global rainfall data set. As its title suggests it combines data from real-time observing meteorological stations with infra-red satellite data to estimate precipitation. CHIRPS incorporates 0.05° resolution satellite imagery with in-situ station data to create gridded rainfall time series for trend analysis and seasonal drought monitoring.</p>
+<p>The global dataset covers the area from <span class="math inline">\(40^\circ\)</span>N to <span class="math inline">\(4^\circ\)</span>S and from <span class="math inline">\(20^\circ\)</span>W to <span class="math inline">\(50^\circ\)</span>E with a spatial resolution of 0.05<span class="math inline">\(^\circ\)</span> grid at daily, pentad, monthly and annual time interval. This is equivalent to 5.5 km<sup>2</sup> grid at the equator spaning from January 1981 to the near present.</p>
+<p>Despite the effort of the National Aeronautics and Space Administration (NASA), and the National Oceanic and Atmospheric Administration (NOAA) to developoping techniques for producing global rainfall maps at high spatial and temporal resolution, these datasets are provided in NetCDF, Geotiff and Esri BIL formats. These formats are commonly in science, however, for for scripting programming languages like R and Python, the core format for data analysis and visualizaation are data frames.</p>
+<p>In this post, I illustrate how to access chirps data from any area of the earth’s surface using a <code>get_precip</code> function from <strong>wior</strong> package <span class="citation">(<a href="#ref-wior" role="doc-biblioref">Semba and Peter 2020</a>)</span>. The package not only download the precipitation data, it also transform and structure the values into a <em>tidy</em> format <span class="citation">(<a href="#ref-tidyr" role="doc-biblioref">Wickham and Henry 2018</a>)</span>. According to <span class="citation"><a href="#ref-tidyr" role="doc-biblioref">Wickham and Henry</a> (<a href="#ref-tidyr" role="doc-biblioref">2018</a>)</span>, a tidy data is stored in data frame that adhere to the following three key conditions;</p>
+<ol style="list-style-type: decimal">
+<li>each column is a variable</li>
+<li>each row is an observation</li>
+<li>each value has its own cell</li>
+</ol>
+<p>Once the data is in this format, we can harness the analytical power using severa packages and plotting with popular graphic packages like ggplot2 and metR packages.</p>
+<p>We first install the package from github</p>
+<pre class="r"><code># install.packages(&quot;devtools&quot;)
+devtools::install_github(&quot;lugoga/wior&quot;)</code></pre>
+<p>Once you have installed the data into your machine, we can download the rainfall data for any place covered by the project. For illustration, I chose to assess the rainfall patterns in the Ukerewe Island, in Lake Victoria. We first load the packages needed for this tasks</p>
+<pre class="r"><code>require(tidyverse)
+require(wior)</code></pre>
+<p>We want the monthly data (level = 3) from 1981 to present. The code below highlight the key parameters required in the <code>get_precip</code> function.</p>
+<pre class="r"><code>ukerewe = wior::get_precip(lon.min = 32.9, 
+                           lon.max = 33.14, 
+                           lat.min = -2.16,
+                           lat.max = -1.96, 
+                           t1 = &quot;1981-01-01&quot;, 
+                           t2 = &quot;2019-12-31&quot;, 
+                           level = 3)</code></pre>
+<p>Once our precipitation data is dowloaded, we can check the first three rows and the last three rows with the FSA package. We notice that the firs rows begin in 01-01-1981 and the last lows is dated on 01-08-2021.</p>
+<pre class="r"><code>ukerewe %&gt;% FSA::headtail()</code></pre>
+<pre><code>            time  latitude longitude   precip
+1     1981-01-01 -2.175003  32.87500 63.82610
+2     1981-01-01 -2.175003  32.92500 66.01859
+3     1981-01-01 -2.175003  32.97499 68.29806
+14638 2021-08-01 -1.975002  33.02499 39.38923
+14639 2021-08-01 -1.975002  33.07500 32.23105
+14640 2021-08-01 -1.975002  33.12500 32.98096</code></pre>
+<p>We can then use the ggplot package <span class="citation">(<a href="#ref-ggplot" role="doc-biblioref">Wickham 2016</a>)</span> to compare the spatial distribution of precipitation over the island for over 39 years as shown in figure <a href="#fig:map">1</a></p>
+<pre class="r"><code>ukerewe %&gt;% 
+  mutate(year = lubridate::year(time)) %&gt;% 
+  group_by(latitude,longitude, year) %&gt;% 
+  summarise(precip = sum(precip, na.rm = TRUE)) %&gt;% 
+  ungroup() %&gt;% 
+  ggplot(aes(x = longitude, y = latitude, z = precip))+
+  metR::geom_contour_fill(bins = 6, global.breaks = FALSE) + 
+  # metR::geom_contour2(breaks = 1200, size = 0.2)+
+  facet_wrap(~year)+
+  scale_fill_gradientn(colours = mycolor,  name = &quot;Precip \n (mm/year)&quot;,
+                       trans = scales::boxcox_trans(p = 0.01),
+                       breaks = scales::breaks_width(width = 200, offset = -50))+
+  scale_x_continuous(breaks = 33, labels = metR::LonLabel(33), expand = c(0,0))+
+  scale_y_continuous(breaks = -2.1, labels = metR::LatLabel(-2.1), expand = c(0,0))+
+  theme_bw()+
+  theme(axis.title = element_blank(), strip.background = element_blank())</code></pre>
+<div class="figure"><span style="display:block;" id="fig:map"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/map-1.png" alt="Precipitation patterns in Ukerewe Island" width="768" />
+<p class="caption">
+Figure 1: Precipitation patterns in Ukerewe Island
+</p>
+</div>
+<div id="reference" class="section level2 unnumbered">
+<h2>Reference</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-wior" class="csl-entry">
+Semba, Masumbuko, and Nyamisi Peter. 2020. <em>Wior: Easy Tidy and Process Oceanographic Data</em>.
+</div>
+<div id="ref-ggplot" class="csl-entry">
+Wickham, Hadley. 2016. <em>Ggplot2: Elegant Graphics for Data Analysis</em>. Springer-Verlag New York. <a href="https://ggplot2.tidyverse.org">https://ggplot2.tidyverse.org</a>.
+</div>
+<div id="ref-ggplot" class="csl-entry">
+———. 2016. <em>Ggplot2: Elegant Graphics for Data Analysis</em>. Springer-Verlag New York. <a href="https://ggplot2.tidyverse.org">https://ggplot2.tidyverse.org</a>.
+</div>
+<div id="ref-tidyr" class="csl-entry">
+Wickham, Hadley, and Lionel Henry. 2018. <em>Tidyr: Easily Tidy Data with ’spread()’ and ’gather()’ Functions</em>. <a href="https://CRAN.R-project.org/package=tidyr">https://CRAN.R-project.org/package=tidyr</a>.
+</div>
+</div>
+</div>
