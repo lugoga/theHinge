@@ -1,0 +1,112 @@
+---
+title: Access Open Street Map features programmatically with osmdata package in R
+author: Masumbuko Semba
+date: '2021-11-13'
+slug: []
+categories:
+  - ggplot2
+  - R
+tags:
+  - simple feature
+  - semba
+  - Masumbuko Semba
+# hidden: true
+# image: "../img/data_science_model.png"
+description: ''
+thumbnail: ''
+bibliography: [../blog.bib]
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, warning = FALSE, message = FALSE, comment = "")
+
+load("d:/semba/theHinge/content/post/data/osm.RData")
+
+
+```
+
+**OpenStreetMaps** is a great source of *spatial* data. Most common programming languages have packages for downloading data from OSM. In this tutorial we are going to see how to download hosptial features data using R’s **osmdata** [@osmdata] package and plot it using **ggplot** [@ggplot], and interactively using **tmap** [@tmap]. This requires some knowledge of spatial data structures. We load the package we are going to use in our session.
+
+```{r, eval=TRUE}
+library(osmdata)
+library(tidyverse)
+library(patchwork)
+library(sf)
+library(tmap)
+library(ggmap)
+require(tmap)
+
+```
+
+
+## List recognized features in OSM
+
+The osmdata package has a ton of awesome features. It appears that only a fraction of them are available for most cities, and that seems to be primarily those that are related to streets. We’ll focus on those today, but I hope they continue extending this package. The `available_features()` function list the features that are in the OSM.
+
+```{r, eval=TRUE}
+available_features()
+
+```
+
+Once we know the feature, we use  `avilable_tags` function to obtain all available features of the a particular class feature. FOr example, we want to know the different types of building that are found in 
+
+
+```{r, eval=TRUE}
+available_tags(feature = "building")
+```
+
+## Getting the Data
+
+The first step requires downloading data from the OSM api using osmdata. First, I will need to set a bounding box for OSM to search for data with `getbb` function. Next,  download hosptial in Dar from a building class type with `add_osm_feature` function and finally convert the osm dataset into feature class with `osmdata_sf` function. The chunk below highlight the key step
+
+```{r}
+
+## hospital
+dar.hosp = getbb(place_name = "dar es salaam") %>%
+  opq()%>%
+  add_osm_feature(key = "building", value = "hospital") %>%
+  osmdata_sf()
+
+ hosp = dar.hosp$osm_points 
+ hosp
+```
+
+We then plot the hospital in Dar with tmap, which allows the user to interact with the map
+
+```{r fig1, eval=TRUE, fig.cap="Interactive hosptials locations"}
+
+
+tmap_mode(mode = "view")
+
+tm_shape(shp = hosp)+
+  tm_bubbles(size = .2)
+```
+
+
+
+sometimes you may need a basemap, we can obtain basemap from osmdata as the chunk highlight using a `get_map` function from **ggplot2** [@ggplot].
+
+```{r}
+
+## basemap
+mad_map <- getbb(place_name = "dar es salaam") %>% 
+  get_map(maptype="roadmap",source="osm",color="bw")
+
+
+```
+
+
+Then we can now use ggmap function of **ggmap** [@ggmap] to plot a basemap and overlay hospital with `geom_sf` function of **ggplot2** package and draw a map that show the distribution of hospital in Dar (Figure \@ref(fig:hosp2)). 
+
+```{r hosp2, fig.cap="Distribution of hospitals in Dar es Salaam", eval=TRUE}
+
+ggmap(ggmap = mad_map)+
+  geom_sf(data = hosp,
+          inherit.aes = FALSE)+
+  theme(axis.title = element_blank())
+  
+```
+
+## Listed literature
+
