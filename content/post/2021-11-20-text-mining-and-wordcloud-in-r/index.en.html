@@ -1,0 +1,144 @@
+---
+title: Text Mining and Wordcloud in R
+author: Masumbuko Semba
+date: '2021-11-20'
+slug: []
+categories:
+  - ggplot2
+  - wordcloud
+  - R
+tags:
+  - semba
+description: ''
+thumbnail: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<div id="word-clouds" class="section level1">
+<h1>Word clouds</h1>
+<p>Word clouds visualize word frequencies of either single corpus or different corpora. Although word clouds are rarely used in academic publications, they are a common way to display language data and the topics of texts - which may be thought of as their semantic content. To exemplify how to use word clouds, we are going to have a look at the State of Environment issued in 2019 by the department of environment of the vice president’s office. We first load the packages that we are going to use during the session,</p>
+<pre class="r"><code>require(ggwordcloud)
+require(magrittr)
+require(tidyverse)
+require(tidytext)
+require(wordcloud)
+require(RColorBrewer)
+require(magrittr)
+
+pal &lt;- brewer.pal(8,&quot;Dark2&quot;)</code></pre>
+<p>In a first step, we load and process the data as the relevant packages are already loaded.</p>
+<p>After loading the data, we need to clean it.
+Since the document is in pdf, we are goingt to use <code>pdf_data</code> function from **pdftools* package</p>
+<pre class="r"><code>soe = pdftools::pdf_data(pdf = &quot;d:/semba/vpo/vpo reports/STATE OF THE ENVIRONMENT THIRD REPORT.pdf&quot;)</code></pre>
+<p>We then process the text and compute frequency of occurance of each word</p>
+<pre class="r"><code>soe.txt = soe[c(1:194)] %&gt;% 
+  bind_rows() %&gt;% 
+  select(text) %&gt;% 
+  mutate(txt.length = str_length(text)) %&gt;% 
+  filter(txt.length &gt; 4) %&gt;% 
+  group_by(text) %&gt;% 
+  count(sort = TRUE) %&gt;% 
+  ungroup()</code></pre>
+<p>After the data is processed, we can now create word clouds. However, there are different word clouds:</p>
+<ul>
+<li>(Common) word clouds</li>
+<li>Comparative clouds</li>
+<li>Commonality clouds</li>
+</ul>
+<p>Common or simple word clouds simply show the frequency of word types while comparative word clouds show which word types are particularly overrepresented in one sub-corpus compared to another sub-corpus. Commonality word clouds show words that are shared and are thus particularly indistinctive for different sub-corpora. Then we plot with <strong>ggwordcloud</strong> package</p>
+<pre class="r"><code>soe.txt %$% 
+  ggwordcloud::ggwordcloud(words = text,
+                           freq = n, 
+                           random.order = FALSE, 
+                           max.words = 100, 
+                           colors = pal)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig1"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/fig1-1.png" alt="Wordcloud of of the State of Environment 2019 processed and drawn with ggwordcloud. However, notice that the punctuations and white space on the plot" width="672" />
+<p class="caption">
+Figure 1: Wordcloud of of the State of Environment 2019 processed and drawn with ggwordcloud. However, notice that the punctuations and white space on the plot
+</p>
+</div>
+<p>We notice that the plot contain some of the punctuation words, which are not required. Hence, we switch to the other approach that would address the challenge of white spaces, punctuations and …..First this required text, we read and import the file as the chunk below hightlight</p>
+<pre class="r"><code>txt = read_tsv(file = &quot;d:/semba/vpo/vpo reports/STATE OF THE ENVIRONMENT THIRD REPORT.txt&quot;)</code></pre>
+<p>Once the dataset is imported into the session, we ought to clean it.</p>
+<pre class="r"><code>doc = txt %&gt;% 
+  tm::VectorSource() %&gt;%
+  tm::Corpus() %&gt;% 
+  # clean text data
+  tm::tm_map(tm::removePunctuation) %&gt;%
+  tm::tm_map(tm::removeNumbers) %&gt;%
+  tm::tm_map(tolower)  %&gt;%
+  tm::tm_map(tm::removeWords, tm::stopwords(&quot;english&quot;)) %&gt;%
+  tm::tm_map(tm::stripWhitespace) %&gt;%
+  tm::tm_map(tm::PlainTextDocument)</code></pre>
+<p>Then plot with wordcloud package</p>
+<pre class="r"><code># load package
+library(wordcloud)
+
+# create word cloud
+wordcloud(words = doc, max.words = 120,
+          colors = pal, min.freq = 20,
+          random.order = FALSE)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig2"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/fig2-1.png" alt="Wordcloud of of the State of Environment 2019 processed and drawn with wordcloud package" width="672" />
+<p class="caption">
+Figure 2: Wordcloud of of the State of Environment 2019 processed and drawn with wordcloud package
+</p>
+</div>
+<p>However, we notice that the plotting device of worldcloud does not give us an appealing picture. We can switch to ggcloudword package. Unfortunately, the package does not work on format other than data frame. We first need to convert the dataset into data frame and split the words in a sentense into single words using <code>str_split</code> function from <strong>stringr</strong> package</p>
+<pre class="r"><code>doc2 = doc$content$content %&gt;% 
+  as_tibble() %&gt;% 
+  stringr::str_split(pattern = &quot; &quot;) %&gt;% 
+  as.data.frame() %&gt;% 
+  rename(text = 1)
+
+doc2 %&gt;% 
+  head()</code></pre>
+<pre><code>        text
+1      cvice
+2 presidents
+3     office
+4 government
+5       city
+6          p</code></pre>
+<p>Then group the word and compute the frequency of each word</p>
+<pre class="r"><code>doc.group = doc2 %&gt;% 
+  group_by(text) %&gt;% 
+  count() %&gt;% 
+  arrange(desc(n)) %&gt;% 
+  ungroup()
+
+doc.group</code></pre>
+<pre><code># A tibble: 3,558 x 2
+   text              n
+   &lt;chr&gt;         &lt;int&gt;
+ 1 tanzania        254
+ 2 land            228
+ 3 environmental   176
+ 4 water           171
+ 5 forest          130
+ 6 management      125
+ 7 national        113
+ 8 policy          109
+ 9 areas           107
+10 environment     103
+# ... with 3,548 more rows</code></pre>
+<p>Once we have the dataset ready, we can plot with ggworldcloud. The figure <a href="#fig:fig3">3</a> display</p>
+<pre class="r"><code>doc.group%$% 
+  ggwordcloud::ggwordcloud(words = text,
+                           freq = n, 
+                           random.order = FALSE, 
+                           max.words = 120, 
+                           colors = pal)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig3"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/fig3-1.png" alt="Wordcloud of of the State of Environment 2019 processed and drawn with ggwordcloud" width="672" />
+<p class="caption">
+Figure 3: Wordcloud of of the State of Environment 2019 processed and drawn with ggwordcloud
+</p>
+</div>
+<div id="cited-literature" class="section level2">
+<h2>Cited literature</h2>
+</div>
+</div>
