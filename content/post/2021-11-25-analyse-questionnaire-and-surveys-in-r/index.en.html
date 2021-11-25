@@ -20,6 +20,7 @@ thumbnail: ''
 
 <div id="packages" class="section level2">
 <h2>packages</h2>
+<p>s</p>
 <pre class="r"><code>library(tidyverse)
 library(likert)</code></pre>
 </div>
@@ -91,8 +92,8 @@ degree</code></pre>
   coord_polar(theta = &quot;y&quot;, start = 0)+
   theme_void()+
   ggsci::scale_fill_d3()</code></pre>
-<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-7-1.png" width="672" />
-If the slices of the pie chart are not labelled, it is difficult to see which slices are smaller or bigger compared to other slices. This problem can easily be avoided when using a bar plot instead. This issue can be avoided by adding labels to pie charts. The labeling of pie charts is, however, somewhat tedious as the positioning is tricky. Below is an example for adding labels without specification.</p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>If the slices of the pie chart are not labelled, it is difficult to see which slices are smaller or bigger compared to other slices. This problem can easily be avoided when using a bar plot instead. This issue can be avoided by adding labels to pie charts. The labeling of pie charts is, however, somewhat tedious as the positioning is tricky. Below is an example for adding labels without specification.</p>
 <pre class="r"><code>degree %&gt;% 
   ggplot(aes(x = &quot;&quot;, y = percent, fill = degree))+
   geom_col(color = &quot;white&quot;)+
@@ -152,9 +153,11 @@ degree.gender</code></pre>
   coord_polar(theta = &quot;y&quot;, start = 0)+
   theme_void()+
   ggsci::scale_fill_d3()</code></pre>
-<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-12-1.png" width="672" />
-## Bar plots
-Like pie charts, bar plot display frequency information across categorical variable levels.</p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+</div>
+<div id="bar-plots" class="section level2">
+<h2>Bar plots</h2>
+<p>Like pie charts, bar plot display frequency information across categorical variable levels.</p>
 <pre class="r"><code>degree.count = qns %&gt;% 
   select(degree = 9, gender = Gender) %&gt;% 
   group_by(degree) %&gt;% 

@@ -23,10 +23,12 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "
 ```
 
 ## packages
+s
 ```{r}
 library(tidyverse)
 library(likert)
 ```
+
 ## load the dataset
 
 
@@ -97,6 +99,7 @@ degree %>%
   theme_void()+
   ggsci::scale_fill_d3()
 ```
+
 If the slices of the pie chart are not labelled, it is difficult to see which slices are smaller or bigger compared to other slices. This problem can easily be avoided when using a bar plot instead. This issue can be avoided by adding labels to pie charts. The labeling of pie charts is, however, somewhat tedious as the positioning is tricky. Below is an example for adding labels without specification.
 
 
@@ -163,6 +166,7 @@ degree.gender %>%
   ggsci::scale_fill_d3()
     
 ```
+
 ## Bar plots
 Like pie charts, bar plot display frequency information across categorical variable levels.
 
