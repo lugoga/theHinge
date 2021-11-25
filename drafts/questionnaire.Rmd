@@ -1,0 +1,221 @@
+---
+title: "Untitled"
+author: "Masumbuko Semba and Nyamisi Peter"
+date: "11/25/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+require(tidyverse)
+```
+
+```{r}
+qns =  read_csv("d:/semba/BIOSTATISTIC-Responses.csv")
+```
+
+## Line graphs for Likert-scaled data
+
+A special case of line graphs is used when dealing with Likert-scaled variables (we will talk about Likert scales in more detail below). In such cases, the line graph displays the density of cumulative frequencies of responses. The difference between the cumulative frequencies of responses displays differences in preferences. We will only focus on how to create such graphs using the ggplot environment here as it has an in-build function (ecdf) which is designed to handle such data.
+
+The questionnaire dataset contains Likert-scaled variables about their competency in using computer. The response to the Likert item is numeric so that very incompetent would get the lowest (1) and high comppetent the highest numeric value (5).
+
+
+```{r}
+pc = qns %>% 
+  # glimpse() %>% 
+  select(degree = 9, competance = 10)
+
+pc
+```
+
+The `pc` dataset set has only two columns: a column labeled degree which has three degree programs (German, Japanese, and Chinese) and a column labeled competence which contains values from 1 to 5 which represent values ranging from very incompetent to very competent. Now that we have data resembling a Likert-scaled item from a questionnaire, we will display the data in a cumulative line graph.
+
+```{r}
+pc %>% 
+  ggplot(aes(x = competance, color = degree))+
+  geom_step(aes(y = ..y..), stat = "ecdf")+
+  scale_y_continuous(name = "Cumulative Density")+ 
+  scale_x_discrete(limits = c("1","2","3","4","5"), 
+                   breaks = c(1,2,3,4,5),
+                   labels=c("Very incompetent", "Incompetent", 
+                            "Neutral", "Competent", "Very competent")) + 
+  ggsci::scale_color_d3()+
+  theme_bw() +
+  theme(legend.position = c(.12,.85))
+```
+
+The satisfaction of the German course was the lowest as the red line shows the highest density (frequency of responses) of very dissatisfied and dissatisfied ratings. The students in our fictitious data set were most satisfied with the Chinese course as the blue line is the lowest for very dissatisfied and “dissatisfied” ratings while the difference between the courses shrinks for “satisfied” and very satisfied. The Japanese language course is in-between the German and the Chinese course.
+
+## Pie charts
+Most commonly, the data for visualization comes from tables of absolute frequencies associated with a categorical or nominal variable. The default way to visualize such frequency tables are pie charts and bar plots. In a first step, we modify the data to get counts and percentages.
+
+```{r}
+
+degree = qns %>% 
+  rename(degree = 9) %>% 
+  group_by(degree) %>% 
+  summarise(count = n()) %>% 
+  mutate(percent = count/sum(count)*100, 
+         across(is.numeric, round, 1)) %>% 
+  ungroup() %>% 
+  mutate(degree = if_else(is.na(degree), "Unspecified", degree))
+  
+
+degree
+```
+
+```{r}
+degree %>% 
+  ggplot(aes(x = "", y = percent, fill = degree))+
+  geom_col(color = "white")+
+  coord_polar(theta = "y", start = 0)+
+  theme_void()+
+  ggsci::scale_fill_d3()
+```
+If the slices of the pie chart are not labelled, it is difficult to see which slices are smaller or bigger compared to other slices. This problem can easily be avoided when using a bar plot instead. This issue can be avoided by adding labels to pie charts. The labeling of pie charts is, however, somewhat tedious as the positioning is tricky. Below is an example for adding labels without specification.
+
+
+```{r}
+degree %>% 
+  ggplot(aes(x = "", y = percent, fill = degree))+
+  geom_col(color = "white")+
+  coord_polar(theta = "y", start = 0)+
+  geom_text(aes(y = percent, label = percent), color = "white")+
+  theme_void()+
+  ggsci::scale_fill_d3()
+```
+
+To place the labels where they make sense, we will add another variable to the data called “Position”.
+
+```{r}
+pdegree = degree %>% 
+  arrange(desc(degree)) %>% 
+  mutate(position = cumsum(percent) - 0.5*percent)
+
+pdegree
+```
+
+Now that we have specified the position, we can include it into the pie chart.
+
+
+```{r}
+pdegree %>% 
+  ggplot(aes(x = "", y = percent, fill = degree))+
+  geom_col(color = "white")+
+  coord_polar(theta = "y", start = 0)+
+  geom_text(aes(y = position, label = percent), color = "white")+
+  theme_void()+
+  ggsci::scale_fill_d3()
+```
+
+We will now create separate pie charts for each gender. In a first step, we create a data set that does not only contain the degree levels and their frequency but also the gender.
+
+
+```{r}
+degree.gender = qns %>% 
+  rename(degree = 9, gender = Gender) %>% 
+  group_by(gender, degree) %>% 
+  summarise(count = n()) %>% 
+  mutate(percent = count/sum(count)*100, across(is.numeric, round, 1)) %>% 
+  arrange(desc(degree)) %>% 
+  # ungroup() %>% 
+  mutate(position = cumsum(percent) - 0.5*percent)
+
+degree.gender
+```
+
+Let’s briefly inspect the new data set. Now that we have created the dataset, we can plot separate pie charts for each gender.
+
+```{r}
+
+degree.gender %>% 
+  ggplot(aes(x = "", y = percent, fill = degree))+
+  geom_col(color = "white")+
+  geom_text(aes(y = position, label = percent), color = "white")+
+  facet_wrap(~gender)+
+  coord_polar(theta = "y", start = 0)+
+  theme_void()+
+  ggsci::scale_fill_d3()
+    
+```
+## Bar plots
+Like pie charts, bar plot display frequency information across categorical variable levels.
+
+```{r}
+degree.count = qns %>% 
+  select(degree = 9, gender = Gender) %>% 
+  group_by(degree) %>% 
+  count()
+
+degree.count
+```
+
+
+```{r}
+degree.count %>% 
+  ggplot(aes(x = degree, y = n, fill = degree))+
+  geom_col()+
+  geom_text(aes(x = degree, y = n-3, label = n), color = "white")+
+  scale_y_continuous(name = "Frequency", expand = c(0, NA))+
+  ggsci::scale_fill_d3()
+```
+
+Compared with the pie chart, it is much easier to grasp the relative size and order of the percentage values which shows that pie charts are unfit to show relationships between elements in a graph and, as a general rule of thumb, should be avoided.
+
+Bar plots can be grouped which adds another layer of information that is particularly useful when dealing with frequency counts across multiple categorical variables. But before we can create grouped bar plots, we need to create an appropriate data set.
+
+
+```{r}
+degree.gender.count = qns %>% 
+  select(degree = 9, gender = Gender) %>% 
+  group_by(degree,gender) %>% 
+  count()
+
+degree.gender.count
+```
+
+We have now added Course as an additional categorical variable and will include gender as the “fill” argument in our bar plot. To group the bars, we use the command `position=position_dodge()`.
+
+```{r}
+degree.gender.count %>% 
+  ggplot(aes(x = degree, y = n, fill = gender))+
+  geom_col(position = position_dodge(.9))+
+  geom_text(aes(x = degree, y = n-1, label = n), color = "white", position = position_dodge(.9))+
+  scale_y_continuous(name = "Frequency", expand = c(0, NA))+
+  ggsci::scale_fill_d3()+
+  theme(legend.position = c(.085,.85))
+```
+
+```{r}
+
+
+qns %>% 
+  select(degree = 9, gender = Gender) %>% 
+  ggplot(aes(x = degree))+
+  geom_bar(fill = "maroon")+
+  facet_wrap(~gender)
+
+```
+
+
+## multiple response
+
+```{r}
+likert.re = qns %>% 
+  mutate(across(is.character, as.factor)) %>% 
+  as.data.frame() %>%   
+  dplyr::select(12,21,22) %>% 
+  likert() 
+  
+  likert.re
+```
+
+
+```{r}
+likert.re %>% 
+  plot(ordered = F, wrap= 60)+
+  ggsci::scale_fill_d3()
+
+```

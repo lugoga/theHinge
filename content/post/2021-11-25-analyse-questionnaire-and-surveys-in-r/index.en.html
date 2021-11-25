@@ -1,0 +1,233 @@
+---
+title: Analyse questionnaire and surveys in R
+author: Masumbuko Semba
+date: '2021-11-25'
+slug: []
+categories:
+  - ggplot2
+tags:
+  - survey
+  - questionnaire
+  - interactive
+  - marine
+  - Masumbuko Semba
+description: ''
+thumbnail: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<div id="packages" class="section level2">
+<h2>packages</h2>
+<pre class="r"><code>library(tidyverse)
+library(likert)</code></pre>
+</div>
+<div id="load-the-dataset" class="section level2">
+<h2>load the dataset</h2>
+<pre class="r"><code>qns =  read_csv(&quot;BIOSTATISTIC-Responses.csv&quot;)</code></pre>
+</div>
+<div id="line-graphs-for-likert-scaled-data" class="section level2">
+<h2>Line graphs for Likert-scaled data</h2>
+<p>A special case of line graphs is used when dealing with Likert-scaled variables (we will talk about Likert scales in more detail below). In such cases, the line graph displays the density of cumulative frequencies of responses. The difference between the cumulative frequencies of responses displays differences in preferences. We will only focus on how to create such graphs using the ggplot environment here as it has an in-build function (ecdf) which is designed to handle such data.</p>
+<p>The questionnaire dataset contains Likert-scaled variables about their competency in using computer. The response to the Likert item is numeric so that very incompetent would get the lowest (1) and high comppetent the highest numeric value (5).</p>
+<pre class="r"><code>pc = qns %&gt;% 
+  # glimpse() %&gt;% 
+  select(degree = 9, competance = 10)
+
+pc</code></pre>
+<pre><code># A tibble: 96 x 2
+   degree      competance
+   &lt;chr&gt;            &lt;dbl&gt;
+ 1 BSc-Biology          5
+ 2 BSc-Biology          5
+ 3 BSc-Biology          2
+ 4 BSc-Biology          3
+ 5 BSc-Biology          2
+ 6 BSc-Biology          4
+ 7 BSc-Biology          4
+ 8 BSc-Biology          4
+ 9 BSc-Biology          4
+10 BSc-Biology          2
+# ... with 86 more rows</code></pre>
+<p>The <code>pc</code> dataset set has only two columns: a column labeled degree which has three degree programs (German, Japanese, and Chinese) and a column labeled competence which contains values from 1 to 5 which represent values ranging from very incompetent to very competent. Now that we have data resembling a Likert-scaled item from a questionnaire, we will display the data in a cumulative line graph.</p>
+<pre class="r"><code>pc %&gt;% 
+  ggplot(aes(x = competance, color = degree))+
+  geom_step(aes(y = ..y..), stat = &quot;ecdf&quot;)+
+  scale_y_continuous(name = &quot;Cumulative Density&quot;)+ 
+  scale_x_discrete(limits = c(&quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,&quot;5&quot;), 
+                   breaks = c(1,2,3,4,5),
+                   labels=c(&quot;Very incompetent&quot;, &quot;Incompetent&quot;, 
+                            &quot;Neutral&quot;, &quot;Competent&quot;, &quot;Very competent&quot;)) + 
+  ggsci::scale_color_d3()+
+  theme_bw() +
+  theme(legend.position = c(.12,.85))</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>The satisfaction of the German course was the lowest as the red line shows the highest density (frequency of responses) of very dissatisfied and dissatisfied ratings. The students in our fictitious data set were most satisfied with the Chinese course as the blue line is the lowest for very dissatisfied and “dissatisfied” ratings while the difference between the courses shrinks for “satisfied” and very satisfied. The Japanese language course is in-between the German and the Chinese course.</p>
+</div>
+<div id="pie-charts" class="section level2">
+<h2>Pie charts</h2>
+<p>Most commonly, the data for visualization comes from tables of absolute frequencies associated with a categorical or nominal variable. The default way to visualize such frequency tables are pie charts and bar plots. In a first step, we modify the data to get counts and percentages.</p>
+<pre class="r"><code>degree = qns %&gt;% 
+  rename(degree = 9) %&gt;% 
+  group_by(degree) %&gt;% 
+  summarise(count = n()) %&gt;% 
+  mutate(percent = count/sum(count)*100, 
+         across(is.numeric, round, 1)) %&gt;% 
+  ungroup() %&gt;% 
+  mutate(degree = if_else(is.na(degree), &quot;Unspecified&quot;, degree))
+  
+
+degree</code></pre>
+<pre><code># A tibble: 3 x 3
+  degree      count percent
+  &lt;chr&gt;       &lt;dbl&gt;   &lt;dbl&gt;
+1 Bed-Others      8     8.3
+2 Bed-Science    39    40.6
+3 BSc-Biology    49    51  </code></pre>
+<pre class="r"><code>degree %&gt;% 
+  ggplot(aes(x = &quot;&quot;, y = percent, fill = degree))+
+  geom_col(color = &quot;white&quot;)+
+  coord_polar(theta = &quot;y&quot;, start = 0)+
+  theme_void()+
+  ggsci::scale_fill_d3()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-7-1.png" width="672" />
+If the slices of the pie chart are not labelled, it is difficult to see which slices are smaller or bigger compared to other slices. This problem can easily be avoided when using a bar plot instead. This issue can be avoided by adding labels to pie charts. The labeling of pie charts is, however, somewhat tedious as the positioning is tricky. Below is an example for adding labels without specification.</p>
+<pre class="r"><code>degree %&gt;% 
+  ggplot(aes(x = &quot;&quot;, y = percent, fill = degree))+
+  geom_col(color = &quot;white&quot;)+
+  coord_polar(theta = &quot;y&quot;, start = 0)+
+  geom_text(aes(y = percent, label = percent), color = &quot;white&quot;)+
+  theme_void()+
+  ggsci::scale_fill_d3()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>To place the labels where they make sense, we will add another variable to the data called “Position”.</p>
+<pre class="r"><code>pdegree = degree %&gt;% 
+  arrange(desc(degree)) %&gt;% 
+  mutate(position = cumsum(percent) - 0.5*percent)
+
+pdegree</code></pre>
+<pre><code># A tibble: 3 x 4
+  degree      count percent position
+  &lt;chr&gt;       &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;
+1 BSc-Biology    49    51       25.5
+2 Bed-Science    39    40.6     71.3
+3 Bed-Others      8     8.3     95.8</code></pre>
+<p>Now that we have specified the position, we can include it into the pie chart.</p>
+<pre class="r"><code>pdegree %&gt;% 
+  ggplot(aes(x = &quot;&quot;, y = percent, fill = degree))+
+  geom_col(color = &quot;white&quot;)+
+  coord_polar(theta = &quot;y&quot;, start = 0)+
+  geom_text(aes(y = position, label = percent), color = &quot;white&quot;)+
+  theme_void()+
+  ggsci::scale_fill_d3()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p>We will now create separate pie charts for each gender. In a first step, we create a data set that does not only contain the degree levels and their frequency but also the gender.</p>
+<pre class="r"><code>degree.gender = qns %&gt;% 
+  rename(degree = 9, gender = Gender) %&gt;% 
+  group_by(gender, degree) %&gt;% 
+  summarise(count = n()) %&gt;% 
+  mutate(percent = count/sum(count)*100, across(is.numeric, round, 1)) %&gt;% 
+  arrange(desc(degree)) %&gt;% 
+  # ungroup() %&gt;% 
+  mutate(position = cumsum(percent) - 0.5*percent)
+
+degree.gender</code></pre>
+<pre><code># A tibble: 6 x 5
+# Groups:   gender [2]
+  gender degree      count percent position
+  &lt;chr&gt;  &lt;chr&gt;       &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;
+1 Female BSc-Biology    12    38.7     19.4
+2 Male   BSc-Biology    37    56.9     28.4
+3 Female Bed-Science    12    38.7     58.0
+4 Male   Bed-Science    27    41.5     77.6
+5 Female Bed-Others      7    22.6     88.7
+6 Male   Bed-Others      1     1.5     99.2</code></pre>
+<p>Let’s briefly inspect the new data set. Now that we have created the dataset, we can plot separate pie charts for each gender.</p>
+<pre class="r"><code>degree.gender %&gt;% 
+  ggplot(aes(x = &quot;&quot;, y = percent, fill = degree))+
+  geom_col(color = &quot;white&quot;)+
+  geom_text(aes(y = position, label = percent), color = &quot;white&quot;)+
+  facet_wrap(~gender)+
+  coord_polar(theta = &quot;y&quot;, start = 0)+
+  theme_void()+
+  ggsci::scale_fill_d3()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-12-1.png" width="672" />
+## Bar plots
+Like pie charts, bar plot display frequency information across categorical variable levels.</p>
+<pre class="r"><code>degree.count = qns %&gt;% 
+  select(degree = 9, gender = Gender) %&gt;% 
+  group_by(degree) %&gt;% 
+  count()
+
+degree.count</code></pre>
+<pre><code># A tibble: 3 x 2
+# Groups:   degree [3]
+  degree          n
+  &lt;chr&gt;       &lt;int&gt;
+1 Bed-Others      8
+2 Bed-Science    39
+3 BSc-Biology    49</code></pre>
+<pre class="r"><code>degree.count %&gt;% 
+  ggplot(aes(x = degree, y = n, fill = degree))+
+  geom_col()+
+  geom_text(aes(x = degree, y = n-3, label = n), color = &quot;white&quot;)+
+  scale_y_continuous(name = &quot;Frequency&quot;, expand = c(0, NA))+
+  ggsci::scale_fill_d3()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p>Compared with the pie chart, it is much easier to grasp the relative size and order of the percentage values which shows that pie charts are unfit to show relationships between elements in a graph and, as a general rule of thumb, should be avoided.</p>
+<p>Bar plots can be grouped which adds another layer of information that is particularly useful when dealing with frequency counts across multiple categorical variables. But before we can create grouped bar plots, we need to create an appropriate data set.</p>
+<pre class="r"><code>degree.gender.count = qns %&gt;% 
+  select(degree = 9, gender = Gender) %&gt;% 
+  group_by(degree,gender) %&gt;% 
+  count()
+
+degree.gender.count</code></pre>
+<pre><code># A tibble: 6 x 3
+# Groups:   degree, gender [6]
+  degree      gender     n
+  &lt;chr&gt;       &lt;chr&gt;  &lt;int&gt;
+1 Bed-Others  Female     7
+2 Bed-Others  Male       1
+3 Bed-Science Female    12
+4 Bed-Science Male      27
+5 BSc-Biology Female    12
+6 BSc-Biology Male      37</code></pre>
+<p>We have now added Course as an additional categorical variable and will include gender as the “fill” argument in our bar plot. To group the bars, we use the command <code>position=position_dodge()</code>.</p>
+<pre class="r"><code>degree.gender.count %&gt;% 
+  ggplot(aes(x = degree, y = n, fill = gender))+
+  geom_col(position = position_dodge(.9))+
+  geom_text(aes(x = degree, y = n-1, label = n), color = &quot;white&quot;, position = position_dodge(.9))+
+  scale_y_continuous(name = &quot;Frequency&quot;, expand = c(0, NA))+
+  ggsci::scale_fill_d3()+
+  theme(legend.position = c(.085,.85))</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<pre class="r"><code>qns %&gt;% 
+  select(degree = 9, gender = Gender) %&gt;% 
+  ggplot(aes(x = degree))+
+  geom_bar(fill = &quot;maroon&quot;)+
+  facet_wrap(~gender)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+</div>
+<div id="multiple-response" class="section level2">
+<h2>multiple response</h2>
+<pre class="r"><code>likert.re = qns %&gt;% 
+  mutate(across(is.character, as.factor)) %&gt;% 
+  as.data.frame() %&gt;%   
+  dplyr::select(12,21,22) %&gt;% 
+  likert() 
+  
+  likert.re</code></pre>
+<pre><code>                                                                       Item
+1                 Do you have access to internet enabled Desktop or Laptop?
+2 In your previous Practical Training, did you collect any biological data?
+3               If the answer is yes, did you analyse the data you collect?
+        No      Yes
+1 32.29167 67.70833
+2 44.79167 55.20833
+3 45.83333 54.16667</code></pre>
+<pre class="r"><code>likert.re %&gt;% 
+  plot(ordered = F, wrap= 60)+
+  ggsci::scale_fill_d3()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+</div>
