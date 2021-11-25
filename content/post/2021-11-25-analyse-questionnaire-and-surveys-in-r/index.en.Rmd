@@ -50,12 +50,19 @@ library(likert)
 ## load the dataset
 
 
-```{r, eval=FALSE}
-qns =  read_csv("BIOSTATISTIC-Responses.csv")
-```
-
 ```{r, echo=FALSE}
 qns =  read_csv("d:/semba/BIOSTATISTIC-Responses.csv")
+
+```
+
+```{r, eval=FALSE}
+qns =  read_csv("BIOSTATISTIC-Responses.csv")
+
+```
+
+```{r}
+qns %>% 
+  glimpse()
 ```
 
 ## Visualizing survey data

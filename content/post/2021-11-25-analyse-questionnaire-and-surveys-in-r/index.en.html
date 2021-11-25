@@ -42,6 +42,34 @@ library(likert)</code></pre>
 <div id="load-the-dataset" class="section level2">
 <h2>load the dataset</h2>
 <pre class="r"><code>qns =  read_csv(&quot;BIOSTATISTIC-Responses.csv&quot;)</code></pre>
+<pre class="r"><code>qns %&gt;% 
+  glimpse()</code></pre>
+<pre><code>Rows: 96
+Columns: 24
+$ Timestamp                                                                                                                                         &lt;chr&gt; ~
+$ `First Name`                                                                                                                                      &lt;chr&gt; ~
+$ Surname                                                                                                                                           &lt;chr&gt; ~
+$ `Registration Number`                                                                                                                             &lt;chr&gt; ~
+$ `Email address`                                                                                                                                   &lt;chr&gt; ~
+$ Gender                                                                                                                                            &lt;chr&gt; ~
+$ `What is your body weight (in Kilogram)`                                                                                                          &lt;dbl&gt; ~
+$ `What is your body Height (in meters)`                                                                                                            &lt;dbl&gt; ~
+$ `What undergraduate degree programme are you pursuing with at UDOM?`                                                                              &lt;chr&gt; ~
+$ `Looking on yourself, where would you position yourself in the rank below based on the your ability in doing mathematic?`                         &lt;dbl&gt; ~
+$ `Which of the following best describe your objective for taking Biostatistics course`                                                             &lt;chr&gt; ~
+$ `Do you have access to internet enabled Desktop or Laptop?`                                                                                       &lt;chr&gt; ~
+$ `Which subject did you major in your Advanced Level Studies? (Multiple selection)`                                                                &lt;chr&gt; ~
+$ `What statistical software, if any have you used in the past (multiple selection)`                                                                &lt;chr&gt; ~
+$ `How interested would you be in the ability to do labwork, exercise and quizzes  for this Biostatistics course?`                                  &lt;chr&gt; ~
+$ `How interested would you be for group work during the timeflame of this course?`                                                                 &lt;chr&gt; ~
+$ `How interested would you be forming study group with other student?`                                                                             &lt;chr&gt; ~
+$ `When do you typically prefer learning Biostatistics and its application`                                                                         &lt;chr&gt; ~
+$ `What proportion of the time in your semester classes do you spend learning Biostatistics?`                                                       &lt;chr&gt; ~
+$ `What document formats are you familiar with?`                                                                                                    &lt;chr&gt; ~
+$ `In your previous Practical Training, did you collect any biological data?`                                                                       &lt;chr&gt; ~
+$ `If the answer is yes, did you analyse the data you collect?`                                                                                     &lt;chr&gt; ~
+$ `Which software did you use for the analysis of the data you collected?`                                                                          &lt;chr&gt; ~
+$ `Please let us know of any ideas you might have to improve and enhance better understanding of the Biostatistics course to your fellow students?` &lt;chr&gt; ~</code></pre>
 </div>
 <div id="visualizing-survey-data" class="section level2">
 <h2>Visualizing survey data</h2>
@@ -82,7 +110,7 @@ pc</code></pre>
   ggsci::scale_color_d3()+
   theme_bw() +
   theme(legend.position = c(.12,.85))</code></pre>
-<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
 <!-- The satisfaction of the German course was the lowest as the red line shows the highest density (frequency of responses) of very dissatisfied and dissatisfied ratings. The students in our fictitious data set were most satisfied with the Chinese course as the blue line is the lowest for very dissatisfied and “dissatisfied” ratings while the difference between the courses shrinks for “satisfied” and very satisfied. The Japanese language course is in-between the German and the Chinese course. -->
 </div>
 <div id="pie-charts" class="section level2">
@@ -111,7 +139,7 @@ degree</code></pre>
   coord_polar(theta = &quot;y&quot;, start = 0)+
   theme_void()+
   ggsci::scale_fill_d3()</code></pre>
-<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
 <p>If the slices of the pie chart are not labelled, it is difficult to see which slices are smaller or bigger compared to other slices. This problem can easily be avoided when using a bar plot instead. This issue can be avoided by adding labels to pie charts. The labeling of pie charts is, however, somewhat tedious as the positioning is tricky. Below is an example for adding labels without specification.</p>
 <pre class="r"><code>degree %&gt;% 
   ggplot(aes(x = &quot;&quot;, y = percent, fill = degree))+
@@ -120,7 +148,7 @@ degree</code></pre>
   geom_text(aes(y = percent, label = percent), color = &quot;white&quot;)+
   theme_void()+
   ggsci::scale_fill_d3()</code></pre>
-<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
 <p>To place the labels where they make sense, we will add another variable to the data called “Position”.</p>
 <pre class="r"><code>pdegree = degree %&gt;% 
   arrange(desc(degree)) %&gt;% 
@@ -141,7 +169,7 @@ pdegree</code></pre>
   geom_text(aes(y = position, label = percent), color = &quot;white&quot;)+
   theme_void()+
   ggsci::scale_fill_d3()</code></pre>
-<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
 <p>We will now create separate pie charts for each gender. In a first step, we create a data set that does not only contain the degree levels and their frequency but also the gender.</p>
 <pre class="r"><code>degree.gender = qns %&gt;% 
   rename(degree = 9, gender = Gender) %&gt;% 
@@ -172,7 +200,7 @@ degree.gender</code></pre>
   coord_polar(theta = &quot;y&quot;, start = 0)+
   theme_void()+
   ggsci::scale_fill_d3()</code></pre>
-<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
 </div>
 <div id="bar-plots" class="section level2">
 <h2>Bar plots</h2>
@@ -196,7 +224,7 @@ degree.count</code></pre>
   geom_text(aes(x = degree, y = n-3, label = n), color = &quot;white&quot;)+
   scale_y_continuous(name = &quot;Frequency&quot;, expand = c(0, NA))+
   ggsci::scale_fill_d3()</code></pre>
-<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
 <p>Compared with the pie chart, it is much easier to grasp the relative size and order of the percentage values which shows that pie charts are unfit to show relationships between elements in a graph and, as a general rule of thumb, should be avoided.</p>
 <p>Bar plots can be grouped which adds another layer of information that is particularly useful when dealing with frequency counts across multiple categorical variables. But before we can create grouped bar plots, we need to create an appropriate data set.</p>
 <pre class="r"><code>degree.gender.count = qns %&gt;% 
@@ -223,13 +251,13 @@ degree.gender.count</code></pre>
   scale_y_continuous(name = &quot;Frequency&quot;, expand = c(0, NA))+
   ggsci::scale_fill_d3()+
   theme(legend.position = c(.085,.85))</code></pre>
-<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
 <pre class="r"><code>qns %&gt;% 
   select(degree = 9, gender = Gender) %&gt;% 
   ggplot(aes(x = degree))+
   geom_bar(fill = &quot;maroon&quot;)+
   facet_wrap(~gender)</code></pre>
-<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
 </div>
 <div id="multiple-response" class="section level2">
 <h2>multiple response</h2>
@@ -251,5 +279,5 @@ degree.gender.count</code></pre>
 <pre class="r"><code>likert.re %&gt;% 
   plot(ordered = F, wrap= 60)+
   ggsci::scale_fill_d3()</code></pre>
-<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
 </div>
