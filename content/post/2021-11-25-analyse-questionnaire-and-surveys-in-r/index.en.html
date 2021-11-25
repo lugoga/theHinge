@@ -18,6 +18,21 @@ thumbnail: ''
 <script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
 
 
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>This post offers some technique on how to analyse data from a surveys and questionnaires in R, provides tips on visualizing survey data, and exemplifies how survey and questionnaire data can be analyzed.</p>
+<p>Questionnaires and surveys are widely used in research and thus one of the most common research designs.
+Questionnaires elicit three types of data:</p>
+<ul>
+<li>Factual</li>
+<li>Behavioral</li>
+<li>Attitudinal</li>
+</ul>
+<p>While factual and behavioral questions are about what the respondent is and does, attitudinal questions tap into what the respondent thinks or feels.</p>
+<p>The advantages of surveys are that they * offer a relative cheap, quick, and effective way to collect (targeted) data from a comparatively large set of people; and * that they can be distributed or carried out in various formats (face-to-face, by telephone, by computer or via social media, or by postal service).</p>
+<p>Disadvantages of questionnaires are that they are prone to providing unreliable or unnatural data. Data gathered via surveys can be unreliable due to the social desirability bias which is the tendency of respondents to answer questions in a manner that will be viewed favorably by others. Thus, the data that surveys provide may not necessarily be representative of actual natural behavior.</p>
+<p>In this section, we will discuss what needs to kept in mind when designing questionnaires and surveys, what pieces of software or platforms one can use, options for visualizing questionnaire and survey data, statistical methods that are used to evaluate questionnaire and survey data (reliability), and which statistical methods are used in analyzing the data.</p>
+</div>
 <div id="packages" class="section level2">
 <h2>packages</h2>
 <p>s</p>
@@ -27,6 +42,10 @@ library(likert)</code></pre>
 <div id="load-the-dataset" class="section level2">
 <h2>load the dataset</h2>
 <pre class="r"><code>qns =  read_csv(&quot;BIOSTATISTIC-Responses.csv&quot;)</code></pre>
+</div>
+<div id="visualizing-survey-data" class="section level2">
+<h2>Visualizing survey data</h2>
+<p>Just as the data that is provided by surveys and questionnaires can take various forms, there are numerous ways to display survey data. In the following, we will have a look at some of the most common or useful ways in which survey and questionnaire data can be visualized. However, before we can begin, we need to set up our R session as shown below.</p>
 </div>
 <div id="line-graphs-for-likert-scaled-data" class="section level2">
 <h2>Line graphs for Likert-scaled data</h2>
