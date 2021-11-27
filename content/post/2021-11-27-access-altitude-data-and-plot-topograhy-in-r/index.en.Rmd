@@ -1,0 +1,186 @@
+---
+title: Access altitude data and plot topograhy in R
+author: Masumbuko Semba
+date: '2021-11-27'
+slug: []
+categories:
+  - ggplot2
+tags:
+  - Masumbuko Semba
+  - marine
+  - map
+description: ''
+thumbnail: ''
+bibliography: [../blog.bib]
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+
+```
+
+Elevation data is used for a wide array of applications, including, for example, visualization, hydrology, and ecological modelling. There are several sources for digital elevation models such as the Shuttle Radar Topography Mission (SRTM), the USGS National Elevation Dataset (NED), Global DEM (GDEM), and others. Each of these DEMs has pros and cons for their use. Prior to its closure in January of 2018, Mapzen combined several of these sources to create a synthesis elevation product that utilizes the best available elevation data for a given region at given zoom level. Additionally, the elevation data are enhanced with the inclusion of bathymetry in oceans from ETOPO1. 
+
+In this post, I will take you through a process on how you can use a `getData` function from **raster** package [@raster] to access and download the dataset to a specific geographical area. Let's first load the packages we need. 
+
+```{r}
+library(tidyverse)
+# library(raster)
+# library(rnaturalearth)
+# library(maps) #get city lat longs
+library(ggrepel)
+library(oce)
+```
+
+
+**raster** package has nifty funtion that allows us to define some parameters and download the dataset. For this case, I am interested to download the elevation dataset but only cover the geographical boundary of the country. To achieve that, I have to parse the `country="Tanzania"`, `mask=TRUE` arguments in the cunction as the chunk below shows;
+
+```{r}
+tz_raster = raster::getData(name = 'alt',
+                            country="Tanzania",
+                            mask=TRUE)
+
+tz_raster
+```
+
+We notice that a raster dataset contain values ranges from -1 to 5778. We need to know those cells with values less than 1, which is bathymetry and then remove them from our dataset
+
+```{r}
+tz_raster[tz_raster < 1]
+```
+
+we notice that there are only four cell, then we assign them a values of NA
+```{r}
+tz_raster[tz_raster < 1] = NA
+tz_raster
+```
+
+
+My plotting package in this post is **ggplot2** [@ggplot], which required the data structured in rectangular format of rows (records) and column (variable) commonly known as data.frame. Therefore, to plot elevation data in ggplot requires me to convert raster dataset into data frame. Thank @raster for inclusion of `as.data.frame` function that convert the raster into data frame in single line of code. 
+
+```{r}
+tz.raster.df = tz_raster %>% 
+  raster::as.data.frame(xy = TRUE) %>% 
+  drop_na() %>% 
+  rename(lon = 1, lat = 2, altitude = 3)
+
+tz.raster.df %>% 
+  dplyr::sample_n(size = 5)
+```
+
+The other sources of data I need is the cities across the country that a populous. To obtain this dataset, I have to extract from **maps** package, which has a dataset contain the world cities. Therefore, I access the world.cities dataset and then filtered it to cities that are within the Tanzania and then pick ten cities that are populous. The chunk below hightlight the code used to obtain the populous cities in Tanzania. 
+
+```{r}
+
+populous.cities = maps::world.cities %>% 
+  filter(country.etc == "Tanzania") %>% 
+  top_n(n = 10, wt = pop)
+
+populous.cities
+```
+
+
+The populous cities is data frame, and contains geographical positions (long, lat), which i used to create a simple feature as shown below;
+
+```{r}
+populous.cities.sf = populous.cities %>% 
+  st_as_sf(coords = c("long", "lat"), crs = 4326)
+```
+
+
+Then define color codes for ocean (bathymetry) and land (topography)
+
+```{r}
+
+## test GMT colours as suggested by
+## http://menugget.blogspot.ca/2014/01/importing-bathymetry-and-coastline-data.html
+ocean.pal <- colorRampPalette(c("#000000", "#000209", "#000413", "#00061E", 
+    "#000728", "#000932", "#002650", "#00426E", "#005E8C", "#007AAA", "#0096C8", 
+    "#22A9C2", "#45BCBB", "#67CFB5", "#8AE2AE", "#ACF6A8", "#BCF8B9", "#CBF9CA", 
+    "#DBFBDC", "#EBFDED"))
+land.pal <- colorRampPalette(c("#336600", "#F3CA89", "#D9A627", "#A49019", "#9F7B0D", 
+    "#996600", "#B27676", "#C2B0B0", "#E5E5E5", "#FFFFFF"))
+
+```
+
+We also need the basemap of Africa shapefile
+
+```{r}
+
+africa = st_read("d:/semba/Deep sea/data/africa.shp", quiet = TRUE) %>% 
+  mutate(name = stringr::str_to_upper(CNTRY_NAME)) %>% 
+  filter(name != "TANZANIA")
+```
+
+
+The code in the chunk below was used to map the elevation data in Tanzania shown in figure \@ref(fig:map)
+
+```{r map, fig.width=6, fig.height=6, fig.cap="Topography of Tanzania"}
+
+ggplot()+
+  geom_raster(data=tz.raster.df,
+              aes(x=lon,y=lat,fill=altitude))+
+  scale_fill_gradientn(colours = land.pal(n = seq(100, 6000, by = 50)),
+                       # trans = scales::sqrt_trans(), 
+                       name = "Altitude (m)",
+                       guide = guide_colorbar(barwidth = unit(.4, "cm"), barheight = unit(6, "lines")))+
+  geom_sf(data = populous.cities.sf, shape = 21, fill="white", color="grey20" )+
+  geom_sf(data = africa)+
+  geom_sf_text(data = africa, aes(label = name), check_overlap = TRUE)+
+  geom_text_repel(data=populous.cities,aes(x=long,y=lat,label=name))+
+  coord_sf(xlim = c(29.5,40.5), ylim = c(-12,-1) )+
+  theme_bw()+
+  theme(axis.title = element_blank(), legend.position = c(.1,.16), legend.background = element_rect(fill = "white", colour = "black", size = .5))+
+  labs(caption="Data from STRM | Chart @semba",
+       # title="THE TOPOGRAPHY | BONGO",
+       # subtitle="Altitude map of Tanzania. Altitude expresesed in meters.",
+       fill="Altitude (meters)")
+
+```
+
+and a bonus is an interactive map of the elevation of Tanzania and population size of the cities
+
+```{r}
+require(tmap)
+tmap_mode(mode = "view")
+
+tm_shape(shp = tz_raster, name = "Elvation (m)")+
+  tm_raster(palette = land.pal(n = seq(100, 6000, by = 50)), n = 10, 
+            title = "Elevation (m)") +
+  
+  tm_shape(shp = populous.cities.sf)+
+  tm_bubbles(size = "pop", scale = 2, 
+             col = "pop",
+             border.col = "black", border.alpha = .5, 
+             style="fixed", breaks=c(seq(0, 3000000, by=1000000), Inf),
+             palette="-RdYlBu", contrast=1, 
+             title.col="Population size") + 
+  tm_format("World")
+
+```
+
+
+
+```{r}
+tmap_mode(mode = "plot")
+
+tm_shape(shp = tz_raster, name = "Elvation (m)")+
+  tm_raster(palette = land.pal(n = seq(100, 6000, by = 50)), n = 10, 
+            title = "Elevation (m)") +
+  
+  tm_shape(shp = populous.cities.sf)+
+  tm_bubbles(size = "pop", scale = 2, 
+             col = "pop",
+             border.col = "black", border.alpha = .5, 
+             style="fixed", breaks=c(seq(0, 3000000, by=1000000), Inf),
+             palette="-RdYlBu", contrast=1, 
+             title.col="Population size") + 
+  tm_layout(frame = TRUE)+
+  tm_graticules(ticks = TRUE)
+```
+
+## References
+
+
+
