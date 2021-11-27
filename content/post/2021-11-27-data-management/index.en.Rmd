@@ -1,0 +1,30 @@
+---
+title: Data Management Plans
+author: Masumbuko Semba
+date: '2021-11-27'
+slug: []
+categories:
+  - R
+  - data
+tags:
+  - data
+  - metadata
+  - code
+  - R
+  - Masumbuko Semba
+description: ''
+thumbnail: ''
+---
+
+It’s important to ensure that the mode of data collection is well described----what data will be produced in a project, and how it will be managed during the project, and how it will become/remain accessible to the scientific community after the project. The normal method for compliance with these policies is to write a Data Management Plan.  The key points for inclusion are: 
+
+i. What types of data will be created?
+i. How will these data be processed?
+i. How will they be stored and backed up?
+i. How will they be documented (inc. naming conventions, directory structures etc)? 
+i. How will these data be of benefit to the broader scientific community?
+i. How will they be archived and will they comply with any data/metadata standards?
+i. How will they be made available and discoverable to the broader community?
+i. What are the policies for sharing, re-use etc?
+
+The primary aim is to ensure that the data is collected in good manner and stored in a matter that ensure reproducible work with other activities and the work  will be of benefit to the whole community.
