@@ -1,0 +1,101 @@
+---
+title: Create Artist Map of Downstreet Dar es Salaam with R and Open Street Data
+author: Masumbuko Semba
+date: '2021-11-27'
+slug: []
+categories:
+  - ggplot2
+  - R
+tags:
+  - programming
+  - Masumbuko Semba
+description: ''
+thumbnail: ''
+bibliography: [../blog.bib]
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<p>OpenStreetMap (OSM) is a collaborative project to create a free editable geographic database of the world. The geodata underlying the maps is considered the primary output of the project <span class="citation">(<a href="#ref-osm" role="doc-biblioref">Wikipedia contributors 2021</a>)</span>. OpenStreetMap was born in 2004 in the UK, at a time when map data sources were controlled by private and governmental players. They were expensive and highly restrictive which made them accessible only by large companies.</p>
+<p>The idea behind OSM was to solve this problem by using a Wikipedia-like model and create a free, editable map of the world made entirely by the voluntary efforts of online masses. Mark Padgham and colleagues <span class="citation">(<a href="#ref-osmdata" role="doc-biblioref">2017</a>)</span> developed <strong>osmdata</strong>, which is an R package for downloading and using data from OpenStreetMap (OSM). <strong>osmdata</strong> allows people to access and download vector data available in the OSM database all over the world.</p>
+<p>In this post, we are going to learn how to download the street features lines and highway in the busiest commercial city of Dar es Salaam, Tanzania and make ana artist map. Before we run into the session, let’s first load the packages we need in our assignment.</p>
+<pre class="r"><code>library(tidyverse)
+library(osmdata)
+library(sf)
+library(showtext)</code></pre>
+<p>Then we download the highway. For this case we are going to dowload only the four types of highyway that are avaialble. These include motorway, primary, secondary and tertiary roads in the city as simple features.</p>
+<pre class="r"><code>streets &lt;- getbb(&quot;dar es salaam Tanzania&quot;)%&gt;%
+  opq()%&gt;%
+  add_osm_feature(key = &quot;highway&quot;, 
+                  value = c(&quot;motorway&quot;, &quot;primary&quot;, 
+                            &quot;secondary&quot;, &quot;tertiary&quot;)) %&gt;%
+  osmdata_sf()</code></pre>
+<p>Then download the street lines of the city, like the highway, we specify the streelines we want to download and for this case, residential, living_street, service and footway are needed. Any street that is unclassified we don not need for the time being and hence we exclude from the list.</p>
+<pre class="r"><code>small_streets &lt;- getbb(&quot;dar es salaam Tanzania&quot;)%&gt;%
+  opq()%&gt;%
+  add_osm_feature(key = &quot;highway&quot;, 
+                  value = c(&quot;residential&quot;, &quot;living_street&quot;,
+                            #&quot;unclassified&quot;,
+                            &quot;service&quot;, &quot;footway&quot;)) %&gt;%
+  osmdata_sf()</code></pre>
+<p>Once we have downloaded the data, we must design the layout of the map in advance, this comes down to choosing the color we would use for our maps. The chunk below show the codes that specify colors that we will use for our map.</p>
+<pre class="r"><code>background_color&lt;-&#39;#1E212B&#39;
+street_color&lt;-&#39;#FAD399&#39;
+small_street_color&lt;-&#39;#D4B483&#39;
+font_color&lt;-&#39;#FFFFFF&#39;</code></pre>
+<p>Then we download and add a font we want to use</p>
+<pre class="r"><code>font_add_google(&quot;Quattrocento&quot;, &quot;Quattrocento&quot;)</code></pre>
+<p>Once everything in place, we then map the downtown street of the commercial city of Dar es Salaam using a <strong>ggplot2</strong> package <span class="citation">(<a href="#ref-ggplot" role="doc-biblioref">Wickham 2016</a>)</span>. The chunk below highlight the code used to make a map shown in figure <a href="#fig:map">1</a>.</p>
+<pre class="r"><code>blr_dark&lt;-ggplot() +
+  geom_sf(data = streets$osm_lines,
+          inherit.aes = FALSE,
+          color = street_color,
+          size = .5,
+          alpha = .6) +
+  
+  geom_sf(data = small_streets$osm_lines,
+          inherit.aes = FALSE,
+          color = street_color,
+          size = .3,
+          alpha = .6) +
+
+  theme_void() +
+  theme(plot.title = element_text(family = &#39;Quattrocento&#39;,
+                                  color=font_color,
+                                  size = 18, face=&quot;bold&quot;, hjust=.5,
+                                  vjust=2.5),
+        panel.border = element_rect(colour = &quot;white&quot;, fill=NA, size=3),
+        plot.margin=unit(c(0.6,1.6,1,1.6),&quot;cm&quot;),
+        plot.subtitle = element_text(color=font_color,
+                                     family = &#39;Quattrocento&#39;,
+                                     vjust=0.1,
+                                     size = 12, hjust=.5, margin=margin(2, 0, 5, 0)),
+        plot.background = element_rect(fill = &quot;#282828&quot;)) +
+  coord_sf(xlim = c(39.26, 39.3), 
+           ylim = c(-6.83, -6.8)) +
+  
+  labs(title = &quot;Downtown, Dar es Salaam&quot;, 
+       subtitle = &#39;6.8301° S, 39.30812° E&#39;)
+
+blr_dark</code></pre>
+<div class="figure"><span style="display:block;" id="fig:map"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/map-1.png" alt="Artist Map of the downtown street of Dar es Salaam" width="672" />
+<p class="caption">
+Figure 1: Artist Map of the downtown street of Dar es Salaam
+</p>
+</div>
+<div id="cited-references" class="section level2 unnumbered">
+<h2>Cited references</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-osmdata" class="csl-entry">
+Padgham, Mark, Bob Rudis, Robin Lovelace, and Maëlle Salmon. 2017. <span>“Osmdata.”</span> <em>The Journal of Open Source Software</em> 2 (14). <a href="https://doi.org/10.21105/joss.00305">https://doi.org/10.21105/joss.00305</a>.
+</div>
+<div id="ref-ggplot" class="csl-entry">
+Wickham, Hadley. 2016. <em>Ggplot2: Elegant Graphics for Data Analysis</em>. Springer-Verlag New York. <a href="https://ggplot2.tidyverse.org">https://ggplot2.tidyverse.org</a>.
+</div>
+<div id="ref-osm" class="csl-entry">
+Wikipedia contributors. 2021. <span>“OpenStreetMap — <span>Wikipedia</span><span>,</span> the Free Encyclopedia.”</span> <a href="https://en.wikipedia.org/w/index.php?title=OpenStreetMap&amp;oldid=1056217878">https://en.wikipedia.org/w/index.php?title=OpenStreetMap&amp;oldid=1056217878</a>.
+</div>
+</div>
+</div>
