@@ -16,6 +16,8 @@ description: ''
 thumbnail: ''
 ---
 
+Data is the most important asset. It validates a research story and a conclusions; it provides a platform of confidence for other researchers who might continue your work; and it is a resource that can be used by researchers in other fields to undertake new work, perhaps completely unrelated to your own research interests. Well-organised data that is accessible to the research community can continue to provide extended benefit and value long after your projects have been completed.
+
 It’s important to ensure that the mode of data collection is well described----what data will be produced in a project, and how it will be managed during the project, and how it will become/remain accessible to the scientific community after the project. The normal method for compliance with these policies is to write a Data Management Plan.  The key points for inclusion are: 
 
 i. What types of data will be created?
