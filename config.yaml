@@ -1,5 +1,6 @@
 baseurl: https://hinger.netlify.app/
-# title: Hugo DPSG
+title: Semba-blog
+googleAnalytics: "22213338766"
 languageCode: de
 DefaultContentLanguage: en
 paginate: '5'

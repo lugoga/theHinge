@@ -1,0 +1,614 @@
+---
+title: "Untitled"
+author: "Masumbuko Semba and Nyamisi Peter"
+date: "11/27/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## litsearchr tutorial
+The R package litsearchr provides various functions to help with planning a systematic search of the scientific literature on a given topic. This tutorial gives an example of how to use litsearchr, along with some brief explanations of its workings.
+
+litsearchr was created by the amazing Eliza Grames, and a lot of this tutorial is an elaboration of the existing vignette for the package.
+
+Setup
+As well as litsearchr itself, we will use a few other R packages in the tutorial. Let’s load them.
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(ggraph)
+library(igraph)
+library(readr)
+Installation
+```
+
+To use the litsearchr package, we need to install it first.
+
+litsearchr isn’t (yet) stored in the package repository of CRAN, the Comprehensive R Archive Network. This means that the usual install.packages() function or the Install button in RStudio won’t find it. Instead, we can install the package from Eliza’s GitHub repository.
+
+The devtools package provides a function for installing R packages from GitHub instead of from CRAN. So we can use this.
+
+```{r, eval=FALSE}
+library(devtools)
+install_github("elizagrames/litsearchr", ref="main")
+```
+
+Now that we have installed litsearchr we can load it.
+
+```{r}
+library(litsearchr)
+```
+
+litsearchr is a new package and is currently in development. So we should keep track of which version we are using, in case we later work with a newer version and find that the examples in this tutorial no longer work.
+
+```{r}
+packageVersion("litsearchr")
+
+```
+
+Example
+Let’s imagine that we want to retrieve journal articles about treating phobias with a combination of medication and cognitive-behavioral therapy. Our overall topic consists of the three sub-topics medication, CBT and phobia, and we want to get articles that are about all three.
+
+The starting point in litsearchr is an existing search that we have already carried out. We first conduct a quick, cursory search for our topic of interest. This is known as the ‘naive search’. litsearchr will then take the results of our naive search and suggest improvements that might capture more articles that are relevant to our topic (and hopefully fewer that are not relevant).
+
+We start by going to the PubMed search page and enter the search in the Query box there. For this example, I entered the following three search terms, combined with AND, like this:
+
+(medication) AND (CBT) AND (phobia)
+
+If you click on the Send to button above the PubMed search results, and then select to send them to Citation manager, you will be prompted to download all the results to a file that litsearchr can read. I have downloaded the example results to a file called pubmed-medication-set.nbib.
+
+Loading results
+We can load results from a file using the litsearchr function import_results(). We give the file name as the file argument.
+
+naive_results <- import_results(file="pubmed-medication-set.nbib")
+## Reading file pubmed-medication-set.nbib ... done
+import_results() gives us a dataframe in which each result is a row. We can see from the number of rows how many results our search got.
+
+nrow(naive_results)
+## [1] 133
+We can take a look at the first few.
+
+naive_results
+publication_type
+<chr>
+Journal Article and Meta-Analysis and Review	
+Journal Article and Review	
+Journal Article and Meta-Analysis and Research Support, U.S. Gov't, P.H.S. and Review	
+Journal Article and Review	
+Journal Article and Randomized Controlled Trial	
+Review and Book	
+Comparative Study and Journal Article and Review and Systematic Review	
+Journal Article and Review	
+Journal Article	
+Journal Article and Randomized Controlled Trial and Research Support, N.I.H., Extramural	
+...
+1-10 of 133 rows | 1-1 of 53 columns
+There are columns for the title, authors, date, abstract, and so on. We can check the names of all the columns to see all the information we have on each search result.
+
+colnames(naive_results)
+
+## [53] "author_corporate"
+And just as a check, let’s take a look at the title of the first result.
+
+naive_results[1, "title"]
+## [1] "Efficacy of treatments for anxiety disorders: a meta-analysis."
+Getting potential search terms
+The next step is to analyze the search results that we already have and look to see whether there are more search terms in them that might be related to our topic. If so, we can use these additional terms in a new search to get more relevant results.
+
+There are two different ways of searching for new terms.
+
+Keywords
+Many authors or journals already provide a list of keywords attached to the article. So the simplest way to get new search terms is just to look at what keywords were already provided in the articles we already found.
+
+As an example, we can take a look at the keywords for the first article in our results.
+
+naive_results[1, "keywords"]
+## [1] NA
+The keywords are missing (NA) from this article. In fact, they are missing from quite a few. The fourth article in our results is the first that has any keywords supplied.
+
+naive_results[4, "keywords"]
+## [1] "Chronic subjective dizziness and Cognitive-behavioral therapy and Functional neurological disorder and Persistent postural-perceptual dizziness and Phobic postural vertigo and Vestibular rehabilitation"
+How many articles are missing keywords? We can count up the number of NA values to find out.
+
+sum(is.na(naive_results[, "keywords"]))
+## [1] 72
+More than half of them. So relying on the provided keywords might not always be such a great approach. But for the purposes of demonstration let’s see how we could use them in litsearchr.
+
+litsearchr has a function extract_terms() that can gather the keywords from this column of our search results. The keywords argument is where we put the column of keywords from our results dataframe. The method="tagged" argument lets extract_terms() know that we are getting keywords that article authors themselves have provided (or ‘tagged’ the article with).
+
+extract_terms(keywords=naive_results[, "keywords"], method="tagged")
+## Loading required namespace: stopwords
+##  [1] "anxiety disorders"                    
+##  [2] "bipolar disorder"                     
+##  [3] "cognitive behavior therapy"           
+##  [4] "cognitive behavioral therapy"         
+##  [5] "cognitive bias modification"          
+##  [6] "cognitive-behavioral therapy"         
+##  [7] "economic evaluation"                  
+##  [8] "emotion regulation"                   
+##  [9] "exposure therapy"                     
+## [10] "fear extinction"                      
+## [11] "fear of childbirth"                   
+## [12] "functional magnetic resonance imaging"
+## [13] "panic disorder"                       
+## [14] "physical activity"                    
+## [15] "randomized controlled trial"          
+## [16] "social anxiety"                       
+## [17] "social anxiety disorder"              
+## [18] "social phobia"                        
+## [19] "systemic therapy"                     
+## [20] "virtual reality"
+We seem to have got only multi-word phrases, no single words. And we didn’t get very many. As is often the case in programming, we need to check the documentation for extract_terms() to see what its default behavior is. (We can get the documentation in RStudio by typing ? extract_terms at the console).
+
+We see that extract_terms() has a few default arguments:
+
+min_freq=2. Only get keywords that appear at least twice in the full set of results. This is good for making sure that we are only getting keywords that are related to more than just one article in our field of interest. But it might also miss out some important extra suggestions.
+min_n=2. Only get keywords that consist of at least two words. This is why we only see multi-word phrases in the keywords we just got.
+max_n=5. Get keywords up to five words long. Maybe this is longer than we need.
+We can experiment with changing some of these arguments. For example, let’s try including single words. This time, let’s store the result in a variable, as we will use it later on.
+
+keywords <- extract_terms(keywords=naive_results[, "keywords"], method="tagged", min_n=1)
+
+keywords
+##  [1] "adherence"                            
+##  [2] "adolescents"                          
+##  [3] "antidepressant"                       
+##  [4] "anxiety"                              
+##  [5] "anxiety disorders"                    
+##  [6] "autism"                               
+##  [7] "bipolar disorder"                     
+##  [8] "cbt"                                  
+##  [9] "children"                             
+## [10] "cognitive behavior therapy"           
+## [11] "cognitive behavioral therapy"         
+## [12] "cognitive bias modification"          
+## [13] "cognitive-behavioral therapy"         
+## [14] "comorbidity"                          
+## [15] "d-cycloserine"                        
+## [16] "economic evaluation"                  
+## [17] "emotion regulation"                   
+## [18] "exercise"                             
+## [19] "exposure"                             
+## [20] "exposure therapy"                     
+## [21] "fear"                                 
+## [22] "fear extinction"                      
+## [23] "fear of childbirth"                   
+## [24] "functional magnetic resonance imaging"
+## [25] "manual"                               
+## [26] "outcome"                              
+## [27] "panic disorder"                       
+## [28] "pediatric"                            
+## [29] "pharmacotherapy"                      
+## [30] "phobia"                               
+## [31] "physical activity"                    
+## [32] "predictors"                           
+## [33] "pregnancy"                            
+## [34] "psychotherapy"                        
+## [35] "randomized controlled trial"          
+## [36] "social anxiety"                       
+## [37] "social anxiety disorder"              
+## [38] "social phobia"                        
+## [39] "systemic therapy"                     
+## [40] "treatment"                            
+## [41] "virtual reality"
+This gets us more search terms. Some of these might be useful new terms to include in our literature search. But others are clearly too broad, for example outcome, or are from tangential topics, for example virtual reality.
+
+You could try narrowing the terms down a bit, for example by asking only for those that are provided for at least three of the articles in our search. Where there are additional arguments to a function like this, it is a good idea to try out a few variations to get some idea of how they work. You can give this a go. For now, let’s move on to a different method of getting search terms from our naive search.
+
+Titles and abstracts
+We saw above that not all articles even provide keywords. And maybe the authors of the articles themselves can’t always be relied upon to tag their articles with all the keywords that might link their article to relevant topics. So an alternative (or supplementary) method of finding new relevant search terms is instead to search in the titles and/or abstracts of the articles.
+
+Here we will search in the titles only, to keep the example manageable. The article abstracts are much longer and contain many additional irrelevant words. Filtering these out would take a lot of work.
+
+Titles are fairly short and should contain mostly relevant terms. But we will still need to filter them down a bit to get only the ‘interesting’ words. Somebody has already invented a method for doing this, called Rapid Automatic Keyword Extraction (RAKE). litsearchr can apply this method if we tell it to (the argument for doing so has the curious name "fakerake", because in fact litsearchr uses a slightly simplified version of the full RAKE technique).
+
+Just as when we searched among the author-provided keywords, here too we can give arguments min_n, and max_n to choose whether we include single words or multi-word phrases, and we can give min_freq to exclude words that occur in too few of the titles in our original search.
+
+extract_terms(text=naive_results[, "title"], method="fakerake", min_freq=3, min_n=2)
+##  [1] "anxiety disorder"                     
+##  [2] "anxiety disorders"                    
+##  [3] "anxious children"                     
+##  [4] "behavior therapy"                     
+##  [5] "behavioral therapy"                   
+##  [6] "behavioral therapy response"          
+##  [7] "behavioral treatment"                 
+##  [8] "behaviour therapy"                    
+##  [9] "behavioural therapy"                  
+## [10] "bipolar disorder"                     
+## [11] "child anxiety"                        
+## [12] "childhood anxiety"                    
+## [13] "childhood anxiety disorders"          
+## [14] "cognitive behavior"                   
+## [15] "cognitive behavior therapy"           
+## [16] "cognitive behavioral"                 
+## [17] "cognitive behavioral therapy"         
+## [18] "cognitive behavioral therapy response"
+## [19] "cognitive behavioural"                
+## [20] "cognitive behavioural therapy"        
+## [21] "controlled pilot"                     
+## [22] "controlled pilot trial"               
+## [23] "controlled trial"                     
+## [24] "emotion regulation"                   
+## [25] "generalized social"                   
+## [26] "generalized social anxiety"           
+## [27] "generalized social anxiety disorder"  
+## [28] "group cognitive"                      
+## [29] "group cognitive behavioral"           
+## [30] "group cognitive behavioral therapy"   
+## [31] "longitudinal study"                   
+## [32] "panic disorder"                       
+## [33] "pediatric anxiety"                    
+## [34] "pediatric anxiety disorders"          
+## [35] "pilot study"                          
+## [36] "pilot trial"                          
+## [37] "predict response"                     
+## [38] "psychodynamic therapy"                
+## [39] "randomised controlled"                
+## [40] "randomized controlled"                
+## [41] "randomized controlled pilot"          
+## [42] "randomized controlled pilot trial"    
+## [43] "randomized controlled trial"          
+## [44] "social anxiety"                       
+## [45] "social anxiety disorder"              
+## [46] "social phobia"                        
+## [47] "study protocol"                       
+## [48] "systematic review"                    
+## [49] "therapy response"                     
+## [50] "therapy versus"                       
+## [51] "treatment outcome"                    
+## [52] "treatment response"                   
+## [53] "virtual reality"
+Searching in the titles gets us more search terms than we got from just the author-provided keywords. In part this is because every article has a title whereas not every article supplies keywords. And in part it is because the titles also contain additional irrelevant words, whereas the keywords have been specially chosen for their relevance. The title search probably gets us many more terms than we need.
+
+Some of the phrases that appear in a title are general science or data analysis terms and are not related to the specific topic of the article. In language analysis, such frequently-occurring but uninformative words are often called ‘stopwords’. If we are going to work with litsearchr a lot and will often need to filter out the same set of stopwords, then it can be handy to keep these words in a text file. We can then read this file into R when we need them, and we can add to the file each time we encounter more words that we know are irrelevant.
+
+I have prepared a (non-exhaustive) list of generic clinical psychology words that occurred in this set of articles. They are stored in the file clin_psy_stopwords.txt. Let’s read it in and take a look.
+
+clinpsy_stopwords <- read_lines("clin_psy_stopwords.txt")
+
+clinpsy_stopwords
+##   [1] "advances"        "analyse"         "analysed"        "analyses"       
+##   [5] "analysing"       "analysis"        "analyze"         "analyzes"       
+##   [9] "analyzed"        "analyzing"       "assess"          "assessed"       
+##  [13] "assesses"        "assessing"       "assessment"      "assessments"    
+##  [17] "benefit"         "based"           "benefits"        "change"         
+##  [21] "changed"         "changes"         "changing"        "characteristic" 
+##  [25] "characteristics" "characterize"    "characterized"   "characterizes"  
+##  [29] "characterizing"  "clinical"        "cluster"         "combine"        
+##  [33] "combined"        "combines"        "combining"       "comorbid"       
+##  [37] "comorbidity"     "compare"         "compared"        "compares"       
+##  [41] "comparing"       "comparison"      "control"         "controlled"     
+##  [45] "controlling"     "controls"        "design"          "designed"       
+##  [49] "designing"       "effect"          "effective"       "effectiveness"  
+##  [53] "effects"         "efficacy"        "feasible"        "feasibility"    
+##  [57] "follow"          "followed"        "following"       "follows"        
+##  [61] "group"           "groups"          "impact"          "intervention"   
+##  [65] "interventions"   "longitudinal"    "moderate"        "moderated"      
+##  [69] "moderates"       "moderating"      "moderator"       "moderators"     
+##  [73] "outcome"         "outcomes"        "patient"         "patients"       
+##  [77] "people"          "pilot"           "practice"        "predict"        
+##  [81] "predicted"       "predicting"      "predictor"       "predictors"     
+##  [85] "predicts"        "preliminary"     "primary"         "protocol"       
+##  [89] "quality"         "random"          "randomise"       "randomised"     
+##  [93] "randomising"     "randomize"       "randomized"      "randomizing"    
+##  [97] "rationale"       "reduce"          "reduced"         "reduces"        
+## [101] "reducing"        "related"         "report"          "reported"       
+## [105] "reporting"       "reports"         "response"        "responses"      
+## [109] "result"          "resulted"        "resulting"       "results"        
+## [113] "review"          "studied"         "studies"         "study"          
+## [117] "studying"        "systematic"      "treat"           "treated"        
+## [121] "treating"        "treatment"       "treatments"      "treats"         
+## [125] "trial"           "trials"          "versus"
+The extract_terms() function provides a stopwords argument that we can use to filter out words. litsearchr also provides a general list of stopwords for English (and for some other languages) via the get_stopwords() function, so we can also add this to our own more specific stopwords.
+
+all_stopwords <- c(get_stopwords("English"), clinpsy_stopwords)
+Now let’s use this big list of stopwords to have another go at extracting only relevant search terms.
+
+title_terms <- extract_terms(
+  text=naive_results[, "title"],
+  method="fakerake",
+  min_freq=3, min_n=2,
+  stopwords=all_stopwords
+)
+
+title_terms
+##  [1] "anxiety disorder"                    "anxiety disorders"                  
+##  [3] "anxious children"                    "behavior therapy"                   
+##  [5] "behavioral therapy"                  "behaviour therapy"                  
+##  [7] "behavioural therapy"                 "bipolar disorder"                   
+##  [9] "child anxiety"                       "childhood anxiety"                  
+## [11] "childhood anxiety disorders"         "cognitive behavior"                 
+## [13] "cognitive behavior therapy"          "cognitive behavioral"               
+## [15] "cognitive behavioral therapy"        "cognitive behavioural"              
+## [17] "cognitive behavioural therapy"       "emotion regulation"                 
+## [19] "generalized social"                  "generalized social anxiety"         
+## [21] "generalized social anxiety disorder" "panic disorder"                     
+## [23] "pediatric anxiety"                   "pediatric anxiety disorders"        
+## [25] "psychodynamic therapy"               "social anxiety"                     
+## [27] "social anxiety disorder"             "social phobia"                      
+## [29] "virtual reality"
+This looks a bit better. We should be careful not to accidentally exclude any potentially relevant words at this stage, and as usual exploration is important. Try out different lists of stopwords and different values of min_freq, min_n, and max_n to get a clear impression of the articles in the naive search.
+
+Let’s finish by adding together the search terms we got from the article titles and those we got from the keywords earlier, removing duplicates.
+
+terms <- unique(c(keywords, title_terms))
+Network analysis
+Our list of new search terms is looking fairly good. But there are probably still some in there that are unrelated to the others and to our topic of interest. These perhaps only occur in a small number of articles that do not mention many of the other search terms. We would like some systematic way of identifying these ‘isolated’ search terms.
+
+One way to do this is to analyze the search terms as a network. The idea behind this is that terms are linked to each other by virtue of appearing in the same articles. If we can find out which terms tend to occur together in the same article, we can pick out groups of terms that are probably all referring to the same topic (because they occur in the same subset of articles), and we can filter out terms that do not often occur together with any of the main groups of terms.
+
+We don’t have the full texts of the articles, and in any case checking for search terms in a large number of full texts would be a big task for my puny computer. So we will take the title and abstract of each article as the ‘content’ of that article, and count a term as having occurred in that article if it is to be found in either the title or abstract. For this, we need to join the title of each article to its abstract.
+
+docs <- paste(naive_results[, "title"], naive_results[, "abstract"])
+Let’s just check the first one to make sure we did this right.
+
+docs[1]
+## [1] "Efficacy of treatments for anxiety disorders: a meta-analysis. To our knowledge, no previous meta-analysis has attempted to compare the efficacy of pharmacological, psychological and combined treatments for the three main anxiety disorders (panic disorder, generalized anxiety disorder and social phobia). Pre-post and treated versus control effect sizes (ES) were calculated for all evaluable randomized-controlled studies (n = 234), involving 37,333 patients. Medications were associated with a significantly higher average pre-post ES [Cohen's d = 2.02 (1.90-2.15); 28,051 patients] than psychotherapies [1.22 (1.14-1.30); 6992 patients; P < 0.0001]. ES were 2.25 for serotonin-noradrenaline reuptake inhibitors (n = 23 study arms), 2.15 for benzodiazepines (n = 42), 2.09 for selective serotonin reuptake inhibitors (n = 62) and 1.83 for tricyclic antidepressants (n = 15). ES for psychotherapies were mindfulness therapies, 1.56 (n = 4); relaxation, 1.36 (n = 17); individual cognitive behavioural/exposure therapy (CBT), 1.30 (n = 93); group CBT, 1.22 (n = 18); psychodynamic therapy 1.17 (n = 5); therapies without face-to-face contact (e.g. Internet therapies), 1.11 (n = 34); eye movement desensitization reprocessing, 1.03 (n = 3); and interpersonal therapy 0.78 (n = 4). The ES was 2.12 (n = 16) for CBT/drug combinations. Exercise had an ES of 1.23 (n = 3). For control groups, ES were 1.29 for placebo pills (n = 111), 0.83 for psychological placebos (n = 16) and 0.20 for waitlists (n = 50). In direct comparisons with control groups, all investigated drugs, except for citalopram, opipramol and moclobemide, were significantly more effective than placebo. Individual CBT was more effective than waiting list, psychological placebo and pill placebo. When looking at the average pre-post ES, medications were more effective than psychotherapies. Pre-post ES for psychotherapies did not differ from pill placebos; this finding cannot be explained by heterogeneity, publication bias or allegiance effects. However, the decision on whether to choose psychotherapy, medications or a combination of the two should be left to the patient as drugs may have side effects, interactions and contraindications."
+We now create a matrix that records which terms appear in which articles. The litsearchr function create_dfm() does this. ‘DFM’ stands for ‘document-feature matrix’, where the ‘documents’ are our articles and the ‘features’ are the search terms. The elements argument is the list of documents. The features argument is the list of terms whose relationships we want to analyze within that set of documents.
+
+dfm <- create_dfm(elements=docs, features=terms)
+The rows of our matrix represent the articles (their titles and abstracts), and the columns represent the search terms. Each entry in the matrix records how many times that article contains that term. For example, if we look at the first three articles we see that adherence does not occur in any of them, adolescents occurs in the third, antidepressant occurs in the first two, and anxiety occurs in all of them.
+
+dfm[1:3, 1:4]
+##      adherence adolescents antidepressant anxiety
+## [1,]         0           0              1       1
+## [2,]         0           0              1       1
+## [3,]         0           1              0       1
+We can then turn this matrix into a network of linked search terms, using the litsearchr function create_network(). This function has an argument min_studies that excludes terms that occur in fewer than a given number of articles.
+
+g <- create_network(dfm, min_studies=3)
+ggraph
+We should try to make a picture of our network of terms to get a better idea of its structure. This isn’t easy, as we need to show a large number of terms plus all the links between them. The ggraph package provides some great tools for drawing networks. There is a lot to learn and discover about drawing networks, and you can look at the tutorials for ggraph if you want to learn more. But here network visualization is just an aside, so we will keep it simple.
+
+The ggraph() function takes the network that we got from create_network() as its argument and draws it as a graph. In addition, we can specify a layout for the graph. Here we use the ‘Kamada and Kawai’ layout. To sum it up very simply, this layout draws terms that are closely linked close together, and those that are less closely linked further away from each other. We add some labels showing what the actual terms are, using geom_node_text(). Since there are far too many terms to show all of them without completely cluttering the figure, we show just an arbitrary subset of them that do not overlap on the figure, using the argument check_overlap=TRUE. Finally, we also add lines linking the terms, using geom_edge_link(). We color these lines so there are more solid lines linking terms that appear in more articles together (this is called the ‘weight’ of the link).
+
+ggraph(g, layout="stress") +
+  coord_fixed() +
+  expand_limits(x=c(-3, 3)) +
+  geom_edge_link(aes(alpha=weight)) +
+  geom_node_point(shape="circle filled", fill="white") +
+  geom_node_text(aes(label=name), hjust="outward", check_overlap=TRUE) +
+  guides(edge_alpha=FALSE)
+
+
+Given the way in which we drew the graph, it tells us a few things about our search terms.
+
+Terms that appear near the center of the graph and that are linked to each other by darker lines are probably more important for our overall topic. Here these include for example cbt, phobia, and behavioral therapy.
+
+Terms that appear at the periphery of the graph and linked to it only by faint lines are not closely related to any other terms. These are mostly tangential terms that are related to, but not part of, our main topic, for example functional magnetic resonance imaging and emotion regulation.
+
+Interestingly, we see some anomalies at the periphery of the graph. The clearly very relevant terms cognitive behavior therapy and cognitive behavioural therapy appear far from the center despite being variants of one of our main naive search terms. This is probably because they are minority variations on the terminology. One involves the British spelling of behaviour, and the other uses the word behavior where most authors prefer behavioral. We will need to treat the British spelling issue as a special case later on, and this is a good illustration of the importance of looking carefully at our results.
+
+Pruning
+Now let’s use the network to rank our search terms by importance, with the aim of pruning away some of the least important ones.
+
+The ‘strength’ of each term in the network is the number of other terms that it appears together with. We can get this information from our network using the strength() function from the igraph package (behind the scenes, litsearchr uses igraph for some of the workings of its network analyses). If we then arrange the terms in ascending order of strength we see those that might be the least important.
+
+strengths <- strength(g)
+
+data.frame(term=names(strengths), strength=strengths, row.names=NULL) %>%
+  mutate(rank=rank(strength, ties.method="min")) %>%
+  arrange(strength) ->
+  term_strengths
+
+term_strengths
+term
+<chr>
+strength
+<dbl>
+rank
+<int>
+bipolar disorder	27	1
+cognitive bias modification	29	2
+autism	30	3
+functional magnetic resonance imaging	40	4
+fear extinction	44	5
+virtual reality	47	6
+psychodynamic therapy	47	6
+emotion regulation	58	8
+exposure therapy	58	8
+anxious children	62	10
+1-10 of 55 rows
+At the top are the terms that are most weakly linked to the others. For some of them you can compare this with their positions on the graph visualization above, where they appear near the margins of the figure. In most cases, terms like these are completely irrelevant and have occurred in a few of the articles in the naive search for arbitrary reasons, for example virtual reality. Some are perhaps still relevant but are just very rarely used.
+
+We would like to discard some of the terms that only rarely occur together with the others. What rule can we use to make a decision about which to discard? To get an idea of how we might approach this question, let’s visualize the strengths of the terms.
+
+cutoff_fig <- ggplot(term_strengths, aes(x=rank, y=strength, label=term)) +
+  geom_line() +
+  geom_point() +
+  geom_text(data=filter(term_strengths, rank>5), hjust="right", nudge_y=20, check_overlap=TRUE)
+
+cutoff_fig
+
+
+The figure shows the terms in ascending order of strength from left to right. Again, only an arbitrary subset of the terms are labeled, so as not to clutter the figure. We can see for example that there are five terms (starting with behavioral therapy) that have much higher strengths than the others.
+
+Let’s use this figure to visualize two methods that litsearchr offers for pruning away the search terms least closely linked to the others. Both of these involve finding a cutoff value for term strength, such that we discard terms with a strength below that value. The find_cutoff() function implements these methods.
+
+Cumulatively
+One simple way to decide on a cutoff is to choose to retain a certain proportion of the total strength of the network of search terms, for example 80%. If we supply the argument method="cumulative" to the find_cutoff() function, we get the cutoff strength value according to this method. The percent argument specifies what proportion of the total strength we would like to retain.
+
+cutoff_cum <- find_cutoff(g, method="cumulative", percent=0.8)
+
+cutoff_cum
+## [1] 237
+Let’s see this on our figure.
+
+cutoff_fig +
+  geom_hline(yintercept=cutoff_cum, linetype="dashed")
+
+
+Once we have found a cutoff value, the reduce_graph() function applies it and prunes away the terms with low strength. The arguments are the original network and the cutoff. The get_keywords() function then gets the remaining terms from the reduced network.
+
+get_keywords(reduce_graph(g, cutoff_cum))
+##  [1] "adolescents"                  "anxiety"                     
+##  [3] "anxiety disorders"            "cbt"                         
+##  [5] "children"                     "cognitive behavioral therapy"
+##  [7] "cognitive-behavioral therapy" "exposure"                    
+##  [9] "outcome"                      "panic disorder"              
+## [11] "phobia"                       "predictors"                  
+## [13] "social anxiety"               "social anxiety disorder"     
+## [15] "social phobia"                "treatment"                   
+## [17] "anxiety disorder"             "behavioral therapy"          
+## [19] "cognitive behavior"           "cognitive behavioral"
+Changepoints
+Looking at the figure above, another method of pruning away terms suggests itself. There are certain points along the ranking of terms where the strength of the next strongest term is much greater than that of the previous one (places where the ascending line ‘jumps up’). We could use these places as cutoffs, since the terms below them have much lower strength than those above. There may of course be more than one place where term strength jumps up like this, so we will have multiple candidates for cutoffs. The same find_cutoff() function with the argument method="changepoint" will find these cutoffs. The knot_num argument specifies how many ‘knots’ we wish to slice the keywords into.
+
+cutoff_change <- find_cutoff(g, method="changepoint", knot_num=3)
+
+cutoff_change
+## [1]  150  475  836 1362
+This time we get several suggested cutoffs. Let’s put them on our figure, where we can see that they cut off the search terms just before large increases in term strength.
+
+cutoff_fig +
+  geom_hline(yintercept=cutoff_change, linetype="dashed")
+
+
+After doing this, we can apply the same reduce_graph() function that we did for the cumulative strength method. The only difference is that we have to pick one of the cutoffs in our vector.
+
+g_redux <- reduce_graph(g, cutoff_change[1])
+selected_terms <- get_keywords(g_redux)
+
+selected_terms
+##  [1] "adolescents"                  "anxiety"                     
+##  [3] "anxiety disorders"            "cbt"                         
+##  [5] "children"                     "cognitive behavioral therapy"
+##  [7] "cognitive-behavioral therapy" "exposure"                    
+##  [9] "fear"                         "manual"                      
+## [11] "outcome"                      "panic disorder"              
+## [13] "pediatric"                    "pharmacotherapy"             
+## [15] "phobia"                       "predictors"                  
+## [17] "psychotherapy"                "randomized controlled trial" 
+## [19] "social anxiety"               "social anxiety disorder"     
+## [21] "social phobia"                "treatment"                   
+## [23] "anxiety disorder"             "behavioral therapy"          
+## [25] "cognitive behavior"           "cognitive behavioral"        
+## [27] "pediatric anxiety"
+Remember the issue with the British spelling of behaviour. We should add this term back in. It is also probably a good idea to add back in the terms of our original naive search if they did not turn up in our final set of terms.
+
+extra_terms <- c(
+  "medication",
+  "cognitive-behavioural therapy",
+  "cognitive behavioural therapy"
+)
+
+selected_terms <- c(selected_terms, extra_terms)
+
+selected_terms
+##  [1] "adolescents"                   "anxiety"                      
+##  [3] "anxiety disorders"             "cbt"                          
+##  [5] "children"                      "cognitive behavioral therapy" 
+##  [7] "cognitive-behavioral therapy"  "exposure"                     
+##  [9] "fear"                          "manual"                       
+## [11] "outcome"                       "panic disorder"               
+## [13] "pediatric"                     "pharmacotherapy"              
+## [15] "phobia"                        "predictors"                   
+## [17] "psychotherapy"                 "randomized controlled trial"  
+## [19] "social anxiety"                "social anxiety disorder"      
+## [21] "social phobia"                 "treatment"                    
+## [23] "anxiety disorder"              "behavioral therapy"           
+## [25] "cognitive behavior"            "cognitive behavioral"         
+## [27] "pediatric anxiety"             "medication"                   
+## [29] "cognitive-behavioural therapy" "cognitive behavioural therapy"
+Grouping
+Now that we have got a revised list of search terms from the results of our naive search, we want to turn them into a new search query that we can use to get more articles relevant to the same topic. For this new, hopefully more rigorous, search we will need a combination of OR and AND operators. The OR operator should combine search terms that are all about the same subtopic, so that we get articles that contain any one of them. The AND operator should combine these groups of search terms so that we get only articles that mention at least one term from each of the subtopics that we are interested in.
+
+In our starting example we had three subtopics, medication, cognitive-behavioral therapy, and phobias. So the first step is to take the terms that we have found and group them into clusters related to each of these topics. (Or it may be the case that our work with litsearchr has led us to rethink our subtopics or to add new ones.)
+
+There are methods for automatically grouping networks into clusters, but these are not always so reliable; computers don’t understand what words mean. Currently the litsearchr documentation recommends doing this step manually. We look at our search terms, and put them into a list of separate vectors, one for each subtopic.
+
+grouped_terms <-list(
+  medication=selected_terms[c(14, 28)],
+  cbt=selected_terms[c(4, 6, 7, 17, 24, 25, 26, 29, 30)],
+  phobia=selected_terms[c(2, 3, 9, 12, 15, 19, 20, 21, 23, 27)]
+)
+
+grouped_terms
+## $medication
+## [1] "pharmacotherapy" "medication"     
+## 
+## $cbt
+## [1] "cbt"                           "cognitive behavioral therapy" 
+## [3] "cognitive-behavioral therapy"  "psychotherapy"                
+## [5] "behavioral therapy"            "cognitive behavior"           
+## [7] "cognitive behavioral"          "cognitive-behavioural therapy"
+## [9] "cognitive behavioural therapy"
+## 
+## $phobia
+##  [1] "anxiety"                 "anxiety disorders"      
+##  [3] "fear"                    "panic disorder"         
+##  [5] "phobia"                  "social anxiety"         
+##  [7] "social anxiety disorder" "social phobia"          
+##  [9] "anxiety disorder"        "pediatric anxiety"
+Writing a new search
+The write_search() function takes our list of grouped search terms and writes the text of a new search. There are quite a few arguments to take care of for this function:
+
+languages provides a list of languages to translate the search into, in case we want to get articles in multiple languages.
+exactphrase controls whether terms that consist of more than one word should be matched exactly rather than as two separate words. If we have phrases that are only relevant as a whole phrase, then we should set this to TRUE, so that for example social phobia will not also catch all the articles containing the word social.
+stemming controls whether words are stripped down to the smallest meaningful part of the word (its ‘stem’) so that we make sure to catch all variants of the word, for example catching both behavior and behavioral.
+closure controls whether partial matches are matched at the left end of a word ("left"), at the right ("right"), only as exact matches ("full") or as any word containing a term ("none").
+writesearch controls whether we would like to write the search text to a file.
+write_search(
+  grouped_terms,
+  languages="English",
+  exactphrase=TRUE,
+  stemming=FALSE,
+  closure="left",
+  writesearch=TRUE
+)
+Let’s read in the contents of the text file that we just wrote, to see what our search text looks like.
+
+cat(read_file("search-inEnglish.txt"))
+## \(\(pharmacotherapy OR medication\) AND \(cbt OR "cognitive-behavioral therapy" OR psychotherapy OR "behavioral therapy" OR "cognitive behavior" OR "cognitive-behavioural therapy" OR "cognitive behavioural therapy"\) AND \(anxiety OR fear OR "panic disorder" OR phobia OR "social anxiety" OR "social phobia" OR "pediatric anxiety"\)\)
+We can now go back to the search site and copy the contents of this text file into the search field to conduct a new search.
+
+Checking the new search
+I ran our new search and downloaded the results to a file called pubmed-pharmacoth-set.nbib. Let’s load this file with litsearchr. This may take a moment, as this file contains a lot more results than the naive search.
+
+new_results <- import_results(file="pubmed-pharmacoth-set.nbib")
+## Reading file pubmed-pharmacoth-set.nbib ... done
+How many did we get?
+
+nrow(new_results)
+## [1] 9890
+We now need to check whether the new results seem to be relevant to our chosen topic. There are a few basic things that we can check.
+
+Against the naive search
+We can first check whether all of the results of the naive search are in the new search. Since we conducted the naive search using the most important terms that occurred to us for our topic, and since we included these same terms or very similar in our new search, we ought to get the same articles back among our new results, at least if they were really relevant.
+
+naive_results %>%
+  mutate(in_new_results=title %in% new_results[, "title"]) ->
+  naive_results
+
+naive_results %>%
+  filter(!in_new_results) %>%
+  select(title, keywords)
+0 rows
+We didn’t miss any of the articles from the naive search. Good.
+
+Against gold standard results
+If we have started reviewing the literature on our chosen topic, we may already know the titles of some important articles that have been written on the subject. So another way of checking our new search is to check whether it includes specific important results. litsearchr provides a function called check_recall() for searching for specific titles. We do not have to get the titles of our desired articles exactly right. If the capitalization or punctuation is slightly different from the version in our results dataframe, check_recall() will find the closest match.
+
+Let’s try it.
+
+important_titles <- c(
+  "Efficacy of treatments for anxiety disorder: A meta-analysis",
+  "Cognitive behaviour therapy for health anxiety: A systematic review and meta-analysis",
+  "A systematic review and meta-analysis of treatments for agrophobia"
+)
+
+data.frame(check_recall(important_titles, new_results[, "title"]))
+Title
+<chr>
+Efficacy of treatments for anxiety disorder: A meta-analysis	
+Cognitive behaviour therapy for health anxiety: A systematic review and meta-analysis	
+A systematic review and meta-analysis of treatments for agrophobia	
+3 rows | 1-1 of 3 columns
+All of the best matches in the output table are clearly the articles that we were looking for, so our new search has found these.
+
+That’s the end of our tutorial. You can try to refine the example search further, or try one of your own.
+

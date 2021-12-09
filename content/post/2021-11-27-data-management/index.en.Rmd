@@ -29,4 +29,4 @@ i. How will they be archived and will they comply with any data/metadata standar
 i. How will they be made available and discoverable to the broader community?
 i. What are the policies for sharing, re-use etc?
 
-The primary aim is to ensure that the data is collected in good manner and stored in a matter that ensure reproducible work with other activities and the work  will be of benefit to the whole community.
+The primary aim of Data Management Plan is to ensure that the data is collected in good manner and stored in a matter that ensure reproducible work with other activities and the work will be of benefit to the whole community.
