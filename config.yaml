@@ -1,5 +1,5 @@
 baseurl: https://hinger.netlify.app/
-title: Semba-blog
+# title: Semba-blog
 googleAnalytics: "22213338766"
 languageCode: de
 DefaultContentLanguage: en
@@ -50,11 +50,11 @@ Params:
   style:
     vars:
       highlightColor: '#003056'
-  toc: yes
+  toc: no
   twitter_cards: yes
   widgets:
     recent_num: 5
-    tags_counter: no
+    tags_counter: yes
 menu:
   main:
     - identifier: start
@@ -65,4 +65,8 @@ menu:
       name: About
       url: /about/
       weight: 2
+    # - identifier: dashboard
+    #   name: Dashaboards
+    #   url: /dashboard/
+    #   weight: 3
 

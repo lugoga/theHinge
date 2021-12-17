@@ -1,0 +1,200 @@
+---
+title: Open Street Map Data in R
+author: 
+    - Masumbuko Semba
+    - Nyamisi Peter
+date: '2021-12-07'
+slug: []
+categories:
+  - data
+  - spatial
+tags:
+  - data
+  - code
+  - open street
+  - spatial
+  - Masumbuko Semba
+description: ''
+thumbnail: ''
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+
+```
+
+OpenStreetMap is a collaborative project to create a free editable geographic database of the world. Open street Map (OSM) is name refer is a global open access mapping project. The data from OSM can be used in various ways including production of paper maps and electronic maps, geocoding of address and place names, and route planning. 
+
+To easy access of OSM spatial data, Mark Padgham and Robin Lovelace developed **osmdata**, which is an R package for downloading data from OSM. This tutorial takes you through the steps of retrieving points of interest in defined geographical areas using the **osmdata** package, and visualising them using the **ggmap** and **ggplot2** packages. 
+
+We can install and load the **osmdata** package from CRAN as follows
+
+```{r, eval=FALSE}
+install.packages("osmdata")
+```
+
+
+
+Before we explore the package, Once installed into the machine, we load the packages we need for this session as follows
+
+```{r}
+
+require(osmdata)
+require(sf)
+require(ggmap)
+require(tidyverse)
+require(patchwork)
+
+```
+
+## Exploring the osmdata package
+
+The osmdata package provides spatial data about a wide range of spatial properties and objects across the world. The `available_features()` function can be used to get the list of recognized features in OSM. A list of the available features can be found in the OSM wiki.
+
+```{r}
+
+available_features()
+
+```
+
+The `available_tags()` function lists out the tags associated with each feature. The tags associated with the feature “natural” can be retrieved as follows.
+
+```{r}
+available_tags("natural")
+```
+
+## Creating a query to download data
+### Defining the bounding box
+The first step in creating an **osmdata** query is defining the geographical area we want to include in the query. This can be done by defining a bounding box that defines a geographical area by its bounding latitudes and longitudes. The **osmdata** package provides a function `getbb()` to retrieve the bounding box of a place using its name. We can now create the bounding box of Unguja Island.
+
+```{r}
+unguja_bb <- getbb("Unguja")
+unguja_bb
+```
+
+### Creating an overpass query
+The **osmdata** package retrieves data from the overpass API, which is a read-only API that serves up custom selected parts of the OSM map data. To retrieve the required features of a place (defined by the bounding box), we have to then create an overpass query. This can be easily done using the opq() function of the **osmdata** package. Here we use the previously defined bounding box of Lagos to create the overpass query
+
+```{r}
+unguja_bb %>% 
+  opq()
+```
+
+
+
+### Retrieving the osmdata object
+Then, the `add_osm_feature()` function can be used to add the required features to the query, using the features and tags we explored earlier in this tutorial. This query specified in terms of key-value is used to retreive data on hospitals in Lagos.
+
+There are two primary osmdata functions for obtaining data from a query---`osmdata_sf()` and `osmdata_sp()`, which return data in simple features (sf) and spatial (sp) formats, respectively. Here, we use the `osmdata_sf()` function to obtain a simple feature object of the resultant query.
+
+```{r}
+# available_tags(feature = "amenity")
+available_tags(feature = "tourism")
+```
+
+```{r}
+
+hotels = unguja_bb %>% 
+  opq() %>% 
+  add_osm_feature(key = "tourism", value = "hotel") %>% 
+  osmdata_sf()
+
+```
+
+
+### Understanding the osmdata object
+The `osmdata` objects will contain the following components
+
++ A bounding box used in query
++ The call submitted to the overpass API
++ Meta data about the object such as timestamp and version numbers
++ Spatial data - some of which may be empty depending on the type of data retrieved
+
+The following is the `osmdata` object retrieved by querying the hotels in Unguja
+
+```{r}
+hotels 
+```
+
+Note how each component of the osmdata objects is preceded by a $ symbol and some of them are NULL. This is expected, since we queried for hospitals in Lagos, and they are represented using points and polygons only. We can also print out each of these components and explore each of them for a better understanding of them.
+
+```{r}
+hotels$osm_points %>% mapview::mapview()
+```
+
+Note how the Spatial data returned by the query are Simple Feature objects as we requested using theosmdata_sf() function, and how the polygons also contain more details about the hospitals such as their names, websites, wikipedia pages etc. where available
+
+```{r}
+hotels$osm_polygons
+```
+
+## Visualising queried data with **ggplot2** and **ggmap**
+
+We can visualise the retrieved data about hotels in Unguja using the **ggplot2** package. We can easily visualise simple feature objects using the `geom_sf()` function of **ggplot2**.
+
+```{r}
+points = hotels$osm_points
+polygons = hotels$osm_polygons
+```
+
+```{r}
+hotels.points = ggplot()+
+  geom_sf(data = points)+
+  coord_sf(xlim = c(39.17, 39.25),ylim = c(-6.22,-6.12))
+
+
+hotels.poly = ggplot()+
+  geom_sf(data = polygons)+
+  coord_sf(xlim = c(39.17, 39.25),ylim = c(-6.22,-6.12))
+
+
+hotels.points + hotels.poly
+```
+
+```{r}
+ggplot(data = polygons)+
+  geom_sf()+
+  coord_sf(xlim = c(39.185, 39.20),ylim = c(-6.165,-6.155))+
+  geom_sf_text(aes(label = name),check_overlap = TRUE)+
+  theme(axis.title = element_blank())
+```
+While the visualisation above provides useful information about the spatial distribution of hotels in Unguja Island, we can make it the aesthetic more appealing by overlying hotel locations with basemaps. For this we use the **ggmap** package. To get a map of Unguja, we use the` get_map()` function provided by the **ggmap** package. Here we have used the maptype “roadmap”, but the function allows many more map types which can be found [here](https://www.rdocumentation.org/packages/ggmap/versions/3.0.0/topics/get_map).
+
+```{r}
+
+aoi = c(left = 39.17, bottom = -6.22, right = 39.25, top = -6.12)
+
+unguja_basemap = get_map(location = aoi, maptype = "roadmap")
+```
+
+
+
+```{r}
+
+ggmap(ggmap = unguja_basemap) +
+  geom_jitter(data = points %>% wior::point_tb(), 
+              aes(x = lon, y = lat),
+          colour = "#08519c",
+          fill = "#08306b",
+          alpha = .5,
+          size = 1)+
+  theme_bw() +
+  theme(axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank())
+
+
+```
+
+```{r}
+require(tmap)
+tmap_mode(mode = "view")
+
+tm_shape(shp = points)+
+  tm_symbols(size = 0.02, col = "red", alpha = 0.1)
+```
+
+## Conclusion
+
+The **osmdata** package can also be used to download other spatial features such as shiplanes, and overlay them on top of each other using ggplot2 to create a map of Lagos. For this we create multiple queries for each feature as follows.
+
+

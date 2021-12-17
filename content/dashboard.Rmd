@@ -1,0 +1,22 @@
+---
+authorbox: false
+date: "2021-12-04"
+menu: main
+sidebar: false
+title: Dashboard
+---
+
+## The Dashboard for Marine Spatial planning
+<iframe class="flexdashboard" src="https://lugoga.github.io/msp/" style = "height: 500px; width: 1000px"> </iframe>
+
+
+## The Dashboard for Phytoplankton
+<iframe class="shiny" src="https://semba.shinyapps.io/phyto_abundance/" style = "height: 500px; width: 1000px"> </iframe>
+
+
+## The Dashboard for Marco-South
+<iframe class="flexdashboard" src="https://lugoga.github.io/marco-tanzania/" style = "height: 500px; width: 1000px"> </iframe>
+
+## The Dashboard for Web Application for Deep Sea Fishing Authority
+<iframe class="shiny" src="https://semba.shinyapps.io/webApp/" style = "height: 500px; width: 1000px"> </iframe>
+
