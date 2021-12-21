@@ -6,8 +6,6 @@ sidebar: true
 title: Publications
 ---
 
-This page will go about semba and the purpose of this blog
-
 + **Semba**, Masumbuko, Rick Lumpkin, Ismael Kimirei, Yohanna Shaghude, and Ntahondi Nyandwi. "Seasonal and Spatial Variation of Surface Current in the Pemba Channel, Tanzania." PLOS ONE 14, no. 1 (2019): e0210303.
 + Mahatane, A., Yunus D. Mgaya, R. B. Hoza, P. O. Onyango, and M. **Semba**. "Co-Management of Lake Victoria Fisheries." In Lake Victoria Fisheries Resources : Research and Management in Tanzania, edited by Yunus D. Mgaya and Shigalla B. Mahongo, 219-39. Cham: Springer International Publishing, 2017.
 + Kimirei, I. A., M. **Semba**, C. Mwakosya, Yunus D. Mgaya, and Shigalla B. Mahongo. "Environmental Changes in the Tanzanian Part of Lake Victoria." In Lake Victoria Fisheries Resources : Research and Management in Tanzania, edited by Yunus D. Mgaya and Shigalla B. Mahongo, 37-59. Cham: Springer International Publishing, 2017.
