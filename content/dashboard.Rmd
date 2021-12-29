@@ -21,6 +21,6 @@ title: Dashboard
 <iframe class="shiny" src="https://semba.shinyapps.io/phyto_abundance/" style = "height: 500px; width: 1000px"> </iframe>
 
 
-## [Mafia Island Marine Park]shiny" src="https://semba.shinyapps.io/mimp/
+## [Mafia Island Marine Park](https://semba.shinyapps.io/mimp/)
 <iframe class="shiny" src="https://semba.shinyapps.io/mimp/" style = "height: 500px; width: 1000px"> </iframe>
 
