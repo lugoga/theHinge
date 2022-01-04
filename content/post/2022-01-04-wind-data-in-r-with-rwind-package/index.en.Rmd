@@ -1,0 +1,124 @@
+---
+title: Wind Data in R with rWind package
+author: Masumbuko Semba
+date: '2022-01-04'
+slug: []
+categories:
+  - data
+  - Climate
+  - spatial
+tags:
+  - map
+  - interactive
+  - Masumbuko Semba
+description: ''
+thumbnail: ''
+bibliography: [../blog.bib]
+
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE, comment = "")
+
+```
+
+The Global Forecasting System (GFS) atmospheric model is a dataset from the National Oceanic and Atmospheric Administration (NOAA) and National Centers for Environmental Prediction (NCEP). In this database, wind is stored as velocity vector components (U: eastward_wind and V: northward_wind) at 10 m above the Earth's surface. The resolution of the data is 0.5 degrees, approximately 50 km. Wind velocities have been registered six times per day (00:00 – 03:00 – 06:00 – 09:00 – 12:00 – 15:00 – 18:00 – 21:00 (UTC)), since 6th May 2011 and is updated daily. 
+
+@rwind developed **rWind** package that allows to query and access raw plain text file with gridded data, with the date and time of the data, the location (longitude and latitude coordinates) the wind vectors (U and V components) and wind speed and direction. These data can either be exported in a .csv file or stored internally as an ‘rWind data frame’ in R. In this post, we are going to learn how to download wind data and plot them. First we load the packages we are going to use in this session.
+
+```{r}
+require(tidyverse)
+require(rWind)
+require(sf)
+require(patchwork)
+require(ggspatial)
+```
+
+Our interest is to have weekly wind data from June 01, 2021 to December 31, 2021. To capture the period, we create a date sequence vector object with an interval of seven days using **lubridate** package [@lubridate].
+
+
+```{r, eval=FALSE}
+dt = seq(lubridate::dmy(010621),
+         lubridate::dmy(311221), by = "7 day")
+```
+
+Then we define our area of interest that fall within geographical extent of longitude 35--55 and latitude -25--10. 
+
+
+```{r, echo=FALSE}
+
+# load("d:/semba/presentation_IPSC/chapter1/wind.RData")
+load("../data/wind.RData")
+
+```
+
+
+Once we know the geographical extent and created the date object of the time period we want to download the data, we can parse those argument into the `wind.dl_2` function, which allows us to download time-series wind data from the Global Forecast System (GFS) of the USA's [National Weather Services](https://www.ncei.noaa.gov/products/weather-climate-models/global-forecast).  Wind data are taken from NOAA/NCEP Global Forecast System (GFS) Atmospheric Model collection and has spatial resolution of 0.5 degrees (approximately 50 km) at the equator, and wind is calculated at 10 m from the Earth surface.
+
+```{r, eval=FALSE}
+
+wind.series = wind.dl_2(time = dt, lon1 = 30, lon2 = 60, lat1 = -25,lat2 = 10)
+
+```
+
+We also extract basemap of African simple feature from **spData** package and crop to the area of interest with `st_crop` function from **sf** package [@sf].
+
+```{r}
+wio = spData::world %>% 
+  filter(continent == "Africa") %>% 
+  st_crop(xmin = 32.5,xmax = 53,ymin = -26,ymax = 6)
+```
+
+
+We then combine the power of grammar of graphic (**ggplot2**) [@ggplot] and sister package **metR** [@metr] to plot wind speed as filled contour and overlay velocity components zonal and meridional as vector layer as the code below shows.
+
+```{r, fig.width=8, fig.height=6}
+
+
+aug = wind.series[[12]] %>% as_tibble() %>% 
+  ggplot(aes(x = lon, y = lat))+
+  metR::geom_contour_fill(aes(z = speed))+
+  # metR::geom_contour2(aes(z = speed), breaks = seq(4,20,4))+
+  metR::geom_vector(aes(dx = ugrd10m, dy = vgrd10m), skip = 1, show.legend = FALSE, 
+                    preserve.dir = TRUE, arrow.type = "open", arrow.angle = 20)+
+  scale_fill_gradientn(colours = mycolor3, 
+                       limits = c(0,15), 
+                       breaks = scales::breaks_pretty(n = 10),
+                       guide = guide_colorbar(title = "Speed(m/s)", 
+                                              barwidth = unit(.4,"cm"), 
+                                              barheight = unit(6,"cm")))+
+  ggspatial::layer_spatial(data = wio)+
+  coord_sf(xlim = c(34,55), ylim = c(-23,4))+
+  metR::scale_mag(max = 15)+
+  theme_bw()+
+  theme(axis.title = element_blank(), legend.position = "none")+
+  labs(subtitle = wind.series[[12]]$time %>% unique())
+
+
+dec = wind.series[[31]] %>% as_tibble() %>% 
+  ggplot(aes(x = lon, y = lat))+
+  metR::geom_contour_fill(aes(z = speed))+
+  # metR::geom_contour2(aes(z = speed), breaks = seq(4,20,4))+
+  metR::geom_vector(aes(dx = ugrd10m, dy = vgrd10m), skip = 1, show.legend = FALSE, 
+                    preserve.dir = TRUE, arrow.type = "open", arrow.angle = 20)+
+  scale_fill_gradientn(colours = mycolor3, 
+                       limits = c(0,15), 
+                       breaks = scales::breaks_pretty(n = 10),
+                       guide = guide_colorbar(title = expression(Wind~speed~(ms^{-1})), 
+                                              title.position = "right",
+                                              title.theme = element_text(angle = 90),
+                                              title.hjust = .5,
+                                              barwidth = unit(.4,"cm"), 
+                                              barheight = unit(6,"cm")))+
+  ggspatial::layer_spatial(data = wio)+
+  coord_sf(xlim = c(34,55), ylim = c(-23,4))+
+  metR::scale_mag(max = 15)+
+  theme_bw()+
+  theme(axis.title = element_blank(), axis.text.y = element_blank())+
+  labs(subtitle = wind.series[[31]]$time %>% unique())
+
+aug + dec
+```
+
+### Cited

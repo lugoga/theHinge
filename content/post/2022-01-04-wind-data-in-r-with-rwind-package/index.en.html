@@ -1,0 +1,104 @@
+---
+title: Wind Data in R with rWind package
+author: Masumbuko Semba
+date: '2022-01-04'
+slug: []
+categories:
+  - data
+  - Climate
+  - spatial
+tags:
+  - map
+  - interactive
+  - Masumbuko Semba
+description: ''
+thumbnail: ''
+bibliography: [../blog.bib]
+
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<p>The Global Forecasting System (GFS) atmospheric model is a dataset from the National Oceanic and Atmospheric Administration (NOAA) and National Centers for Environmental Prediction (NCEP). In this database, wind is stored as velocity vector components (U: eastward_wind and V: northward_wind) at 10 m above the Earth’s surface. The resolution of the data is 0.5 degrees, approximately 50 km. Wind velocities have been registered six times per day (00:00 – 03:00 – 06:00 – 09:00 – 12:00 – 15:00 – 18:00 – 21:00 (UTC)), since 6th May 2011 and is updated daily.</p>
+<p><span class="citation"><a href="#ref-rwind" role="doc-biblioref">Fernández-López and Schliep</a> (<a href="#ref-rwind" role="doc-biblioref">2019</a>)</span> developed <strong>rWind</strong> package that allows to query and access raw plain text file with gridded data, with the date and time of the data, the location (longitude and latitude coordinates) the wind vectors (U and V components) and wind speed and direction. These data can either be exported in a .csv file or stored internally as an ‘rWind data frame’ in R. In this post, we are going to learn how to download wind data and plot them. First we load the packages we are going to use in this session.</p>
+<pre class="r"><code>require(tidyverse)
+require(rWind)
+require(sf)
+require(patchwork)
+require(ggspatial)</code></pre>
+<p>Our interest is to have weekly wind data from June 01, 2021 to December 31, 2021. To capture the period, we create a date sequence vector object with an interval of seven days using <strong>lubridate</strong> package <span class="citation">(<a href="#ref-lubridate" role="doc-biblioref">Grolemund and Wickham 2011</a>)</span>.</p>
+<pre class="r"><code>dt = seq(lubridate::dmy(010621),
+         lubridate::dmy(311221), by = &quot;7 day&quot;)</code></pre>
+<p>Then we define our area of interest that fall within geographical extent of longitude 35–55 and latitude -25–10.</p>
+<p>Once we know the geographical extent and created the date object of the time period we want to download the data, we can parse those argument into the <code>wind.dl_2</code> function, which allows us to download time-series wind data from the Global Forecast System (GFS) of the USA’s <a href="https://www.ncei.noaa.gov/products/weather-climate-models/global-forecast">National Weather Services</a>. Wind data are taken from NOAA/NCEP Global Forecast System (GFS) Atmospheric Model collection and has spatial resolution of 0.5 degrees (approximately 50 km) at the equator, and wind is calculated at 10 m from the Earth surface.</p>
+<pre class="r"><code>wind.series = wind.dl_2(time = dt, lon1 = 30, lon2 = 60, lat1 = -25,lat2 = 10)</code></pre>
+<p>We also extract basemap of African simple feature from <strong>spData</strong> package and crop to the area of interest with <code>st_crop</code> function from <strong>sf</strong> package <span class="citation">(<a href="#ref-sf" role="doc-biblioref">Pebesma 2018</a>)</span>.</p>
+<pre class="r"><code>wio = spData::world %&gt;% 
+  filter(continent == &quot;Africa&quot;) %&gt;% 
+  st_crop(xmin = 32.5,xmax = 53,ymin = -26,ymax = 6)</code></pre>
+<p>We then combine the power of grammar of graphic (<strong>ggplot2</strong>) <span class="citation">(<a href="#ref-ggplot" role="doc-biblioref">Wickham 2016</a>)</span> and sister package <strong>metR</strong> <span class="citation">(<a href="#ref-metr" role="doc-biblioref">Campitelli 2019</a>)</span> to plot wind speed as filled contour and overlay velocity components zonal and meridional as vector layer as the code below shows.</p>
+<pre class="r"><code>aug = wind.series[[12]] %&gt;% as_tibble() %&gt;% 
+  ggplot(aes(x = lon, y = lat))+
+  metR::geom_contour_fill(aes(z = speed))+
+  # metR::geom_contour2(aes(z = speed), breaks = seq(4,20,4))+
+  metR::geom_vector(aes(dx = ugrd10m, dy = vgrd10m), skip = 1, show.legend = FALSE, 
+                    preserve.dir = TRUE, arrow.type = &quot;open&quot;, arrow.angle = 20)+
+  scale_fill_gradientn(colours = mycolor3, 
+                       limits = c(0,15), 
+                       breaks = scales::breaks_pretty(n = 10),
+                       guide = guide_colorbar(title = &quot;Speed(m/s)&quot;, 
+                                              barwidth = unit(.4,&quot;cm&quot;), 
+                                              barheight = unit(6,&quot;cm&quot;)))+
+  ggspatial::layer_spatial(data = wio)+
+  coord_sf(xlim = c(34,55), ylim = c(-23,4))+
+  metR::scale_mag(max = 15)+
+  theme_bw()+
+  theme(axis.title = element_blank(), legend.position = &quot;none&quot;)+
+  labs(subtitle = wind.series[[12]]$time %&gt;% unique())
+
+
+dec = wind.series[[31]] %&gt;% as_tibble() %&gt;% 
+  ggplot(aes(x = lon, y = lat))+
+  metR::geom_contour_fill(aes(z = speed))+
+  # metR::geom_contour2(aes(z = speed), breaks = seq(4,20,4))+
+  metR::geom_vector(aes(dx = ugrd10m, dy = vgrd10m), skip = 1, show.legend = FALSE, 
+                    preserve.dir = TRUE, arrow.type = &quot;open&quot;, arrow.angle = 20)+
+  scale_fill_gradientn(colours = mycolor3, 
+                       limits = c(0,15), 
+                       breaks = scales::breaks_pretty(n = 10),
+                       guide = guide_colorbar(title = expression(Wind~speed~(ms^{-1})), 
+                                              title.position = &quot;right&quot;,
+                                              title.theme = element_text(angle = 90),
+                                              title.hjust = .5,
+                                              barwidth = unit(.4,&quot;cm&quot;), 
+                                              barheight = unit(6,&quot;cm&quot;)))+
+  ggspatial::layer_spatial(data = wio)+
+  coord_sf(xlim = c(34,55), ylim = c(-23,4))+
+  metR::scale_mag(max = 15)+
+  theme_bw()+
+  theme(axis.title = element_blank(), axis.text.y = element_blank())+
+  labs(subtitle = wind.series[[31]]$time %&gt;% unique())
+
+aug + dec</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-6-1.png" width="768" /></p>
+<div id="cited" class="section level3 unnumbered">
+<h3>Cited</h3>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-metr" class="csl-entry">
+Campitelli, Elio. 2019. <em>metR: Tools for Easier Analysis of Meteorological Fields</em>. <a href="https://CRAN.R-project.org/package=metR">https://CRAN.R-project.org/package=metR</a>.
+</div>
+<div id="ref-rwind" class="csl-entry">
+Fernández-López, Javier, and Klaus Schliep. 2019. <span>“<span class="nocase">rWind</span>: Download, Edit and Include Wind Data in Ecological and Evolutionary Analysis.”</span> <em>Ecography</em> 42 (4): 804–10. <a href="https://doi.org/10.1111/ecog.03730">https://doi.org/10.1111/ecog.03730</a>.
+</div>
+<div id="ref-lubridate" class="csl-entry">
+Grolemund, Garrett, and Hadley Wickham. 2011. <span>“Dates and Times Made Easy with <span class="nocase">lubridate</span>.”</span> <em>Journal of Statistical Software</em> 40 (3): 1–25. <a href="http://www.jstatsoft.org/v40/i03/">http://www.jstatsoft.org/v40/i03/</a>.
+</div>
+<div id="ref-sf" class="csl-entry">
+Pebesma, Edzer. 2018. <span>“<span class="nocase">Simple Features for R: Standardized Support for Spatial Vector Data</span>.”</span> <em><span>The R Journal</span></em> 10 (1): 439–46. <a href="https://doi.org/10.32614/RJ-2018-009">https://doi.org/10.32614/RJ-2018-009</a>.
+</div>
+<div id="ref-ggplot" class="csl-entry">
+Wickham, Hadley. 2016. <em>Ggplot2: Elegant Graphics for Data Analysis</em>. Springer-Verlag New York. <a href="https://ggplot2.tidyverse.org">https://ggplot2.tidyverse.org</a>.
+</div>
+</div>
+</div>
