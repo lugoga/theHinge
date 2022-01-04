@@ -37,6 +37,13 @@ require(ggspatial)</code></pre>
 <pre class="r"><code>wio = spData::world %&gt;% 
   filter(continent == &quot;Africa&quot;) %&gt;% 
   st_crop(xmin = 32.5,xmax = 53,ymin = -26,ymax = 6)</code></pre>
+<p>We then color code for visualization</p>
+<pre class="r"><code>mycolor2 = c(&quot;#040ED8&quot;, &quot;#2050FF&quot;, &quot;#4196FF&quot;, &quot;#6DC1FF&quot;, &quot;#86D9FF&quot;, &quot;#9CEEFF&quot;, &quot;#AFF5FF&quot;, &quot;#CEFFFF&quot;, &quot;#FFFE47&quot;, &quot;#FFEB00&quot;, &quot;#FFC400&quot;, &quot;#FF9000&quot;, &quot;#FF4800&quot;, &quot;#FF0000&quot;, &quot;#D50000&quot;, &quot;#9E0000&quot;)
+mycolor = c(&quot;#7f007f&quot;, &quot;#0000ff&quot;,  &quot;#007fff&quot;, &quot;#00ffff&quot;, &quot;#00bf00&quot;, &quot;#7fdf00&quot;,
+&quot;#ffff00&quot;, &quot;#ff7f00&quot;, &quot;#ff3f00&quot;, &quot;#ff0000&quot;, &quot;#bf0000&quot;)
+odv_color = c(&quot;#feb483&quot;, &quot;#d31f2a&quot;, &quot;#ffc000&quot;, &quot;#27ab19&quot;, &quot;#0db5e6&quot;, &quot;#7139fe&quot;, &quot;#d16cfa&quot;) %&gt;% rev()
+pal = wesanderson::wes_palette(&quot;Zissou1&quot;, 21, type = &quot;continuous&quot;)
+mycolor3 = c(&quot;#9000B0&quot;, &quot;#C900B0&quot;, &quot;#C760AF&quot;,                    &quot;#1190F9&quot;, &quot;#60C8F8&quot;, &quot;#90C9F8&quot;, &quot;#F8F8F8&quot;, &quot;#F8F800&quot;,  &quot;#F8D730&quot;, &quot;#f8b030&quot;, &quot;#f8602f&quot;, &quot;#f80000&quot;)</code></pre>
 <p>We then combine the power of grammar of graphic (<strong>ggplot2</strong>) <span class="citation">(<a href="#ref-ggplot" role="doc-biblioref">Wickham 2016</a>)</span> and sister package <strong>metR</strong> <span class="citation">(<a href="#ref-metr" role="doc-biblioref">Campitelli 2019</a>)</span> to plot wind speed as filled contour and overlay velocity components zonal and meridional as vector layer as the code below shows.</p>
 <pre class="r"><code>aug = wind.series[[12]] %&gt;% as_tibble() %&gt;% 
   ggplot(aes(x = lon, y = lat))+
@@ -81,7 +88,7 @@ dec = wind.series[[31]] %&gt;% as_tibble() %&gt;%
   labs(subtitle = wind.series[[31]]$time %&gt;% unique())
 
 aug + dec</code></pre>
-<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-6-1.png" width="768" /></p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-7-1.png" width="768" /></p>
 <div id="cited" class="section level3 unnumbered">
 <h3>Cited</h3>
 <div id="refs" class="references csl-bib-body hanging-indent">

@@ -70,6 +70,17 @@ wio = spData::world %>%
   st_crop(xmin = 32.5,xmax = 53,ymin = -26,ymax = 6)
 ```
 
+We then color code for visualization
+
+```{r}
+mycolor2 = c("#040ED8", "#2050FF", "#4196FF", "#6DC1FF", "#86D9FF", "#9CEEFF", "#AFF5FF", "#CEFFFF", "#FFFE47", "#FFEB00", "#FFC400", "#FF9000", "#FF4800", "#FF0000", "#D50000", "#9E0000")
+mycolor = c("#7f007f", "#0000ff",  "#007fff", "#00ffff", "#00bf00", "#7fdf00",
+"#ffff00", "#ff7f00", "#ff3f00", "#ff0000", "#bf0000")
+odv_color = c("#feb483", "#d31f2a", "#ffc000", "#27ab19", "#0db5e6", "#7139fe", "#d16cfa") %>% rev()
+pal = wesanderson::wes_palette("Zissou1", 21, type = "continuous")
+mycolor3 = c("#9000B0", "#C900B0", "#C760AF",                    "#1190F9", "#60C8F8", "#90C9F8", "#F8F8F8", "#F8F800",  "#F8D730", "#f8b030", "#f8602f", "#f80000")
+
+```
 
 We then combine the power of grammar of graphic (**ggplot2**) [@ggplot] and sister package **metR** [@metr] to plot wind speed as filled contour and overlay velocity components zonal and meridional as vector layer as the code below shows.
 
