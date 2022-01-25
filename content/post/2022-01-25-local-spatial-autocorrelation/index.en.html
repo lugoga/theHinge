@@ -1,0 +1,170 @@
+---
+title: Local Spatial Autocorrelation
+author: Masumbuko Semba
+date: '2022-01-25'
+slug: []
+categories:
+  - spatial
+tags:
+  - spatial
+  - Morans
+  - Masumbuko Semba
+description: ''
+thumbnail: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>In this post, we explore the analysis of local spatial autocorrelation statistics, focusing on the concept and its most common implementation in the form of the <em>Local Moran</em> statistic. We explore how it can be utilized to discover <strong>hot spots</strong> and <strong>cold spots</strong> in the data, as well as spatial outliers. To illustrate these techniques, we will use the catch data from Deep Sea fishing authority.</p>
+<!-- Objectives -->
+<!-- Identify clusters with the Local Moran cluster map and significance map -->
+<!-- Interpret the spatial footprint of spatial clusters -->
+<!-- Assess the significance by means of a randomization approach -->
+<!-- Assess the sensitivity of different significance cut-off values -->
+<!-- Interpret significance by means of Bonferroni bounds and the False Discovery Rate (FDR) -->
+<!-- Assess potential interaction effects by means of conditional cluster maps -->
+</div>
+<div id="morans-i" class="section level2">
+<h2>Moran’s I</h2>
+<p>Moran’s I statistic is arguably the most commonly used indicator of global spatial autocorrelation. It was initially suggested by Moran (1948), and popularized through the classic work on spatial autocorrelation by Cliff and Ord (1973). In essence, it is a cross-product statistic between a variable and its spatial lag, with the variable expressed in deviations from its mean. observations.</p>
+</div>
+<div id="lisa-principle" class="section level2">
+<h2>LISA Principle</h2>
+<p>As we have seen Moran I are designed to reject the null hypothesis of spatial randomness in favor of an alternative of clustering. Such clustering is a characteristic of the complete spatial pattern and does not provide an indication of the location of the clusters. The concept of a local indicator of spatial association, or LISA was suggested in Anselin (1995) to remedies this situation.</p>
+<p>A LISA is seen as having two important characteristics. First, it provides a statistic for each location with an assessment of significance. Second, it establishes a proportional relationship between the sum of the local statistics and a corresponding global statistic.</p>
+<p>Most global spatial autocorrelation statistics can be expressed as a double sum over the i and j indices, such as <span class="math inline">\((\sum_i \sum_j g_{ij})\)</span>. The local form of such a statistic would then be, for each observation (location) <span class="math inline">\(\(i\)\)</span>, the sum of the relevant expression over the <span class="math inline">\((j)\)</span> index, <span class="math inline">\((\sum_j g_{ij})\)</span>.</p>
+<p>More precisely, a spatial autocorrelation statistic consists of a combination of a measure of attribute similarity between a pair of observations, <span class="math inline">\((f(x_i,x_j))\)</span>, with an indicator for geographical or locational similarity, in the form of spatial weights, <span class="math inline">\((w_{ij})\)</span>. For a global statistic, this takes on the form <span class="math inline">\((\sum_i \sum_j w_{ij}f(x_i,x_j))\)</span>. A generic form for a local indicator of spatial association is then: <span class="math inline">\([\sum_j w_{ij}f(x_i,x_j).]\)</span> As there are many statistics for global spatial autocorrelation, there will be many corresponding LISA. In this Chapter, we focus on the local counterpart of Moran’s I.</p>
+</div>
+<div id="local-moran" class="section level2">
+<h2>Local Moran</h2>
+<!-- The Local Moran statistic was suggested in Anselin (1995) as a way to identify local clusters and local spatial outliers. With row-standardized weights, the sum of all weights, $(S_0 = \sum_i \sum_j w_{ij}$) equals the number of observations, n. As a result, the Moran’s I statistic simplifies to: $[I = \frac{\sum_i \sum_j w_{ij} z_iz_j}{\sum_i z_i^2}]$ with the $(z)$ in deviations from the mean (or fully standardized, such that the variance equals one). -->
+<!-- Using the logic just outlined, a corresponding Local Moran statistic would consist of the component in the double sum that corresponds to each observation $(i)$, or: $[I_i = \frac{\sum_j w_{ij} z_iz_j}{\sum_i z_i^2}.]$ In this expression, the denominator is fixed and can thus further be ignored. For notational simplicity, we replace it by $(c)$, so that the Local Moran expression becomes $(c.\sum_j w_{ij} z_iz_j)$. After some re-arranging, we obtain the expression: $[I_i = c. z_i \sum_j w_{ij} z_j]$ or, the product of the value at location $(i)$ with its spatial lag, the weighted sum of the values at neighboring locations. A little bit of algebra shows that the sum of the local statistics is proporational to the global Moran’s I, or, alternatively, that the global Moran’s I corresponds with the average of the local statistics (for details, see Anselin 1995). -->
+<!-- Significance can be based on an analytical approximation, but, as argued in Anselin (1995), this is not very reliable in practice. A preferred approach consists of a conditional permutation method. This is similar to the permutation approach considered in the Moran scatter plot, except that the value of each $(z_i$) is held fixed at its location $(i)$. The remaining n-1 z-values are then randomly permuted to yield a reference distribution for the local statistic (one for each location). -->
+<!-- This operates in the same fashion as for the global Moran’s I, except that the permutation is carried out for each observation in turn. The result is a pseudo p-value for each location, which can then be used to assess significance. Note that this notion of significance is not the standard one, and should not be interpreted that way (see also the discussion of multiple comparisons below). -->
+<!-- Assessing significance in and of itself is not that useful for the Local Moran. However, when an indication of significance is combined with the location of each observation in the Moran Scatterplot, a very powerful interpretation becomes possible. The combined information allows for a classification of the significant locations as High-High and Low-Low spatial clusters, and High-Low and Low-High spatial outliers. It is important to keep in mind that the reference to high and low is relative to the mean of the variable, and should not be interpreted in an absolute sense. -->
+<p>As discussed by Ord and Getis (1995), the local Moran and Getis–Ord statistics both are useful as methods to detect clusters and share a fundamental underlying mathematical relationship. However, in the way the two statistics are used, the two methods consider clusters to be somewhat distinct concepts. The Getis–Ord Gi statistic (in its Zi form) focuses on whether or not the area around <span class="math inline">\(i\)</span> tends to be larger or smaller than a typical local sum.</p>
+<p>The local Moran statistic, in contrast, focuses on clusters around sites where the local covariation is more positive than is expected, given the global structure of covariation between nearby sites. Further, both statistics preserve the proportionality and significance properties proposed by Anselin (1995) and thus are both local indicators of spatial association. As further noted by Anselin (1995), the two types of statistics also share a fundamental similarity in terms of their inferential value under permutation inference (p. 100).</p>
+<p>So, we will not discuss the permutation inference for the Gi statistic here and note that an identical conditional randomization strategy is used as in the local Moran’s I dataset. Thus, despite the fact that the Moran-style statistics examine the local covariation and the Getis–Ord statistics examine the local sum, both are useful in characterizing the local structure of how observations cluster with respect to the rest of the map.</p>
+</div>
+<div id="implementation" class="section level2">
+<h2>Implementation</h2>
+<p>Xun Li and Luc Anselin (2021) developed a <strong>rgeoda</strong> package, R Library for Spatial Data Analysis. The package has several tools for spatial analysis. Among the many tools is a <code>local_geary</code> function, which is used to compute the Getis-Ord’s local G* statistics. You can install the package as</p>
+<pre class="r"><code>install.packages(&quot;rgeoda&quot;)</code></pre>
+<p>Once installed, you can load the package function in your session using <code>require</code> function</p>
+<pre class="r"><code>require(rgeoda)</code></pre>
+<p>We aldo add some other packages that are useful in the session as follows;</p>
+<pre class="r"><code>require(tidyverse)
+require(sf)
+require(magrittr)
+require(patchwork)</code></pre>
+<pre class="r"><code>ps = read_csv(&quot;../eez_stock assessment/processed_purse_seine.csv&quot;)</code></pre>
+<p>Then we create a simple feature from a dataframe</p>
+<pre class="r"><code>tuna.cpue.sf = ps %&gt;% 
+  select(category_name, longitude, latitude, wt_mt)%&gt;% 
+  distinct(longitude, latitude, category_name, .keep_all = TRUE)%&gt;% 
+  wior::outlier_remove(wt_mt) %&gt;%
+  st_as_sf(coords = c(&quot;longitude&quot;, &quot;latitude&quot;), crs = 4326)</code></pre>
+<p>Load basemaps that will be used to plots maps</p>
+<pre class="r"><code>africa.countries= st_read(&quot;d:/semba/pfz/shapefile/africa.shp&quot;, quiet = TRUE)%&gt;%
+  st_simplify(dTolerance = 0.005, preserveTopology = TRUE)
+
+tz.sf = africa.countries %&gt;% st_crop(xmin = 38, ymin = -14, xmax = 43, ymax = -3)</code></pre>
+<p>Filter the point object and discard category_name variable from the dataset</p>
+<pre class="r"><code>yf.sf = tuna.cpue.sf %&gt;% 
+  # filter(category_name == &quot;Yellowfin&quot;) %&gt;%
+  select(-category_name)</code></pre>
+<p>Then compute the local morans. As shown in the chunk below, the local spatial statistic G is calculated for each point based on the spatial weights object used. The value returned is a Z-value, and may be used as a diagnostic tool.</p>
+<p>the first step is to create a weighted</p>
+<pre class="r"><code>yf.getis = yf.sf %&gt;% 
+  rgeoda::queen_weights() %&gt;% 
+  local_gstar(df = yf.sf)
+
+labels = yf.getis %&gt;% lisa_labels()
+colors = yf.getis %&gt;% lisa_colors()</code></pre>
+<p>We then plot with ggplot</p>
+<pre class="r"><code>raw.data = yf.sf %&gt;% 
+  ggplot() +
+  geom_sf(aes(color = wt_mt)) +
+  ggspatial::layer_spatial(data = tz.sf) +
+  coord_sf(xlim = c(38.4,43.1), ylim = c(-10.5,-4.8))+
+  theme_bw()+
+  scale_color_gradientn(colors = oce::oce.colors9A(120), name = &quot;Catch (MT)&quot;)
+
+hot.cold = yf.sf %&gt;% 
+  mutate(clusters = yf.getis %&gt;% lisa_clusters()) %&gt;%
+  ggplot() +
+  geom_sf(aes(color = clusters %&gt;% as_factor())) +
+  ggspatial::layer_spatial(data = tz.sf) +
+  coord_sf(xlim = c(38.4,43.1), ylim = c(-10.5,-4.8))+
+  theme_bw()+
+  scale_color_manual(values = c(&quot;grey80&quot;, &quot;red&quot;, &quot;blue&quot;), labels = labels, name = &quot;Getis Ord&quot;)
+
+raw.data + hot.cold</code></pre>
+<div class="figure"><span style="display:block;" id="fig:hotCold"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/hotCold-1.png" alt="Hotspot and coldspot of catch rates in the EEZ waters of Tanzania" width="768" />
+<p class="caption">
+Figure 1: Hotspot and coldspot of catch rates in the EEZ waters of Tanzania
+</p>
+</div>
+<p>The interpretation of the local Getis–Ord statistic is shown in Figure <a href="#fig:hotCold">1</a>, the capture weight of tuna in the Exclusive Economic Zone of Tanzania are shown on the left, with the Getis–Ord Gi statistics on right for three distinct bandwidth values. High positive values indicate the possibility of a local cluster of high values of the variable being analysed, very low relative values a similar cluster of low values.</p>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>The Getis–Ord Gi statistic is a distinct perspective on the question of geographical clustering from other measures, like the Local Geary’s ci or Local Moran’s Ii statistics. The Getis–Ord Gi statistic measures whether the area around site <span class="math inline">\(i\)</span> tends to be larger (or smaller) than areas that are not near site <span class="math inline">\(i\)</span>. In general, when the area around <span class="math inline">\(i\)</span> is significantly larger (or smaller) than would be observed at random, then site <span class="math inline">\(i\)</span> is considered to be the core of a “hotspot” (or coldspot). Unlike Moran’s I, the Gi statistic is only concerned with identifying clusters and does not identify spatial outliers, observations that are strongly dissimilar to their surroundings.</p>
+</div>
+<div id="bonus" class="section level2">
+<h2>Bonus</h2>
+<pre class="r"><code>## smooth catch rate
+tuna.kernel = tuna.cpue.sf %&gt;% 
+  st_transform(crs = 32737) %&gt;% 
+  wior::point_tb() %&gt;% 
+  select(-category_name) %&gt;% 
+  rename(x = lon, y = lat) %&gt;% 
+  btb::kernelSmoothing(sEPSG = &quot;32737&quot;, iCellSize = 20000, iBandwidth = 30000, vQuantiles = .5) %&gt;% 
+  st_transform(4326) </code></pre>
+<pre><code>number of clusters: 1
+
+Median smoothing progress (parallel clusters): 100% - minimum remaining time: 0m 0s           
+Elapsed time median smoothing: 0m 0s                                                                 </code></pre>
+<pre class="r"><code>density.catch = tuna.kernel %&gt;% 
+  ggplot()+
+  geom_sf(aes(fill = wt_mt_05))+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), trans = scales::boxcox_trans(p = .2))+
+  ggspatial::layer_spatial(data = tz.sf) +
+  coord_sf(xlim = c(38.4,43.1), ylim = c(-10.5,-4.8))+
+  theme_bw()
+
+
+## compute local moran
+moran = tuna.kernel %&gt;% 
+  select(wt_mt_05) %&gt;% 
+  rgeoda::queen_weights() %&gt;% 
+  local_gstar(df = tuna.kernel)
+
+
+labels = moran %&gt;% lisa_labels()
+colors = moran %&gt;% lisa_colors()
+
+
+
+hot.cold.catch = tuna.kernel %&gt;% 
+  mutate(clusters = lisa_clusters(moran)) %&gt;% 
+  filter(!clusters &gt;=4) %&gt;% 
+  ggplot() +
+  geom_sf(aes(fill = clusters %&gt;% as.factor()))+
+  scale_fill_manual(values = moran %&gt;% lisa_colors(), label = moran %&gt;% lisa_labels(), name = &quot;Clusters&quot;)+
+  ggspatial::layer_spatial(data = tz.sf) +
+  coord_sf(xlim = c(38.4,43.1), ylim = c(-10.5,-4.8))+
+  theme_bw()
+
+density.catch + hot.cold.catch</code></pre>
+<div class="figure"><span style="display:block;" id="fig:hotColdPo"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/hotColdPo-1.png" alt="Raw catch (left) and Hotspot and coldspot of catch rates (right) in the EEZ waters of Tanzania" width="768" />
+<p class="caption">
+Figure 2: Raw catch (left) and Hotspot and coldspot of catch rates (right) in the EEZ waters of Tanzania
+</p>
+</div>
+</div>
