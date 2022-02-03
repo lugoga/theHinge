@@ -70,3 +70,8 @@ menu:
     #   url: /dashboard/
     #   weight: 3
 
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: true

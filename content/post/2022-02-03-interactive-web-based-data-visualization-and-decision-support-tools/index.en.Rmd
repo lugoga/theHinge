@@ -16,6 +16,8 @@ The gap between scientist and decision makers has existed for decades. Despite t
 
 Web applications are useful and  easily accessed by a wide range of users without installing more software. Developing an interactive web applications needed skills in coding with multiple programming languages. These languages included JavaScript, HTML, and CSS. However, Rstudio team lead by Winston Chang developed a Shiny package in R language. The package is a novel because it enables users to create interactive web applications in the R environment. With its ability in data analysis, modeling, and visualization, Shiny  creates decision-support tools in R. 
 
+Shiny is one of the powerful tools in the hand of data analysts and data scientists to develop web-based applications and interactive data visualizations. The Shiny app consists of two important functions: UI and the server function. A key feature of Shiny is the use of reactive programming to automatically update the output when changes are made in the input.
+
 Among the key advantage of Web-based interactive app is the way they streamline engagement of the users and provide greater transparency in decision making, which can be particularly useful for controversial topics. By promoting greater involvement as well as a shared understanding of trade-offs that are often unavoidable among different scenarios, these decision support tools can help forge a path forward for wicked problems.
 
 
