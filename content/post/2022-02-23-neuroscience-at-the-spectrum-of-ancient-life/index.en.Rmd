@@ -64,25 +64,6 @@ knitr::include_graphics(path = "../images/hadzabe.png")
 
 ```
 
-```{r, eval=FALSE}
-require(tidyverse)
-require(leaflet)
-library(mapview)
-require(sf)
-
-
-
-tibble(lon = c(35.4),
-       lat= c(-3.5),
-       pics = c("../images/datoga.png")) %>% 
-  leaflet() %>% 
-  addTiles() %>%
-  addCircleMarkers(
-    fillOpacity = 0.8, radius = 5,
-    lng = ~lon, lat =~lat
-    )
-  
-``` 
 
 
 
