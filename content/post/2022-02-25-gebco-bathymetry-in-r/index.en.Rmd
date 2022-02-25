@@ -1,0 +1,158 @@
+---
+title: GEBCO bathymetry in R
+author: Masumbuko Semba
+date: '2022-02-25'
+slug: []
+categories:
+  - Climate
+  - spatial
+  - visualization
+  - R
+tags:
+  - bathymetry
+  - data
+  - map
+  - marine
+  - Masumbuko Semba
+description: ''
+thumbnail: ''
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, comment = "")
+```
+
+
+As an Oceanography, one key parameter that need to get right is the bathymetry. Bathymetry is the science of determining the topography of the seafloor. Bathymetry data is used to generate navigational charts, seafloor profile, biological oceanography, beach erosion, sea-level rise, etc. There prenty of bathymetry data and one of the them is the GEBCO Gridded Bathymetry Data.
+
+The General bathymetric Chart of the Oceans (GEBCO) consists of an international group of experts in ocean mapping. This team provides the most authoritative publicly-available bathymetry of the world's oceans. In this post i will illustrate how to download data from their website and use for mapping. You can obtain the data for your region of interest or for the global oceans. You can download the data from GEBCO .https://download.gebco.net/. For this case I have downloaded the data for East African Coast as netCDF file by specifying the geogrpahical extent and choose the file type as shown in figure \@ref(fig:gebco). 
+
+```{r gebco, out.width="100%"}
+knitr::include_graphics("../images/gebco.png")
+```
+
+
+To process the data and visualize in maps, we need several packages highlighted in the chunk below. You need to load the packages in your session first. If not in your machine, you need to install them first. 
+
+```{r}
+require(tidyverse)
+require(ncdf4)
+require(sf)
+require(metR)
+
+```
+
+Then read the file using `nc_open` function of the **ncdf4** package and print the file to see the metadata that describe the variables that are embedded in the file. 
+
+```{r, echo=FALSE}
+nc = nc_open("d:/semba/shapefile/gebco/gebco_2021_n2.0_s-15.0_w35.0_e50.0.nc")
+
+```
+
+```{r, eval=FALSE}
+
+nc = nc_open("d:/gebco_tz.nc")
+```
+
+
+```{r}
+nc
+```
+
+Looking on the metadata, we notice that there are three variables we need to extract from the file, these are longitude, latitude and depth. We use a `ncvar_get` function to extract them. Note the name of the variables, as they should be parsed in the function as they appear in the metadata. 
+
+```{r}
+lat = ncvar_get(nc, "lat")
+lon = ncvar_get(nc, "lon")
+bathy = ncvar_get(nc, "elevation")
+
+```
+
+Then we can check the type of the file using a `class` function
+
+```{r}
+class(bathy); class(lon); class(lat)
+```
+
+
+We notice these objects comes as array. we can check the size also
+```{r}
+dim(lon); dim(lat);dim(bathy)
+```
+
+We also notice that while lon and lat object are array, but they are vector and only bathy is the matrix. Therefore, we need to make a data frame so that we can make plots using ggplot package, which only work in the dataset that is organized as data.frame or tibble. That can be done using a `expand.grid` function. First we expand the lon and lat file followed with the bathy and combine them to make a tibble as the chunk below highlight. Because of the file size, only bathymetric values that fall within the pemba Channel were selected.  
+
+```{r}
+
+dataset = expand.grid(lon, lat) %>% 
+  bind_cols(expand.grid(bathy)) %>% 
+  as_tibble() %>% 
+  rename(lon = 1, lat = 2, depth = 3)%>% 
+  filter(lon >38.5 & lon < 40.5 & lat > -5.8 & lat < -4)
+
+
+
+```
+
+
+Separate the dataset into the land and ocean based on zero (0) value as reference point, where the above sea level topography values are assumed
+
+```{r}
+land = dataset %>% filter(depth >0 )
+ocean = dataset %>% filter(depth <= 0 )
+```
+
+Load the basemap shapefile
+
+```{r, echo=FALSE}
+africa = st_read("d:/semba/shapefile/africa.shp", quiet = TRUE)
+```
+
+
+```{r, eval=FALSE}
+africa = st_read("d:/africa.shp", quiet = TRUE)
+```
+
+Make a color of land and depth that we will use later for mapping the topography and bathymetry, respectively.
+
+```{r}
+#make palette
+ocean.pal <- c("#000000", "#000413", "#000728", "#002650", "#005E8C", "#0096C8", "#45BCBB", "#8AE2AE", "#BCF8B9", "#DBFBDC")
+land.pal <- c("#467832", "#887438", "#B19D48", "#DBC758", "#FAE769", "#FAEB7E", "#FCED93", "#FCF1A7", "#FCF6C1", "#FDFAE0")
+
+
+```
+
+We can plot the bathymetry shown in figure \@ref(fig:bathy) with the code highlighted in the chunk below
+
+```{r bathy, fig.width=6, fig.height=6}
+
+
+ggplot()+
+  metR::geom_contour_fill(data = ocean, aes(x = lon, y = lat, z = depth), bins = 120, global.breaks = FALSE) +
+  metR::geom_contour2(data = ocean, aes(x = lon, y = lat, z = depth, label = ..level..), breaks = c(-200,-600), skip = 0 )+
+  scale_fill_gradientn(colours = ocean.pal, name = "Depth (m)", breaks = seq(-1800,0,300), label = seq(1800,0,-300))+
+  ggspatial::layer_spatial(data = africa)+
+  coord_sf(xlim = c(38.9,40), ylim = c(-5.6,-4.1))+
+  theme_bw(base_size = 12)+
+  theme(axis.title = element_blank())
+
+```
+
+Similary, we can plot togopgraphy of the area shown in figure \@ref(fig:topo) using the code shown below
+
+```{r topo, fig.width=6, fig.height=6}
+
+ggplot()+
+  metR::geom_contour_fill(data = land, aes(x = lon, y = lat, z = depth), bins = 120, show.legend = TRUE) +
+  metR::geom_contour2(data = land, aes(x = lon, y = lat, z = depth), breaks = c(200), skip = 0 )+
+  scale_fill_gradientn(colours = land.pal, name = "Topography", trans = scales::sqrt_trans())+
+  ggspatial::layer_spatial(data = africa, fill = NA)+
+  coord_sf(xlim = c(38.9,40), ylim = c(-5.6,-4.1))+
+  theme_bw(base_size = 12)+
+  theme(axis.title = element_blank())
+
+
+```
