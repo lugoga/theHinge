@@ -1,0 +1,152 @@
+---
+title: Forecasting Time Series with Prophet package in R
+author: Masumbuko Semba
+date: '2022-02-27'
+slug: []
+categories:
+  - visualization
+  - ggplot2
+  - marine
+  - spatial
+tags:
+  - Masumbuko Semba
+  - time series
+  - temperature
+description: ''
+thumbnail: ''
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, comment = "")
+```
+
+
+
+Time-series analysis aims to analyse and learn the temporal behaviour of datasets over a period. Examples include the investigation of long-term records of temperature , sea-level fluctuations, the effect of the El Niño/Southern Oscillation on tropical rainfall, and surface current influences on distribution of temperature and rainfall. Th e temporal pattern of a sequence of events in a time series data can be either random, clustered, cyclic, or chaotic. 
+
+Time-series analysis provides various tools with which to detect these temporal patterns. Moreover, it helps in learning the behavior of the dataset by plotting the time series object on the graph. In R language, time series objects are handled easily using `ts()` function that takes the data vector and converts it into time series object as specified in function parameters. Therefore, understanding the underlying processes that produced the observed data allows us to predict future values of the variable. 
+
+In this post we learn how to forecast in R. We will use the **prophet** package, which contain all the necessary routines for time-series analysis. **Prophet** is a package developed by Facebook for forecasting time series objects or data. **Prophet** package is based on decomposable model i.e., trend, seasonality and holidays that helps in making more accurate predictive models. It is much better than the ARIMA model as it helps in tuning and adjusting the input parameters.
+
+```{r}
+require(sf)
+require(tidyverse)
+require(patchwork)
+require(magrittr)
+require(tmap)
+require(prophet)
+
+data("World")
+
+```
+```{r}
+mycolor2 = c("#040ED8", "#2050FF", "#4196FF", "#6DC1FF", "#86D9FF", "#9CEEFF", "#AFF5FF", "#CEFFFF", "#FFFE47", "#FFEB00", "#FFC400", "#FF9000", "#FF4800", "#FF0000", "#D50000", "#9E0000")
+
+mycolor3 = c("#9000B0", "#C900B0", "#C760AF", "#1190F9", "#60C8F8", "#90C9F8", "#F8F8F8", "#F8F800",  "#F8D730", "#f8b030", "#f8602f", "#f80000")
+```
+
+
+```{r}
+global = read_csv("../data/temperature_lss_global_1990_2020_2021.csv")
+```
+
+
+```{r temperature, fig.width=8, fig.cap="Global land and sea surface temperature anomaly for a year 2021"}
+temperature = global %>% filter(year == 2021)
+
+ggplot()+
+  metR::geom_contour_fill(data = temperature, aes(x = lon, y = lat, z = temperature),bins = 120)+
+  metR::geom_contour2(data = temperature, aes(x = lon, y = lat, z = temperature,label = ..level..), breaks = 0, color = "red")+
+  ggspatial::layer_spatial(data = World, fill = NA)+
+  coord_sf(xlim = c(-180,180), ylim = c(-70,70))+
+  # metR::scale_fill_divergent(midpoint = 0)+
+  scale_fill_gradientn(colours = mycolor3, 
+                       # trans = scales::modulus_trans(p = .1),
+                       name = expression(T~(degree*C))) +
+  theme_bw(base_size = 12)+
+  theme(axis.title = element_blank())+
+  # metR::scale_y_latitude(ticks = 15)+
+  metR::scale_x_longitude()
+```
+## Data Preparation & Exploration
+Prophet works best with periodicity data with at least one year of historical data. It's possible to use Prophet to forecast using sub-daily or monthly data, but for the purposes of this post, we'll use the monthly periodicity of global temperature---land and ocean . Let's us read the file into our session
+
+```{r}
+monthly = read_csv("../data/temperature_lss.csv")
+
+monthly %>% FSA::headtail(n = 5)
+
+```
+
+Lookin on the printed dataset, we note that we have records of land and sea temperature since January 1880 through January 2022. That is the long historical data that suits our analysis. The first thing we need to do is to create a time-series object in R. This is done by using a `ts` function and specify the start year and the frequency of observation. Since we have monthly records, the frequency for each year will be 12 as the chunk highlight
+
+```{r}
+ts.temp = monthly %>% 
+  pull(temperature) %>% 
+  ts(start = c(1880,1), frequency = 12)
+```
+
+But, although we have that long historical dataset, we are more interested in the most recent records. Therefore, we filter all records since 1980 for our analysis. We can achieve this by simply passing the limiting year and month in the `window` function. Once we have filtered the dataset, we then convert the ts object to prophet format using a `ts_to_prophet` function from **TSstudio** package
+
+```{r}
+ts.df = ts.temp %>% 
+  window(start = c(1980,1)) %>% 
+  TSstudio::ts_to_prophet()
+```
+
+
+Then, the result is visualized using **ggplot2** package
+
+```{r, fig.width=8, fig.height=3}
+ts.df %>% 
+  ggplot(aes(x = ds, y = y))+
+  geom_line()+
+  geom_smooth(fill = "red", color = "red", alpha = .2)+
+  scale_y_continuous(name = expression(Temperature~(degree*C)))+
+  scale_x_date(date_breaks = "3 year", labels = scales::label_date_short())+
+  theme_bw(base_size = 12)+
+  theme(axis.title.x = element_blank(), panel.grid.minor = element_blank())
+```
+
+## Forecasting
+The first step in creating a forecast using Prophet is importing the **prophet** library into our R session. Once the prophet library is loaded into our session, we're ready to fit a model to our historical data. We can achieve that by simply calling the` prophet()` function using your prepared dataframe as an input:
+
+```{r}
+m = ts.df %>% prophet()
+```
+
+Once we have used **Prophet** to fit the model dataset, we can now start making predictions for future dates. Prophet has a built-in helper function `make_future_dataframe` to create a dataframe of future dates. The `make_future_dataframe` function, which allows to specify the frequency and number of periods we would like to forecast into the future. By default, the frequency is set to days. Since we are using daily periodicity data in this example, we will leave freq at it’s default and set the periods argument to 365, indicating that we would like to forecast 365 days into the future.
+
+```{r}
+future = m %>% 
+  make_future_dataframe(120,freq = "month")
+```
+
+We can now use the `predict()` function to make predictions for each row in the future dataframe.
+
+```{r}
+forecast = m %>% predict(future)
+```
+
+At this point, Prophet will have created a new dataframe assigned to the forecast variable that contains the forecasted values for future dates under a column called yhat, as well as uncertainty intervals and components for the forecast. We can visualize the forecast using Prophet’s built-in plot helper function:
+
+```{r, fig.width=8, fig.height=3}
+plot(x = m, fcst = forecast, uncertainty = T,plot_cap = T,)+
+  scale_y_continuous(name = expression(Temperature~(degree*C)))+
+  # scale_x_date(date_breaks = "3 year", labels = scales::label_date_short())+
+  theme_bw(base_size = 12)+
+  theme(axis.title.x = element_blank())+
+  add_changepoints_to_plot(m = m, threshold = 0.1)
+```
+
+If we want to visualize the individual forecast components, we can use Prophet’s built-in plot_components function:
+
+
+```{r, fig.width=8, fig.height=3}
+
+plot_forecast_component(m = m, fcst = forecast, name = "trend")
+
+```
+

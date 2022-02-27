@@ -1,0 +1,58 @@
+---
+title: Google trends in R
+author: Masumbuko Semba
+date: '2022-02-14'
+slug: []
+categories:
+  - ''
+tags:
+  - ''
+description: ''
+thumbnail: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<p>Google Trends is a well-known, free tool provided by Google that allows you to analyse the popularity of top search queries on its Google search engine. In market exploration work, we often use Google Trends to get a very quick view of what behaviours, language, and general things are trending in a market.</p>
+<p>Philippe Massicotte’s developed a <strong>gtrendsR</strong> package for running Google Trends queries in R. It’s simple, you don’t need to set up API keys or anything, and it’s fairly intuitive. Let’s have a go at this with a simple and recent example.</p>
+<p><strong>gtrendsR</strong> is available on CRAN, so just make sure it’s installed (install.packages(“gtrendsR”)) and load it. Let’s load tidyverse as well, which we’ll need for the basic data cleaning and plotting:</p>
+<pre class="r"><code>require(gtrendsR)
+require(tidyverse)</code></pre>
+<p>The next step then is to assign our search terms to a character variable called <code>search_terms</code>, and then use the package’s main function <code>gtrends()</code>.</p>
+<p>Let’s set the <code>geo</code> argument to Hong Kong only, and limit the search period to 12 months prior to today. We’ll assign the output to a variable - and let’s call it output_results.</p>
+<pre class="r"><code>trends = gtrends(keyword = c(&quot;John Magufuli&quot;),
+                       geo = c(&quot;UG&quot;, &quot;TZ&quot;, &quot;KE&quot;),
+                       time = &quot;2014-01-01 2022-01-30&quot;)</code></pre>
+<pre class="r"><code>class(trends)</code></pre>
+<pre><code>[1] &quot;gtrends&quot; &quot;list&quot;   </code></pre>
+<p>Let’s have a look at <code>interest_over_time</code>, which is primarily what we’re interested in. You can access the data frame with the <code>$</code> operator, and check out the data structure:</p>
+<pre class="r"><code>trends.tb = trends$interest_over_time %&gt;% 
+  mutate(hits = as.integer(hits))
+
+trends.tb %&gt;% 
+  dplyr::slice_sample(n = 10)</code></pre>
+<pre><code>         date hits       keyword geo                  time gprop category
+1  2014-06-01    0 John Magufuli  KE 2014-01-01 2022-01-30   web        0
+2  2014-01-01    1 John Magufuli  TZ 2014-01-01 2022-01-30   web        0
+3  2019-06-01   NA John Magufuli  UG 2014-01-01 2022-01-30   web        0
+4  2019-04-01    7 John Magufuli  TZ 2014-01-01 2022-01-30   web        0
+5  2018-06-01    3 John Magufuli  TZ 2014-01-01 2022-01-30   web        0
+6  2015-10-01   NA John Magufuli  UG 2014-01-01 2022-01-30   web        0
+7  2020-03-01   NA John Magufuli  KE 2014-01-01 2022-01-30   web        0
+8  2016-12-01   NA John Magufuli  KE 2014-01-01 2022-01-30   web        0
+9  2017-01-01   16 John Magufuli  TZ 2014-01-01 2022-01-30   web        0
+10 2015-06-01    5 John Magufuli  TZ 2014-01-01 2022-01-30   web        0</code></pre>
+<pre class="r"><code>trends.tb%&gt;% 
+  ggplot(aes(x = date, y = hits, color = geo))+
+  geom_path()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>YOu will notice that the hits are below 100, Why? According to Google FAQ documentation:</p>
+<blockquote>
+<p>Google Trends normalizes search data to make comparisons between terms easier. Search results are normalized to the time and location of a query by the following process. Each data point is divided by the total searches of the geography and time range it represents to compare relative popularity. Otherwise, places with the most search volume would always be ranked highest.The resulting numbers are then scaled on a range of 0 to 100 based on a topic’s proportion to all searches on all topics.</p>
+</blockquote>
+<div id="limitations" class="section level2">
+<h2>Limitations</h2>
+<p>One major limitation of Google Trends is that you can only search a maximum of five terms at the same time, which means that there isn’t really a way to do this at scale. There are some attempts online of doing multiple searches and “connect” the searches together by calculating an index, but so far I’ve not come across any attempts which have yielded a very satisfactory result. However, this is more of a limitation of Google Trends than the package itself.</p>
+<p>What you can ultimately do with the gtrendsR package is limited by what Google provides, but the benefit of using gtrendsR is that all your search inputs will be documented, and certainly helps towards a reproducible workflow.</p>
+</div>
