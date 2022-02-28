@@ -79,6 +79,7 @@ ggplot()+
   # metR::scale_y_latitude(ticks = 15)+
   metR::scale_x_longitude()
 ```
+
 Regardless of the COVID-19 pandemic that reduction in mobility and human activities, along with reduced industrial production, has led to lower levels of nitrogen dioxide (NO2) and and the subsequent decrease of fossil fuel burning and CO2 emissions, NASA found that the year 2020 (Figure \@ref(fig:hottest)) was the hottest year on record. Continuing the planet’s long-term warming trend, the year’s globally averaged temperature was 1.02 degrees Celsius warmer than the baseline 1951-1980 mean, according to scientists at NASA’s Goddard Institute for Space Studies (GISS) in New York. 2020 edged out 2016 by a very small amount, within the margin of error of the analysis, making the years effectively tied for the warmest year on record. The last seven years have been the warmest seven years on record. 
 
 ```{r hottest, echo=FALSE, fig.width=8, fig.cap="Globally, 2020 was the hottest year on record Global"}

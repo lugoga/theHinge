@@ -1,0 +1,130 @@
+---
+title: Global Temperature Distribution Flat and Spherical Maps with ggplot2 in R
+author: Masumbuko Semba
+date: '2022-03-01'
+slug: []
+categories:
+  - spatial
+tags:
+  - Masumbuko Semba
+  - temperature
+description: ''
+thumbnail: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>Maps are used in a variety of fields to express data in an appealing and interpretive way. Map making — the art of cartography — is an ancient skill that involves communication, intuition, and an element of creativity. Current solutions for creating maps usually involves GIS software, such as ArcGIS, QGIS, which allow to visually prepare a map.</p>
+<p>On the other hand, R, a free and open-source software development environment (IDE) that is used for computing statistical data and graphic in a programmable language, for a long time has had a relatively simple mechanism, via the maps package, for making simple outlines of maps and plotting lat-long points and paths on them. More recently, R has developed advanced spatial capabilities and can be used to draw maps programmatically. Some of the packages include <strong>sf</strong>, <strong>stars</strong>, <strong>raster</strong>, <strong>sp</strong>, <strong>ggspatial</strong>, <strong>ggplot2</strong>, <strong>tmap</strong>, <strong>ggmap</strong>, <strong>rgdal</strong>, and <strong>rgeos</strong>, R has been acquiring much of the functionality of traditional GIS packages (like ArcGIS, etc).</p>
+<p>In this post, I will briefly show hot make a simple flat map with a combination of <strong>ggplot2</strong> and <strong>ggspatial</strong> packages. First, let’s us load the packages we need for this task</p>
+<pre class="r"><code>require(sf)
+require(tidyverse)
+require(ggspatial)
+
+
+require(tmap)
+## basemap shapefile from tmap package
+data(&quot;World&quot;)</code></pre>
+</div>
+<div id="color-codes" class="section level2">
+<h2>Color codes</h2>
+<p>R allows us to specify a color in several ways in this chunk below, I use the hex codes to specify the color code gradient that will later used to show the gradient of temperature.</p>
+<pre class="r"><code>mycolor3 = c(&quot;#9000B0&quot;, &quot;#C900B0&quot;, &quot;#C760AF&quot;, &quot;#1190F9&quot;, &quot;#60C8F8&quot;, &quot;#90C9F8&quot;, &quot;#F8F8F8&quot;, &quot;#F8F800&quot;,  &quot;#F8D730&quot;, &quot;#f8b030&quot;, &quot;#f8602f&quot;, &quot;#f80000&quot;)</code></pre>
+</div>
+<div id="dataset" class="section level2">
+<h2>Dataset</h2>
+<p>We will use the NASA GISTEMP V4 dataset that combine NOAA GHCN meteorological stations and ERSST ocean temperature to form a comprehensive long record of temperature variability of the earth surface. The dataset contains monthly temperature values from 1880 to present, which is widely used to monitor the weather and climate at regional and global scale. Rather than using absolute temperature values, the dataset uses anomaly obtained by using base period (1951-1980). This dataset is open and free to download as netCDF format file at <a href="https://data.giss.nasa.gov/gistemp/">GISTEMP</a>. I have processed the file and we can load as the csv file here. Lets’ load the package in our session</p>
+<pre class="r"><code>global = read_csv(&quot;../data/temperature_lss_global_1990_2020_2021.csv&quot;)
+
+global %&gt;% FSA::headtail()</code></pre>
+<pre><code>       lon lat year temperature
+1     -179 -89 1990   -0.207500
+2     -179 -89 2020    0.482500
+3     -179 -89 2021   -1.060833
+48598  179  89 1990    0.915000
+48599  179  89 2020    3.796667
+48600  179  89 2021    3.725833</code></pre>
+<p>We need to create a Raster* object from a dataframe with longitude, latitude and z values. This can be faciliated with <code>rasterFromXYZ</code> function in <strong>raster</strong> package. longitude and latitude represent spatial coordinates and must be on a regular grid. If the resolution is not supplied, it is assumed to be the minimum distance between longitude and latitude coordinates, but a resolution of up to 10 times smaller is evaluated if a regular grid can otherwise not be created. Thus, we first create a raster layer of global temperature. This raster layer we will use for mapping the distribution of temperature in flat and spherical maps.</p>
+<pre class="r"><code>temperature = global %&gt;% filter(year == 2021)
+
+temperature.raster = temperature %&gt;% 
+  select(lon,lat,temperature) %&gt;% 
+  raster::rasterFromXYZ(crs = 4326)</code></pre>
+<p>The function <code>coord_sf</code> allows to deal with the coordinate system, which includes both projection and extent of the map. By default, the map will use the coordinate system of the first layer that defines one (i.e. scanned in the order provided), or if none, fall back on WGS84 (latitude/longitude, the reference system used in GPS). Since our dataset use WGS84, it will draw flatten map of temperature shown in figure <a href="#fig:temperature">1</a></p>
+<pre class="r"><code>ggplot()+
+  ggspatial::layer_spatial(data = temperature.raster)+
+  ggspatial::layer_spatial(data = World, fill = NA)+
+  coord_sf(xlim = c(-180,180), ylim = c(-70,70), crs = 4326)+
+  scale_fill_gradientn(colours = mycolor3, 
+                       trans = scales::modulus_trans(p = .1),
+                       name = expression(T~(degree*C))) +
+  theme_bw(base_size = 12)+
+  theme(axis.title = element_blank(), 
+        plot.background = element_rect(fill = &quot;#f0f4f6&quot;, colour = NA), 
+        panel.background = element_rect(fill = &quot;#f0f4f6&quot;, colour = NA), 
+        legend.background = element_rect(fill = &quot;#f0f4f6&quot;, colour = NA))+
+  metR::scale_x_longitude()+
+  annotation_scale(location = &quot;bl&quot;, width_hint = 0.25) +
+  annotation_north_arrow(location = &quot;bl&quot;, which_north = &quot;true&quot;, 
+        pad_x = unit(0.75, &quot;in&quot;), pad_y = unit(0.5, &quot;in&quot;),
+        style = north_arrow_fancy_orienteering)</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:temperature"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/temperature0-01.png" alt="Flatten Global land and sea surface temperature anomaly for a year 2021 compared to to the 1950-1980 average" width="100%" />
+<p class="caption">
+Figure 1: Flatten Global land and sea surface temperature anomaly for a year 2021 compared to to the 1950-1980 average
+</p>
+</div>
+<p>Suppose we want to change change shape of the map to spherical and to visualize in details areas with high temperature for the year 2021, we simply alter the <code>coord_sf</code> function. Using the argument <code>crs</code>, it is possible to override this setting, and project on the fly to any projection. This can be achieved using any valid PROJ4 string (here, the European-centric ETRS89 Lambert Azimuthal Equal-Area projection) was used to map temperature values in spherical shape figure <a href="#fig:temperature1">2</a>.</p>
+<pre class="r"><code>europe = &quot;+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs&quot;
+
+ggplot()+
+  ggspatial::layer_spatial(data = temperature.raster)+
+  ggspatial::layer_spatial(data = World, fill = NA)+
+  coord_sf(crs = europe) +
+  scale_fill_gradientn(colours = mycolor3, na.value = NA,
+                       trans = scales::modulus_trans(p = .1),
+                       name = expression(T~(degree*C))) +
+  theme_bw(base_size = 12)+
+  theme(axis.title = element_blank(), 
+        plot.background = element_rect(fill = &quot;#f0f4f6&quot;, colour = NA), 
+        panel.background = element_rect(fill = &quot;#f0f4f6&quot;, colour = NA), 
+        legend.background = element_rect(fill = &quot;#f0f4f6&quot;, colour = NA))</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:temperature1"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/temperature2-1a.png" alt="Spherical Global land and sea surface temperature anomaly for a year 2021 compared to to the 1950-1980 average" width="50%" />
+<p class="caption">
+Figure 2: Spherical Global land and sea surface temperature anomaly for a year 2021 compared to to the 1950-1980 average
+</p>
+</div>
+<p>Suppose we are interested in adjusting the projection and make africa popup. first we define the location, and then project coordinates from WGS84 to the specified, for instance in this case to UTM zone 37</p>
+<pre class="r"><code>points = tibble(x = 55, y = -75) %&gt;% 
+  st_as_sf(coords = c(&quot;x&quot;, &quot;y&quot;), crs = 4326) %&gt;% 
+  st_transform(32737)
+
+points %&gt;% st_bbox()</code></pre>
+<pre><code>     xmin      ymin      xmax      ymax 
+ 957039.2 1614295.3  957039.2 1614295.3 </code></pre>
+<p>Then use the easting (xmin) and northings (ymin) values into the projection and specify it in the coord_sf and map figure <a href="#fig:temperature2">3</a></p>
+<pre class="r"><code>africa = &quot;+proj=laea +lat_0=52 +lon_0=10 +x_0=957039 +y_0=1614295 +ellps=GRS80 +units=m +no_defs&quot;
+
+ggplot()+
+  ggspatial::layer_spatial(data = temperature.raster)+
+  ggspatial::layer_spatial(data = World, fill = NA)+
+  coord_sf(crs = africa) +
+  scale_fill_gradientn(colours = mycolor3, na.value = NA,
+                       trans = scales::modulus_trans(p = .1),
+                       name = expression(T~(degree*C))) +
+  theme_bw(base_size = 12)+
+  theme(axis.title = element_blank(), 
+        plot.background = element_rect(fill = &quot;#f0f4f6&quot;, colour = NA), 
+        panel.background = element_rect(fill = &quot;#f0f4f6&quot;, colour = NA), 
+        legend.background = element_rect(fill = &quot;#f0f4f6&quot;, colour = NA))</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:temperature2"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/temperature2-1a.png" alt="Spherical Global land and sea surface temperature anomaly for a year 2021 compared to to the 1950-1980 average" width="50%" />
+<p class="caption">
+Figure 3: Spherical Global land and sea surface temperature anomaly for a year 2021 compared to to the 1950-1980 average
+</p>
+</div>
+</div>
