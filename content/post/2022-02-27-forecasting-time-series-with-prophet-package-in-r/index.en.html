@@ -1,5 +1,5 @@
 ---
-title: Forecasting Time Series with Prophet package in R
+title: Forecasting Rising Temperature with prophet package in R
 author: Masumbuko Semba
 date: '2022-02-27'
 slug: []
@@ -29,11 +29,19 @@ require(magrittr)
 require(tmap)
 require(prophet)
 
-data(&quot;World&quot;)</code></pre>
-<pre class="r"><code>mycolor2 = c(&quot;#040ED8&quot;, &quot;#2050FF&quot;, &quot;#4196FF&quot;, &quot;#6DC1FF&quot;, &quot;#86D9FF&quot;, &quot;#9CEEFF&quot;, &quot;#AFF5FF&quot;, &quot;#CEFFFF&quot;, &quot;#FFFE47&quot;, &quot;#FFEB00&quot;, &quot;#FFC400&quot;, &quot;#FF9000&quot;, &quot;#FF4800&quot;, &quot;#FF0000&quot;, &quot;#D50000&quot;, &quot;#9E0000&quot;)
+## basemap shapefile from tmap package
+data(&quot;World&quot;)
 
+
+# color codes
 mycolor3 = c(&quot;#9000B0&quot;, &quot;#C900B0&quot;, &quot;#C760AF&quot;, &quot;#1190F9&quot;, &quot;#60C8F8&quot;, &quot;#90C9F8&quot;, &quot;#F8F8F8&quot;, &quot;#F8F800&quot;,  &quot;#F8D730&quot;, &quot;#f8b030&quot;, &quot;#f8602f&quot;, &quot;#f80000&quot;)</code></pre>
+<div id="dataset" class="section level2">
+<h2>Dataset</h2>
+<p>We will use the NASA GISTEMP V4 dataset that combine NOAA GHCN meteorological stations and ERSST ocean temperature to form a comprehensive long record of temperature variability of the earth surface. The dataset contains monthly temperature values from 1880 to present, which is widely used to monitor the weather and climate at regional and global scale. Rather than using absolute temperature values, the dataset uses anomaly obtained by using base period (1951-1980).</p>
+<p>NASA’s analysis incorporates surface temperature measurements from more than 26,000 weather stations and thousands of ship- and buoy-based observations of sea surface temperatures. These raw measurements are analyzed using an algorithm that considers the varied spacing of temperature stations around the globe and urban heating effects that could skew the conclusions if not taken into account. The result of these calculations is an estimate of the global average temperature difference from a baseline period of 1951 to 1980.</p>
+<p>This dataset is open and free to download as netCDF format file at <a href="https://data.giss.nasa.gov/gistemp/">GISTEMP</a>. I have processed the file and we can load as the csv file here.</p>
 <pre class="r"><code>global = read_csv(&quot;../data/temperature_lss_global_1990_2020_2021.csv&quot;)</code></pre>
+<p>The Earth’s global average surface temperature in 2021 tied 2018 (<em>See</em> Figure <a href="#fig:temperature">1</a>) is the sixth-warmest year on record, according to independent analyses from NASA and the National Oceanic and Atmospheric Administration (NOAA). According to scientists at NASA’s Goddard Institute for Space Studies (GISS), global temperatures in 2021 were 0.85 degrees Celsius above the average for NASA’s baseline period,</p>
 <pre class="r"><code>temperature = global %&gt;% filter(year == 2021)
 
 ggplot()+
@@ -50,10 +58,18 @@ ggplot()+
   # metR::scale_y_latitude(ticks = 15)+
   metR::scale_x_longitude()</code></pre>
 <div class="figure"><span style="display:block;" id="fig:temperature"></span>
-<img src="{{< blogdown/postref >}}index.en_files/figure-html/temperature-1.png" alt="Global land and sea surface temperature anomaly for a year 2021" width="768" />
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/temperature-1.png" alt="Global land and sea surface temperature anomaly for a year 2021 compared to to the 1950-1980 average" width="768" />
 <p class="caption">
-Figure 1: Global land and sea surface temperature anomaly for a year 2021
+Figure 1: Global land and sea surface temperature anomaly for a year 2021 compared to to the 1950-1980 average
 </p>
+</div>
+<p>Regardless of the COVID-19 pandemic that reduction in mobility and human activities, along with reduced industrial production, has led to lower levels of nitrogen dioxide (NO2) and and the subsequent decrease of fossil fuel burning and CO2 emissions, NASA found that the year 2020 (Figure <a href="#fig:hottest">2</a>) was the hottest year on record. Continuing the planet’s long-term warming trend, the year’s globally averaged temperature was 1.02 degrees Celsius warmer than the baseline 1951-1980 mean, according to scientists at NASA’s Goddard Institute for Space Studies (GISS) in New York. 2020 edged out 2016 by a very small amount, within the margin of error of the analysis, making the years effectively tied for the warmest year on record. The last seven years have been the warmest seven years on record.</p>
+<div class="figure"><span style="display:block;" id="fig:hottest"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/hottest-1.png" alt="Globally, 2020 was the hottest year on record Global" width="768" />
+<p class="caption">
+Figure 2: Globally, 2020 was the hottest year on record Global
+</p>
+</div>
 </div>
 <div id="data-preparation-exploration" class="section level2">
 <h2>Data Preparation &amp; Exploration</h2>
@@ -72,7 +88,7 @@ monthly %&gt;% FSA::headtail(n = 5)</code></pre>
 1703 2021-11-15   1.0853070
 1704 2021-12-15   0.9597652
 1705 2022-01-15   1.1144421</code></pre>
-<p>Lookin on the printed dataset, we note that we have records of land and sea temperature since January 1880 through January 2022. That is the long historical data that suits our analysis. The first thing we need to do is to create a time-series object in R. This is done by using a <code>ts</code> function and specify the start year and the frequency of observation. Since we have monthly records, the frequency for each year will be 12 as the chunk highlight</p>
+<p>Looking on the printed dataset, we note that we have records of land and sea temperature since January 1880 through January 2022. That is the long historical data that suits our analysis. The first thing we need to do is to create a time-series object in R. This is done by using a <code>ts</code> function and specify the start year and the frequency of observation. Since we have monthly records, the frequency for each year will be 12 as the chunk highlight</p>
 <pre class="r"><code>ts.temp = monthly %&gt;% 
   pull(temperature) %&gt;% 
   ts(start = c(1880,1), frequency = 12)</code></pre>
@@ -80,7 +96,7 @@ monthly %&gt;% FSA::headtail(n = 5)</code></pre>
 <pre class="r"><code>ts.df = ts.temp %&gt;% 
   window(start = c(1980,1)) %&gt;% 
   TSstudio::ts_to_prophet()</code></pre>
-<p>Then, the result is visualized using <strong>ggplot2</strong> package</p>
+<p>Tracking global temperature trends provides a critical indicator of the impact of human activities— specifically, greenhouse gas emissions – on our planet. Visualizing the dataset as seen in figure figure <a href="#fig:trend">3</a>. It’s an undeniable fact the global mean temperature is constantly rising. Earth’s average temperature has risen above 1.2 degrees Celsius) since the late 19th century and the IPCC has pointed out the increase should be limited to 1.5 °C above pre-industrial levels, to have any hope of mitigating the harmful effects of climate change.</p>
 <pre class="r"><code>ts.df %&gt;% 
   ggplot(aes(x = ds, y = y))+
   geom_line()+
@@ -89,7 +105,12 @@ monthly %&gt;% FSA::headtail(n = 5)</code></pre>
   scale_x_date(date_breaks = &quot;3 year&quot;, labels = scales::label_date_short())+
   theme_bw(base_size = 12)+
   theme(axis.title.x = element_blank(), panel.grid.minor = element_blank())</code></pre>
-<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-7-1.png" width="768" /></p>
+<div class="figure"><span style="display:block;" id="fig:trend"></span>
+<img src="{{< blogdown/postref >}}index.en_files/figure-html/trend-1.png" alt="Trend of global temperature" width="768" />
+<p class="caption">
+Figure 3: Trend of global temperature
+</p>
+</div>
 </div>
 <div id="forecasting" class="section level2">
 <h2>Forecasting</h2>
@@ -107,8 +128,8 @@ monthly %&gt;% FSA::headtail(n = 5)</code></pre>
   theme_bw(base_size = 12)+
   theme(axis.title.x = element_blank())+
   add_changepoints_to_plot(m = m, threshold = 0.1)</code></pre>
-<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-11-1.png" width="768" /></p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-9-1.png" width="768" /></p>
 <p>If we want to visualize the individual forecast components, we can use Prophet’s built-in plot_components function:</p>
 <pre class="r"><code>plot_forecast_component(m = m, fcst = forecast, name = &quot;trend&quot;)</code></pre>
-<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-12-1.png" width="768" /></p>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-10-1.png" width="768" /></p>
 </div>

@@ -1,5 +1,5 @@
 ---
-title: Forecasting Time Series with Prophet package in R
+title: Forecasting Rising Temperature with prophet package in R
 author: Masumbuko Semba
 date: '2022-02-27'
 slug: []
@@ -38,22 +38,31 @@ require(magrittr)
 require(tmap)
 require(prophet)
 
+## basemap shapefile from tmap package
 data("World")
 
-```
-```{r}
-mycolor2 = c("#040ED8", "#2050FF", "#4196FF", "#6DC1FF", "#86D9FF", "#9CEEFF", "#AFF5FF", "#CEFFFF", "#FFFE47", "#FFEB00", "#FFC400", "#FF9000", "#FF4800", "#FF0000", "#D50000", "#9E0000")
 
+# color codes
 mycolor3 = c("#9000B0", "#C900B0", "#C760AF", "#1190F9", "#60C8F8", "#90C9F8", "#F8F8F8", "#F8F800",  "#F8D730", "#f8b030", "#f8602f", "#f80000")
+
+
 ```
 
+## Dataset 
+We will use the NASA GISTEMP V4 dataset that combine NOAA GHCN meteorological stations and ERSST ocean temperature to form a comprehensive long record of temperature variability of the earth surface. The dataset contains monthly temperature values from 1880 to present, which is widely used to monitor the weather and climate at regional and global scale. Rather than using absolute temperature values, the dataset  uses anomaly obtained by using base period (1951-1980). 
+
+NASA’s analysis incorporates surface temperature measurements from more than 26,000 weather stations and thousands of ship- and buoy-based observations of sea surface temperatures. These raw measurements are analyzed using an algorithm that considers the varied spacing of temperature stations around the globe and urban heating effects that could skew the conclusions if not taken into account. The result of these calculations is an estimate of the global average temperature difference from a baseline period of 1951 to 1980.
+
+This dataset is open and free to download as netCDF format file at [GISTEMP](https://data.giss.nasa.gov/gistemp/). I have processed the file and we can load as the csv file here. 
 
 ```{r}
 global = read_csv("../data/temperature_lss_global_1990_2020_2021.csv")
 ```
 
 
-```{r temperature, fig.width=8, fig.cap="Global land and sea surface temperature anomaly for a year 2021"}
+The Earth’s global average surface temperature in 2021 tied 2018 (*See* Figure \@ref(fig:temperature)) is the sixth-warmest year on record, according to independent analyses from NASA and the National Oceanic and Atmospheric Administration (NOAA). According to scientists at NASA’s Goddard Institute for Space Studies (GISS), global temperatures in 2021 were 0.85 degrees Celsius above the average for NASA’s baseline period, 
+
+```{r temperature, fig.width=8, fig.cap="Global land and sea surface temperature anomaly for a year 2021 compared to to the 1950-1980 average"}
 temperature = global %>% filter(year == 2021)
 
 ggplot()+
@@ -70,6 +79,27 @@ ggplot()+
   # metR::scale_y_latitude(ticks = 15)+
   metR::scale_x_longitude()
 ```
+Regardless of the COVID-19 pandemic that reduction in mobility and human activities, along with reduced industrial production, has led to lower levels of nitrogen dioxide (NO2) and and the subsequent decrease of fossil fuel burning and CO2 emissions, NASA found that the year 2020 (Figure \@ref(fig:hottest)) was the hottest year on record. Continuing the planet’s long-term warming trend, the year’s globally averaged temperature was 1.02 degrees Celsius warmer than the baseline 1951-1980 mean, according to scientists at NASA’s Goddard Institute for Space Studies (GISS) in New York. 2020 edged out 2016 by a very small amount, within the margin of error of the analysis, making the years effectively tied for the warmest year on record. The last seven years have been the warmest seven years on record. 
+
+```{r hottest, echo=FALSE, fig.width=8, fig.cap="Globally, 2020 was the hottest year on record Global"}
+temperature = global %>% filter(year == 2020)
+
+ggplot()+
+  metR::geom_contour_fill(data = temperature, aes(x = lon, y = lat, z = temperature),bins = 120)+
+  metR::geom_contour2(data = temperature, aes(x = lon, y = lat, z = temperature,label = ..level..), breaks = 0, color = "red")+
+  ggspatial::layer_spatial(data = World, fill = NA)+
+  coord_sf(xlim = c(-180,180), ylim = c(-70,70))+
+  # metR::scale_fill_divergent(midpoint = 0)+
+  scale_fill_gradientn(colours = mycolor3, 
+                       # trans = scales::modulus_trans(p = .1),
+                       name = expression(T~(degree*C))) +
+  theme_bw(base_size = 12)+
+  theme(axis.title = element_blank())+
+  # metR::scale_y_latitude(ticks = 15)+
+  metR::scale_x_longitude()
+```
+
+
 ## Data Preparation & Exploration
 Prophet works best with periodicity data with at least one year of historical data. It's possible to use Prophet to forecast using sub-daily or monthly data, but for the purposes of this post, we'll use the monthly periodicity of global temperature---land and ocean . Let's us read the file into our session
 
@@ -80,7 +110,7 @@ monthly %>% FSA::headtail(n = 5)
 
 ```
 
-Lookin on the printed dataset, we note that we have records of land and sea temperature since January 1880 through January 2022. That is the long historical data that suits our analysis. The first thing we need to do is to create a time-series object in R. This is done by using a `ts` function and specify the start year and the frequency of observation. Since we have monthly records, the frequency for each year will be 12 as the chunk highlight
+Looking on the printed dataset, we note that we have records of land and sea temperature since January 1880 through January 2022. That is the long historical data that suits our analysis. The first thing we need to do is to create a time-series object in R. This is done by using a `ts` function and specify the start year and the frequency of observation. Since we have monthly records, the frequency for each year will be 12 as the chunk highlight
 
 ```{r}
 ts.temp = monthly %>% 
@@ -96,10 +126,9 @@ ts.df = ts.temp %>%
   TSstudio::ts_to_prophet()
 ```
 
+Tracking global temperature trends provides a critical indicator of the impact of human activities--- specifically, greenhouse gas emissions – on our planet. Visualizing the dataset as seen in figure figure \@ref(fig:trend). It's an undeniable fact the global mean temperature is constantly rising. Earth's average temperature has risen above 1.2 degrees Celsius) since the late 19th century and the IPCC has pointed out the increase should be limited to 1.5 °C above pre-industrial levels, to have any hope of mitigating the harmful effects of climate change. 
 
-Then, the result is visualized using **ggplot2** package
-
-```{r, fig.width=8, fig.height=3}
+```{r trend, fig.width=8, fig.height=3, fig.cap="Trend of global temperature"}
 ts.df %>% 
   ggplot(aes(x = ds, y = y))+
   geom_line()+
@@ -143,10 +172,10 @@ plot(x = m, fcst = forecast, uncertainty = T,plot_cap = T,)+
 
 If we want to visualize the individual forecast components, we can use Prophet’s built-in plot_components function:
 
-
 ```{r, fig.width=8, fig.height=3}
 
 plot_forecast_component(m = m, fcst = forecast, name = "trend")
 
 ```
+
 
