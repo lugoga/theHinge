@@ -133,10 +133,12 @@ sp_tbl <- tidied_cran_imports %>%
 
 sp_tbl %>% 
   ggraph(layout = 'fr') + 
-  geom_edge_link(colour = "grey50") + 
-  geom_node_point()+
-  geom_node_text(aes(label = name), colour = "black", size = 3.5, parse = TRUE, repel = FALSE, check_overlap = TRUE, nudge_y = .2) +
-  theme_void()
+  geom_edge_link(colour = "grey") + 
+  geom_node_point(colour="lightblue", size=2) + 
+  geom_node_text(aes(label=name), repel=FALSE, check_overlap = TRUE, nudge_y = .2) +  
+  theme_graph()
+  
+
 ```
 
 

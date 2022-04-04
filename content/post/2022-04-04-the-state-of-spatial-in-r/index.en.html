@@ -145,10 +145,10 @@ env_tbl %&gt;%
 
 sp_tbl %&gt;% 
   ggraph(layout = &#39;fr&#39;) + 
-  geom_edge_link(colour = &quot;grey50&quot;) + 
-  geom_node_point()+
-  geom_node_text(aes(label = name), colour = &quot;black&quot;, size = 3.5, parse = TRUE, repel = FALSE, check_overlap = TRUE, nudge_y = .2) +
-  theme_void()</code></pre>
+  geom_edge_link(colour = &quot;grey&quot;) + 
+  geom_node_point(colour=&quot;lightblue&quot;, size=2) + 
+  geom_node_text(aes(label=name), repel=FALSE, check_overlap = TRUE, nudge_y = .2) +  
+  theme_graph()</code></pre>
 <p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-10-1.png" width="576" /></p>
 <pre class="r"><code>sp_tbl %&gt;% 
   ggraph(layout = &#39;linear&#39;,circular = TRUE) + 
