@@ -1,0 +1,182 @@
+---
+title: The State of Spatial in R
+author: Masumbuko Semba
+date: '2022-04-04'
+slug: []
+categories:
+  - spatial
+  - R
+tags:
+  - Masumbuko Semba
+  - spatial
+description: ''
+thumbnail: ''
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, eval = FALSE, comment = "")
+
+load(file = "d:/semba/theHinge/content/post/2020-02-04-vector-data-in-r/data/crans.RData")
+
+```
+
+
+R is particularly powerful for spatial statistical analysis and quantitative researchers in particular may find R more useful than GIS desktop applications. As data becomes more geographical, there is a growing necessity to make spatial data more accessible and easy to process. While there are plenty of tools out there that can make your life much easier when processing spatial data (e.g. QGIS and ArcMap) using R to conduct spatial analysis can be just as easy. This is especially true if you’re new to some of these packages and don’t feel like reading through all of the documentation to learn the package or, even more tedious, writing hundreds of lines of your own code to do something relatively simple. In this article I discuss a few packages that make common spatial statistics methods easy to perform in R.
+
+We will conduct a high-level assessment of the R packages that are dedicated for spatial analysis. By showing network connection across package dependencies — which packages utilize code from another package to execute a task – we will undertake a high-level assessment of the condition of spatial in R. For comparison, we'll compare our Analysis of Spatial Data task view to the tidyverse, one of R's most well-known collections of packages, as well as the venerable Environmetrics task view, which includes numerous environmental analysis tools. To accomplish so, we'll need to write some R code and install the following packages:
+
+```{r, eval=TRUE}
+
+library(tidyverse)
+library(tidygraph)
+library(ggraph)
+library(ctv)
+library(tools)
+library(cranlogs)
+
+```
+
+
+We will use the handy `CRAN_package_db` function from the **tools** package which conveniently grabs information from the `DESCRIPTION` file of every package on CRAN and turns it into a dataframe. 
+
+```{r}
+
+all_cran_packages <- CRAN_package_db()
+
+```
+
+
+```{r, eval=TRUE}
+all_cran_packages %>% 
+  glimpse()
+```
+
+Here we are interested with the package and imports columns, so we will select them and drop the rest from the dataset.  Then, we parse clean and tidy the columns in the dataset to make it a little easier to work with:
+
+
+```{r}
+
+tidied_cran_imports = all_cran_packages %>% 
+  janitor::clean_names() %>% 
+  select(package, imports) %>% 
+  as_tibble() %>% 
+  separate_rows(imports, sep = ",") %>% 
+  mutate(imports = str_replace(imports,"\\s*\\([^\\)]+\\)","")) %>%
+  mutate(imports = str_trim(imports, side = "both")) 
+
+tidied_cran_imports %>% head(10)
+```
+
+## Package Connectivity
+Let's start with a look at the tidyverse. We can take the unusual step of actually employing a function from the tidyverse package (aptly titled `tidyverse_packages`), which identifies those packages that are formally part of the tidyverse. To see package connection, we filter for those packages and their imports, convert to `tbl_graph`, then plot using **ggraph**:
+
+```{r, eval=TRUE, fig.width=6, fig.height=6}
+tidyverse_tbl <- tidied_cran_imports %>% 
+  filter(package %in% tidyverse_packages()) %>%
+  filter(imports %in% tidyverse_packages()) %>%
+  as_tbl_graph()
+```
+
+
+```{r, eval=TRUE, fig.width=6, fig.height=6}
+ggraph(tidyverse_tbl, layout = "nicely")  + 
+  geom_edge_link(colour = "grey50") + 
+  geom_node_point()+
+  geom_node_text(aes(label = name), colour = "black", size = 3.5, parse = TRUE, repel = FALSE, check_overlap = TRUE, nudge_y = .12) +
+  theme_void()
+
+
+```
+
+Many intersecting lines traverse in all directions, as one might anticipate, because many packages in tidyverse import other packages. As the tidyverse develops, this is to be expected.
+
+```{r}
+env_packages <- ctv:::.get_pkgs_from_ctv_or_repos(views = "Environmetrics") %>% 
+  unlist(use.names = FALSE)
+```
+
+
+```{r, eval=TRUE}
+env_tbl <- tidied_cran_imports %>%
+  filter(package %in% env_packages) %>%
+  filter(imports %in% env_packages) %>%
+  as_tbl_graph()
+
+env_tbl %>% 
+  ggraph(layout = 'nicely') + 
+  geom_edge_link(colour = "grey50") + 
+  geom_node_point()+
+  geom_node_text(aes(label = name), colour = "black", size = 3.5, parse = TRUE, repel = FALSE, check_overlap = TRUE, nudge_y = .3) +
+  theme_void()
+
+
+```
+
+
+Next, let's look at the Spatial Analysis task view, where we might not expect to see the same level of connectedness. The infrastructure underlying CRAN task views, the **ctv** package, (sort of) provides a function to obtain a vector of package names for a given task view, which we can use to make a network plot:
+
+```{r, fig.width=6, fig.height=6}
+spatial_packages <- ctv:::.get_pkgs_from_ctv_or_repos(views = "Spatial") %>% 
+  unlist(use.names = FALSE)
+```
+
+
+We then pull the packages that are in  spatial analysis task view that are found in all packages that are tidied and convert them to ggraph table and plot the network
+
+```{r, eval=TRUE, fig.width=6, fig.height=6}
+sp_tbl <- tidied_cran_imports %>%
+  filter(package %in% spatial_packages) %>%
+  filter(imports %in% spatial_packages) %>%
+  as_tbl_graph()
+
+sp_tbl %>% 
+  ggraph(layout = 'fr') + 
+  geom_edge_link(colour = "grey50") + 
+  geom_node_point()+
+  geom_node_text(aes(label = name), colour = "black", size = 3.5, parse = TRUE, repel = FALSE, check_overlap = TRUE, nudge_y = .2) +
+  theme_void()
+```
+
+
+```{r, eval=TRUE, fig.width=6, fig.height=6}
+
+sp_tbl %>% 
+  ggraph(layout = 'linear',circular = TRUE) + 
+  geom_edge_link(colour = "grey50") + 
+  geom_node_point()+
+  geom_node_text(aes(label = name), colour = "black", size = 3.5, parse = TRUE, repel = TRUE, check_overlap = TRUE) +
+  theme_void()
+
+```
+
+
+There is clearly some connectivity among spatial-related packages, which serves as a reminder that task views on CRAN aren't the only location where users find packages to use. Some programs, like **sf**, establish a hub of related packages because they share a package maintainer, while others, like **sp**, investigate spatial systems using a wide range of spatial packages. The graph below shows the number of downloads of the **cranlogs** package from the RStudio CRAN mirror over the last year.
+
+
+```{r}
+kgcount <- cran_downloads(packages = spatial_packages, 
+                           from = Sys.Date()-1*365, 
+                           to = Sys.Date())
+```
+
+
+```{r, eval=TRUE}
+kgcount %>%
+  group_by(package) %>%
+  summarise(downloads = sum(count)) %>%
+  filter(downloads >= 450000) %>%
+  ggplot(aes(x = reorder(package, downloads), y = downloads)) +
+  geom_col(aes(fill = downloads)) +
+  geom_text(aes(y = 100000, label = package), size = 3.5, colour = "white", 
+            hjust = 0, nudge_y = -500, angle = 0) +
+  scale_fill_viridis_c(name = "Downloads", option = "D", end = 0.75)+
+  theme_bw(base_size = 12) +
+  theme(axis.text.y = element_blank(), legend.position = "none")+
+  coord_flip()+
+  scale_y_continuous(expand = c(0, NA), name = "Downloads per month", position = "right")+
+  scale_x_discrete(name = "Spatial Package")
+```
+
+

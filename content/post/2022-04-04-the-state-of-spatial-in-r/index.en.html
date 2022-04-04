@@ -1,0 +1,179 @@
+---
+title: The State of Spatial in R
+author: Masumbuko Semba
+date: '2022-04-04'
+slug: []
+categories:
+  - spatial
+  - R
+tags:
+  - Masumbuko Semba
+  - spatial
+description: ''
+thumbnail: ''
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<p>R is particularly powerful for spatial statistical analysis and quantitative researchers in particular may find R more useful than GIS desktop applications. As data becomes more geographical, there is a growing necessity to make spatial data more accessible and easy to process. While there are plenty of tools out there that can make your life much easier when processing spatial data (e.g. QGIS and ArcMap) using R to conduct spatial analysis can be just as easy. This is especially true if you’re new to some of these packages and don’t feel like reading through all of the documentation to learn the package or, even more tedious, writing hundreds of lines of your own code to do something relatively simple. In this article I discuss a few packages that make common spatial statistics methods easy to perform in R.</p>
+<p>We will conduct a high-level assessment of the R packages that are dedicated for spatial analysis. By showing network connection across package dependencies — which packages utilize code from another package to execute a task – we will undertake a high-level assessment of the condition of spatial in R. For comparison, we’ll compare our Analysis of Spatial Data task view to the tidyverse, one of R’s most well-known collections of packages, as well as the venerable Environmetrics task view, which includes numerous environmental analysis tools. To accomplish so, we’ll need to write some R code and install the following packages:</p>
+<pre class="r"><code>library(tidyverse)
+library(tidygraph)
+library(ggraph)
+library(ctv)
+library(tools)
+library(cranlogs)</code></pre>
+<p>We will use the handy <code>CRAN_package_db</code> function from the <strong>tools</strong> package which conveniently grabs information from the <code>DESCRIPTION</code> file of every package on CRAN and turns it into a dataframe.</p>
+<pre class="r"><code>all_cran_packages &lt;- CRAN_package_db()</code></pre>
+<pre class="r"><code>all_cran_packages %&gt;% 
+  glimpse()</code></pre>
+<pre><code>Rows: 19,050
+Columns: 66
+$ Package                   &lt;chr&gt; &quot;A3&quot;, &quot;aaSEA&quot;, &quot;AATtools&quot;, &quot;ABACUS&quot;, &quot;abbrev~
+$ Version                   &lt;chr&gt; &quot;1.0.0&quot;, &quot;1.1.0&quot;, &quot;0.0.1&quot;, &quot;1.0.0&quot;, &quot;0.1&quot;, &quot;~
+$ Priority                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ Depends                   &lt;chr&gt; &quot;R (&gt;= 2.15.0), xtable, pbapply&quot;, &quot;R(&gt;= 3.4.~
+$ Imports                   &lt;chr&gt; NA, &quot;DT(&gt;= 0.4), networkD3(&gt;= 0.4), shiny(&gt;=~
+$ LinkingTo                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, &quot;Rcpp, B~
+$ Suggests                  &lt;chr&gt; &quot;randomForest, e1071&quot;, &quot;knitr, rmarkdown&quot;, N~
+$ Enhances                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ License                   &lt;chr&gt; &quot;GPL (&gt;= 2)&quot;, &quot;GPL-3&quot;, &quot;GPL-3&quot;, &quot;GPL-3&quot;, &quot;GP~
+$ License_is_FOSS           &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ License_restricts_use     &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ OS_type                   &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ Archs                     &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ MD5sum                    &lt;chr&gt; &quot;027ebdd8affce8f0effaecfcd5f5ade2&quot;, &quot;0f9aaef~
+$ NeedsCompilation          &lt;chr&gt; &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;n~
+$ Additional_repositories   &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ Author                    &lt;chr&gt; &quot;Scott Fortmann-Roe&quot;, &quot;Raja Sekhara Reddy D.~
+$ `Authors@R`               &lt;chr&gt; NA, NA, &quot;person(\&quot;Sercan\&quot;, \&quot;Kahveci\&quot;, ema~
+$ Biarch                    &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ BugReports                &lt;chr&gt; NA, NA, &quot;https://github.com/Spiritspeak/AATt~
+$ BuildKeepEmpty            &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ BuildManual               &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ BuildResaveData           &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ BuildVignettes            &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ Built                     &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ ByteCompile               &lt;chr&gt; NA, NA, &quot;true&quot;, NA, NA, NA, NA, NA, NA, NA, ~
+$ `Classification/ACM`      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ `Classification/ACM-2012` &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ `Classification/JEL`      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ `Classification/MSC`      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ `Classification/MSC-2010` &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ Collate                   &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ Collate.unix              &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ Collate.windows           &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ Contact                   &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, &quot;Ian Morison~
+$ Copyright                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ Date                      &lt;chr&gt; &quot;2015-08-15&quot;, NA, NA, NA, &quot;2021-12-12&quot;, NA, ~
+$ Description               &lt;chr&gt; &quot;Supplies tools for tabulating and analyzing~
+$ Encoding                  &lt;chr&gt; NA, &quot;UTF-8&quot;, &quot;UTF-8&quot;, &quot;UTF-8&quot;, &quot;UTF-8&quot;, NA, ~
+$ KeepSource                &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ Language                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ LazyData                  &lt;chr&gt; NA, &quot;true&quot;, &quot;true&quot;, &quot;true&quot;, NA, &quot;true&quot;, NA, ~
+$ LazyDataCompression       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ LazyLoad                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, &quot;yes~
+$ MailingList               &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ Maintainer                &lt;chr&gt; &quot;Scott Fortmann-Roe &lt;scottfr@berkeley.edu&gt;&quot;,~
+$ Note                      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ Packaged                  &lt;chr&gt; &quot;2015-08-16 14:17:33 UTC; scott&quot;, &quot;2019-11-0~
+$ RdMacros                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ StagedInstall             &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ SysDataCompression        &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ SystemRequirements        &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, &quot;GNU make&quot;, ~
+$ Title                     &lt;chr&gt; &quot;Accurate, Adaptable, and Accessible Error M~
+$ Type                      &lt;chr&gt; &quot;Package&quot;, &quot;Package&quot;, &quot;Package&quot;, NA, &quot;Packag~
+$ URL                       &lt;chr&gt; NA, NA, NA, &quot;https://shiny.abdn.ac.uk/Stats/~
+$ UseLTO                    &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ VignetteBuilder           &lt;chr&gt; NA, &quot;knitr&quot;, NA, &quot;knitr&quot;, NA, &quot;knitr&quot;, NA, N~
+$ ZipData                   &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ Published                 &lt;chr&gt; &quot;2015-08-16&quot;, &quot;2019-11-09&quot;, &quot;2020-06-14&quot;, &quot;2~
+$ Path                      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ `X-CRAN-Comment`          &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ `Reverse depends`         &lt;chr&gt; NA, NA, NA, NA, NA, NA, &quot;abctools, EasyABC&quot;,~
+$ `Reverse imports`         &lt;chr&gt; NA, NA, NA, NA, NA, NA, &quot;ecolottery, poems&quot;,~
+$ `Reverse linking to`      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+$ `Reverse suggests`        &lt;chr&gt; NA, NA, NA, NA, NA, NA, &quot;coala&quot;, &quot;abctools&quot;,~
+$ `Reverse enhances`        &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~</code></pre>
+<p>Here we are interested with the package and imports columns, so we will select them and drop the rest from the dataset. Then, we parse clean and tidy the columns in the dataset to make it a little easier to work with:</p>
+<pre class="r"><code>tidied_cran_imports = all_cran_packages %&gt;% 
+  janitor::clean_names() %&gt;% 
+  select(package, imports) %&gt;% 
+  as_tibble() %&gt;% 
+  separate_rows(imports, sep = &quot;,&quot;) %&gt;% 
+  mutate(imports = str_replace(imports,&quot;\\s*\\([^\\)]+\\)&quot;,&quot;&quot;)) %&gt;%
+  mutate(imports = str_trim(imports, side = &quot;both&quot;)) 
+
+tidied_cran_imports %&gt;% head(10)</code></pre>
+<div id="package-connectivity" class="section level2">
+<h2>Package Connectivity</h2>
+<p>Let’s start with a look at the tidyverse. We can take the unusual step of actually employing a function from the tidyverse package (aptly titled <code>tidyverse_packages</code>), which identifies those packages that are formally part of the tidyverse. To see package connection, we filter for those packages and their imports, convert to <code>tbl_graph</code>, then plot using <strong>ggraph</strong>:</p>
+<pre class="r"><code>tidyverse_tbl &lt;- tidied_cran_imports %&gt;% 
+  filter(package %in% tidyverse_packages()) %&gt;%
+  filter(imports %in% tidyverse_packages()) %&gt;%
+  as_tbl_graph()</code></pre>
+<pre class="r"><code>ggraph(tidyverse_tbl, layout = &quot;nicely&quot;)  + 
+  geom_edge_link(colour = &quot;grey50&quot;) + 
+  geom_node_point()+
+  geom_node_text(aes(label = name), colour = &quot;black&quot;, size = 3.5, parse = TRUE, repel = FALSE, check_overlap = TRUE, nudge_y = .12) +
+  theme_void()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-6-1.png" width="576" /></p>
+<p>Many intersecting lines traverse in all directions, as one might anticipate, because many packages in tidyverse import other packages. As the tidyverse develops, this is to be expected.</p>
+<pre class="r"><code>env_packages &lt;- ctv:::.get_pkgs_from_ctv_or_repos(views = &quot;Environmetrics&quot;) %&gt;% 
+  unlist(use.names = FALSE)</code></pre>
+<pre class="r"><code>env_tbl &lt;- tidied_cran_imports %&gt;%
+  filter(package %in% env_packages) %&gt;%
+  filter(imports %in% env_packages) %&gt;%
+  as_tbl_graph()
+
+env_tbl %&gt;% 
+  ggraph(layout = &#39;nicely&#39;) + 
+  geom_edge_link(colour = &quot;grey50&quot;) + 
+  geom_node_point()+
+  geom_node_text(aes(label = name), colour = &quot;black&quot;, size = 3.5, parse = TRUE, repel = FALSE, check_overlap = TRUE, nudge_y = .3) +
+  theme_void()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>Next, let’s look at the Spatial Analysis task view, where we might not expect to see the same level of connectedness. The infrastructure underlying CRAN task views, the <strong>ctv</strong> package, (sort of) provides a function to obtain a vector of package names for a given task view, which we can use to make a network plot:</p>
+<pre class="r"><code>spatial_packages &lt;- ctv:::.get_pkgs_from_ctv_or_repos(views = &quot;Spatial&quot;) %&gt;% 
+  unlist(use.names = FALSE)</code></pre>
+<p>We then pull the packages that are in spatial analysis task view that are found in all packages that are tidied and convert them to ggraph table and plot the network</p>
+<pre class="r"><code>sp_tbl &lt;- tidied_cran_imports %&gt;%
+  filter(package %in% spatial_packages) %&gt;%
+  filter(imports %in% spatial_packages) %&gt;%
+  as_tbl_graph()
+
+sp_tbl %&gt;% 
+  ggraph(layout = &#39;fr&#39;) + 
+  geom_edge_link(colour = &quot;grey50&quot;) + 
+  geom_node_point()+
+  geom_node_text(aes(label = name), colour = &quot;black&quot;, size = 3.5, parse = TRUE, repel = FALSE, check_overlap = TRUE, nudge_y = .2) +
+  theme_void()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-10-1.png" width="576" /></p>
+<pre class="r"><code>sp_tbl %&gt;% 
+  ggraph(layout = &#39;linear&#39;,circular = TRUE) + 
+  geom_edge_link(colour = &quot;grey50&quot;) + 
+  geom_node_point()+
+  geom_node_text(aes(label = name), colour = &quot;black&quot;, size = 3.5, parse = TRUE, repel = TRUE, check_overlap = TRUE) +
+  theme_void()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-11-1.png" width="576" /></p>
+<p>There is clearly some connectivity among spatial-related packages, which serves as a reminder that task views on CRAN aren’t the only location where users find packages to use. Some programs, like <strong>sf</strong>, establish a hub of related packages because they share a package maintainer, while others, like <strong>sp</strong>, investigate spatial systems using a wide range of spatial packages. The graph below shows the number of downloads of the <strong>cranlogs</strong> package from the RStudio CRAN mirror over the last year.</p>
+<pre class="r"><code>kgcount &lt;- cran_downloads(packages = spatial_packages, 
+                           from = Sys.Date()-1*365, 
+                           to = Sys.Date())</code></pre>
+<pre class="r"><code>kgcount %&gt;%
+  group_by(package) %&gt;%
+  summarise(downloads = sum(count)) %&gt;%
+  filter(downloads &gt;= 450000) %&gt;%
+  ggplot(aes(x = reorder(package, downloads), y = downloads)) +
+  geom_col(aes(fill = downloads)) +
+  geom_text(aes(y = 100000, label = package), size = 3.5, colour = &quot;white&quot;, 
+            hjust = 0, nudge_y = -500, angle = 0) +
+  scale_fill_viridis_c(name = &quot;Downloads&quot;, option = &quot;D&quot;, end = 0.75)+
+  theme_bw(base_size = 12) +
+  theme(axis.text.y = element_blank(), legend.position = &quot;none&quot;)+
+  coord_flip()+
+  scale_y_continuous(expand = c(0, NA), name = &quot;Downloads per month&quot;, position = &quot;right&quot;)+
+  scale_x_discrete(name = &quot;Spatial Package&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+</div>
